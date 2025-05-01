@@ -1,157 +1,256 @@
 "use client"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Package, Truck, Clock, BarChart3, Calendar, ArrowUpRight } from "lucide-react"
+
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
+import { Package, Truck, Bell, Search, SlidersHorizontal, MoreVertical } from "lucide-react"
+import { useToast } from "@/components/ui/use-toast"
+import { Skeleton } from "@/components/ui/skeleton"
+import { Alert, AlertDescription } from "@/components/ui/alert"
+import { AlertCircle } from "lucide-react"
+import { getUser, getAddress } from "@/lib/api"
+import { useSession } from "next-auth/react"
+import { useAuth } from "@/components/auth-provider"
+
+interface Shipment {
+  id: string
+  trackingNumber: string
+  status: string
+  receiverName: string
+  deliveryAddress: {
+    city: string
+  }
+  pickupAddress: {
+    city: string
+  }
+}
 
 export default function DashboardPage() {
-  const router = useRouter();
+  const router = useRouter()
+  const { toast } = useToast()
+  const { user, token } = useAuth()
+  const [isLoading, setIsLoading] = useState(true)
+  const [searchQuery, setSearchQuery] = useState("")
+  const [error, setError] = useState<string | null>(null)
+  const [shipments, setShipments] = useState<Shipment[]>([])
+  const [userData, setUserData] = useState({ firstName: "User" })
+  const [addresses, setAddresses] = useState<any[]>([])
+
+  useEffect(() => {
+    if (token) {
+      loadData()
+    }
+  }, [token])
+
+  const loadData = async () => {
+    setIsLoading(true)
+    try {
+      // Fetch user data
+      const userResponse = await getUser(token as string)
+      setUserData(userResponse.data)
+
+      // Fetch addresses
+      const addressesResponse = await getAddress(token as string)
+      if (addressesResponse.success) {
+        setAddresses(addressesResponse.data)
+      }
+
+      // Fetch shipments (you'll need to implement this in your API)
+      // const shipmentsResponse = await getShipments(session?.user?.accessToken as string)
+      // if (shipmentsResponse.success) {
+      //   setShipments(shipmentsResponse.data)
+      // }
+
+      // For now, using mock data until you implement the shipments API
+      const mockShipments: Shipment[] = [
+        {
+          id: "1",
+          trackingNumber: "JL-2023001",
+          status: "In Transit",
+          receiverName: "Sarah Johnson",
+          deliveryAddress: { city: "New York" },
+          pickupAddress: { city: "Los Angeles" }
+        },
+        {
+          id: "2",
+          trackingNumber: "JL-2023002",
+          status: "Delivered",
+          receiverName: "Michael Brown",
+          deliveryAddress: { city: "Chicago" },
+          pickupAddress: { city: "Miami" }
+        }
+      ]
+      setShipments(mockShipments)
+
+    } catch (error: any) {
+      console.error("Error loading data:", error)
+      setError(error.response?.data?.message || "Failed to load data")
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: error.response?.data?.message || "Failed to load data",
+      })
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const handleNewShipment = () => {
+    if (addresses.length === 0) {
+      toast({
+        variant: "destructive",
+        title: "No Addresses Found",
+        description: "Please add an address before creating a shipment",
+      })
+      router.push("/settings/add-address")
+    } else {
+      router.push("/dashboard/shipments/create")
+    }
+  }
+
+  const handleSearch = async () => {
+    if (!searchQuery.trim()) return
+
+    try {
+      setIsLoading(true)
+      // Implement search functionality
+      // const searchResponse = await searchShipments(searchQuery, session?.user?.accessToken as string)
+      // setShipments(searchResponse.data)
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Search Error",
+        description: error.response?.data?.message || "Failed to search shipments",
+      })
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
   return (
-        <main className="flex flex-col">
-          <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
-            <div className="flex items-center justify-between space-y-2">
-              <h2 className="text-3xl font-bold tracking-tight">Dashboard</h2>
-              <div className="flex items-center space-x-2">
-                <Button onClick={()=> router.push("/dashboard/shipments/create")}>
-                  <Package className="mr-2 h-4 w-4" /> New Shipment
-                </Button>
-              </div>
-            </div>
-            <Tabs defaultValue="overview" className="space-y-4">
-              <TabsList>
-                <TabsTrigger value="overview">Overview</TabsTrigger>
-                <TabsTrigger value="shipments">Shipments</TabsTrigger>
-                <TabsTrigger value="analytics">Analytics</TabsTrigger>
-              </TabsList>
-              <TabsContent value="overview" className="space-y-4">
-                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-                  <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                      <CardTitle className="text-sm font-medium">Active Shipments</CardTitle>
-                      <Package className="h-4 w-4 text-muted-foreground" />
-                    </CardHeader>
-                    <CardContent>
-                      <div className="text-2xl font-bold">12</div>
-                      <p className="text-xs text-muted-foreground">+2 from last week</p>
-                    </CardContent>
-                  </Card>
-                  <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                      <CardTitle className="text-sm font-medium">Delivered</CardTitle>
-                      <Truck className="h-4 w-4 text-muted-foreground" />
-                    </CardHeader>
-                    <CardContent>
-                      <div className="text-2xl font-bold">24</div>
-                      <p className="text-xs text-muted-foreground">+5 from last week</p>
-                    </CardContent>
-                  </Card>
-                  <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                      <CardTitle className="text-sm font-medium">Pending</CardTitle>
-                      <Clock className="h-4 w-4 text-muted-foreground" />
-                    </CardHeader>
-                    <CardContent>
-                      <div className="text-2xl font-bold">3</div>
-                      <p className="text-xs text-muted-foreground">-2 from last week</p>
-                    </CardContent>
-                  </Card>
-                  <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                      <CardTitle className="text-sm font-medium">Total Shipments</CardTitle>
-                      <BarChart3 className="h-4 w-4 text-muted-foreground" />
-                    </CardHeader>
-                    <CardContent>
-                      <div className="text-2xl font-bold">127</div>
-                      <p className="text-xs text-muted-foreground">+19% from last month</p>
-                    </CardContent>
-                  </Card>
-                </div>
-                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
-                  <Card className="col-span-4">
-                    <CardHeader>
-                      <CardTitle>Recent Shipments</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="space-y-4">
-                        {[1, 2, 3, 4, 5].map((i) => (
-                          <div key={i} className="flex items-center">
-                            <div className="mr-4 space-y-1">
-                              <p className="text-sm font-medium leading-none">JL-{2023000 + i}</p>
-                              <p className="text-sm text-muted-foreground">
-                                {i % 2 === 0 ? "Air Freight" : "Road Freight"}
-                              </p>
-                            </div>
-                            <div className="ml-auto font-medium">
-                              {i % 3 === 0 ? (
-                                <span className="text-orange-500">In Transit</span>
-                              ) : i % 3 === 1 ? (
-                                <span className="text-green-500">Delivered</span>
-                              ) : (
-                                <span className="text-blue-500">Processing</span>
-                              )}
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </CardContent>
-                  </Card>
-                  <Card className="col-span-3">
-                    <CardHeader>
-                      <CardTitle>Upcoming Pickups</CardTitle>
-                      <CardDescription>You have 3 pickups scheduled</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="space-y-4">
-                        {[1, 2, 3].map((i) => (
-                          <div key={i} className="flex items-center">
-                            <Calendar className="mr-2 h-4 w-4 text-muted-foreground" />
-                            <div className="space-y-1">
-                              <p className="text-sm font-medium leading-none">
-                                {new Date(Date.now() + i * 86400000).toLocaleDateString()}
-                              </p>
-                              <p className="text-sm text-muted-foreground">
-                                {i === 1 ? "10:00 AM" : i === 2 ? "2:30 PM" : "9:15 AM"}
-                              </p>
-                            </div>
-                            <div className="ml-auto">
-                              <Button variant="ghost" size="sm">
-                                <ArrowUpRight className="h-4 w-4" />
-                              </Button>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </CardContent>
-                  </Card>
-                </div>
-              </TabsContent>
-              <TabsContent value="shipments" className="space-y-4">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>All Shipments</CardTitle>
-                    <CardDescription>View and manage all your shipments</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-sm text-muted-foreground">
-                      Shipment content would be displayed here with filtering and sorting options.
-                    </p>
-                  </CardContent>
-                </Card>
-              </TabsContent>
-              <TabsContent value="analytics" className="space-y-4">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Shipping Analytics</CardTitle>
-                    <CardDescription>View detailed analytics of your shipping activity</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-sm text-muted-foreground">Analytics charts and data would be displayed here.</p>
-                  </CardContent>
-                </Card>
-              </TabsContent>
-            </Tabs>
+    <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center space-x-4">
+          <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center">
+            <Package className="h-5 w-5" />
           </div>
-        </main>
+          <h2 className="text-2xl font-bold tracking-tight">
+            Hi, {userData.firstName}
+          </h2>
+        </div>
+        <Button variant="ghost" size="icon" className="relative">
+          <Bell className="h-5 w-5" />
+          <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
+            0
+          </span>
+        </Button>
+      </div>
+
+      {/* Search Bar */}
+      <div className="flex items-center space-x-2">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Track your package"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && handleSearch()}
+            className="pl-10"
+          />
+        </div>
+        <Button variant="outline" size="icon">
+          <SlidersHorizontal className="h-4 w-4" />
+        </Button>
+      </div>
+
+      {/* Promotional Card */}
+      <Card className="bg-gradient-to-r from-blue-900 to-blue-800 text-white">
+        <CardContent className="p-6">
+          <div className="flex items-center justify-between">
+            <div className="space-y-2">
+              <h3 className="text-lg font-medium">Start Shipping</h3>
+              <h2 className="text-2xl font-bold">World-wide</h2>
+              <p className="text-blue-200">on your next shipping</p>
+              <Button 
+                variant="secondary" 
+                className="mt-4"
+                onClick={handleNewShipment}
+              >
+                Send Package
+              </Button>
+            </div>
+            <div className="w-32 h-32 relative">
+              <Package className="w-full h-full text-blue-200/20" />
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Recent Deliveries */}
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <h3 className="text-lg font-semibold">Recent Deliveries</h3>
+          <Button variant="link" onClick={() => router.push("/dashboard/shipments")}>
+            See all
+          </Button>
+        </div>
+
+        {isLoading ? (
+          <div className="space-y-4">
+            {[1, 2].map((i) => (
+              <Skeleton key={i} className="h-20 w-full" />
+            ))}
+          </div>
+        ) : error ? (
+          <Alert variant="destructive">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        ) : shipments.length > 0 ? (
+          <div className="space-y-4">
+            {shipments.map((shipment) => (
+              <Card 
+                key={shipment.id} 
+                className="cursor-pointer hover:bg-muted/50"
+                onClick={() => router.push(`/dashboard/shipments/${shipment.trackingNumber}`)}
+              >
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-4">
+                      <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
+                        <Package className="h-4 w-4 text-blue-600" />
+                      </div>
+                      <div>
+                        <p className="font-medium">
+                          {shipment.receiverName} - {shipment.deliveryAddress.city}
+                        </p>
+                        <p className="text-sm text-muted-foreground">
+                          Tracking ID: {shipment.trackingNumber}
+                        </p>
+                        <p className="text-sm text-muted-foreground">
+                          Status: {shipment.status}
+                        </p>
+                      </div>
+                    </div>
+                    <Button variant="ghost" size="icon">
+                      <MoreVertical className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        ) : (
+          <Card>
+            <CardContent className="p-4 text-center text-muted-foreground">
+              No recent deliveries found.
+            </CardContent>
+          </Card>
+        )}
+      </div>
+    </div>
   )
 }

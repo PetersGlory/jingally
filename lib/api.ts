@@ -1,5 +1,7 @@
 import axios from "axios";
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000/api";
+
 export const api = axios.create({
   baseURL: "https://jingally-server.onrender.com/api",
 });
@@ -131,5 +133,46 @@ export const verifyAddress = async (addressId: string, token: string) => {
     },
   });
   return response.data;
-};  
+};
+
+export const createShipment = async (token: string, data: {
+  packageDetails: {
+    type: string;
+    description: string;
+    weight: string;
+    length: string;
+    width: string;
+    height: string;
+    isFragile: boolean;
+  };
+  pickupAddressId: string;
+  deliveryAddressId: string;
+  receiver: {
+    name: string;
+    phone: string;
+    email: string;
+  };
+  shippingMethod: "air" | "sea";
+  pickupDate: string;
+  pickupTime: string;
+}) => {
+  const response = await fetch(`${API_URL}/shipments`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`
+    },
+    body: JSON.stringify(data)
+  });
+  return response.json();
+};
+
+export const getAddresses = async (token: string) => {
+  const response = await fetch(`${API_URL}/addresses`, {
+    headers: {
+      'Authorization': `Bearer ${token}`
+    }
+  });
+  return response.json();
+};
 
