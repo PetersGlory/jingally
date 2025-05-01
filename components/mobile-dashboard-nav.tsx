@@ -6,7 +6,7 @@ import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
-import { Package, Truck, Clock, Settings, CreditCard, Home, BarChart3, HelpCircle, LogOut, Menu } from "lucide-react"
+import { Package, Truck, Clock, Settings,  Home, HelpCircle, LogOut, Menu } from "lucide-react"
 
 interface NavItem {
   title: string
@@ -34,16 +34,6 @@ const navItems: NavItem[] = [
     title: "History",
     href: "/dashboard/history",
     icon: Clock,
-  },
-  {
-    title: "Analytics",
-    href: "/dashboard/analytics",
-    icon: BarChart3,
-  },
-  {
-    title: "Billing",
-    href: "/dashboard/billing",
-    icon: CreditCard,
   },
   {
     title: "Settings",

@@ -97,7 +97,7 @@ export default function ShipmentsPage() {
   })
 
   return (
-        <main className="flex flex-col">
+        <main className="flex flex-col w-full">
           <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
             <div className="flex items-center justify-between space-y-2">
               <h2 className="text-3xl font-bold tracking-tight">Shipments</h2>
@@ -108,7 +108,7 @@ export default function ShipmentsPage() {
               </Link>
             </div>
 
-            <Card>
+            <Card className=" w-full overflow-x-auto">
               <CardHeader>
                 <CardTitle>All Shipments</CardTitle>
                 <CardDescription>View and manage all your shipments</CardDescription>
@@ -157,7 +157,7 @@ export default function ShipmentsPage() {
                   </div>
                 </div>
 
-                <div className="mt-6 rounded-md border">
+                <div className="mt-6 rounded-md border w-full overflow-x-auto">
                   <Table>
                     <TableHeader>
                       <TableRow>
