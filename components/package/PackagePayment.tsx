@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { CreditCard, Shield, Check, X, Edit2 } from 'lucide-react';
 import styles from './PackagePayment.module.css';
+import { updatePaymentStatus } from '@/lib/shipment';
 
 // Types
 interface PaymentMethod {
@@ -228,30 +229,25 @@ export default function PackagePayment({ handleNextStep, handlePreviousStep }: {
         }
       };
 
-      const response = await fetch('/api/shipment/payment', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          packageId: packageInfo.id,
-          ...paymentDetails
-        }),
-      });
+      const paymentResponse = await updatePaymentStatus(
+        packageInfo.id,
+        {
+            ...paymentDetails
+          },
+        token
+      );
 
-      if (!response.ok) {
-        throw new Error('Payment failed');
-      }
-
-      const data = await response.json();
-      localStorage.setItem('packageInfo', JSON.stringify(data));
-      setShowSuccessModal(true);
-      
+      if (paymentResponse.success) {
+        localStorage.setItem('packageInfo', JSON.stringify(paymentResponse.data));
+        setShowSuccessModal(true);
+        
       setTimeout(() => {
         setShowSuccessModal(false);
         handleNextStep();
-      }, 2000);
+        }, 2000);
+      } else {
+        throw new Error(paymentResponse.message || 'Payment failed');
+      }
     } catch (error: any) {
       console.error('Payment error:', error);
       alert(error.message || 'Payment failed. Please try again.');
