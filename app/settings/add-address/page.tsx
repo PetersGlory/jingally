@@ -151,13 +151,14 @@ export default function AddNewAddress() {
   };
 
   // Form submission
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async () => {
     
     if (!validateForm()) {
       toast.error('Please fill in all required fields');
       return;
     }
+
+    console.log("formData", formData)
     
     try {
       setLoading(true);

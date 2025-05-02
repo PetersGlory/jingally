@@ -73,15 +73,39 @@ export default function AddressBookPage() {
   const [currentAddress, setCurrentAddress] = useState<any>(null)
   const [isSaving, setIsSaving] = useState(false)
 
-  const handleAddAddress = () => {
-    setIsSaving(true)
-    // Simulate API call
-    setTimeout(() => {
-      setIsSaving(false)
-      setIsAddDialogOpen(false)
-      // Would add the new address to the list here
-    }, 1000)
-  }
+  const handleAddAddress = async () => {
+    try {
+      setIsSaving(true);
+      const token = localStorage.getItem('accessToken');
+      
+      if (!token) {
+        window.location.href = '/sign-in';
+        return;
+      }
+
+      const response = await fetch('/api/addresses', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(currentAddress)
+      });
+
+      const data = await response.json();
+      
+      if (response.ok) {
+        setAddressList([...addressList, data]);
+        setIsAddDialogOpen(false);
+      } else {
+        console.error('Failed to add address:', data.error);
+      }
+    } catch (err) {
+      console.error('Error adding address:', err);
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
   const handleEditAddress = () => {
     setIsSaving(true)
