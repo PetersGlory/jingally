@@ -82,31 +82,32 @@ const ServiceCard: React.FC<{
   );
 };
 
-export default function PackageService({ handleNextStep }: { handleNextStep: () => void }) {
+export default function PackageService({ onSelectType, handleNextStep }: { onSelectType: (type: string) => void, handleNextStep: () => void }) {
   const router = useRouter();
   const [selectedService, setSelectedService] = useState<string | null>(null);
 
   const handleServiceSelect = (serviceId: string) => {
     setSelectedService(serviceId);
+    onSelectType(serviceId);
   };
 
   const handleContinue = () => {
     try {
-      const addresses = localStorage.getItem('addresses');
-      if (!addresses) {
-        if (confirm('No pickup addresses found. Would you like to add an address?')) {
-          router.push('/settings/add-address');
-        }
-        return;
-      }
+    //   const addresses = localStorage.getItem('addresses');
+    //   if (!addresses) {
+    //     if (confirm('No pickup addresses found. Would you like to add an address?')) {
+    //       router.push('/settings/add-address');
+    //     }
+    //     return;
+    //   }
 
-      const dAddresses = JSON.parse(addresses);
-      if (!dAddresses || !Array.isArray(dAddresses) || dAddresses.length === 0) {
-        if (confirm('No pickup addresses found. Would you like to add an address?')) {
-          router.push('/settings/add-address');
-        }
-        return;
-      }
+    //   const dAddresses = JSON.parse(addresses);
+    //   if (!dAddresses || !Array.isArray(dAddresses) || dAddresses.length === 0) {
+    //     if (confirm('No pickup addresses found. Would you like to add an address?')) {
+    //       router.push('/settings/add-address');
+    //     }
+    //     return;
+    //   }
 
       if (!selectedService) {
         alert('Please select a shipping service');

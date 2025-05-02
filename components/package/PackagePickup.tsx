@@ -1,7 +1,10 @@
+'use client'
+
 import React, { useState, useEffect } from 'react';
-import { useRouter } from 'next/router';
+import { useRouter } from 'next/navigation';
 import { X, Check } from 'lucide-react';
 import styles from './PackagePickup.module.css';
+import { updatePickupDateTime } from '@/lib/shipment';
 
 interface TimeSlot {
   start: string;
@@ -104,28 +107,18 @@ export default function PackagePickup({ handleNextStep, handlePreviousStep }: { 
       const scheduledPickupTime = scheduledDate.toISOString();
 
       // Update pickup date/time in the backend
-      const response = await fetch('/api/shipment/pickup', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          packageId: packageInfo.id,
-          scheduledPickupTime,
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to schedule pickup');
+      const response = await updatePickupDateTime(
+        packageInfo.id,
+        { scheduledPickupTime },
+        token
+      );
+      
+      if (response.success) {
+        localStorage.setItem('packageInfo', JSON.stringify(response.data));
+        handleNextStep();
+      } else {
+        throw new Error(response.message || 'Failed to update pickup date/time');
       }
-
-      const data = await response.json();
-      
-      // Store updated package info
-      localStorage.setItem('packageInfo', JSON.stringify(data));
-      
-      handleNextStep();
     } catch (error) {
       console.error('Error scheduling pickup:', error);
       alert('Failed to schedule pickup. Please try again.');

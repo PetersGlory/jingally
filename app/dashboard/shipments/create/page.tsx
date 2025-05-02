@@ -23,15 +23,13 @@ export default function CreateShipment() {
   }
   return (
     <>
-    <div className="flex flex-col items-center justify-center h-screen">
-      {currentStep === 1 && <PackageService handleNextStep={handleNextStep} />} 
-      {currentStep === 2 && <PackageDetails onSelectType={setSelectedType} serviceType={selectedType} handleNextStep={handleNextStep} handlePreviousStep={handlePreviousStep} />}
+      {currentStep === 1 && <PackageService onSelectType={setSelectedType} handleNextStep={handleNextStep} />} 
+      {currentStep === 2 && <PackageDetails serviceType={selectedType} handleNextStep={handleNextStep} handlePreviousStep={handlePreviousStep} />}
       {currentStep === 3 && <PackageDimension handleNextStep={handleNextStep} handlePreviousStep={handlePreviousStep} />}
       {currentStep === 4 && <PackageDelivery handleNextStep={handleNextStep} handlePreviousStep={handlePreviousStep} />}
       {currentStep === 5 && <PackagePhoto handleNextStep={handleNextStep} handlePreviousStep={handlePreviousStep} />}
       {currentStep === 6 && <PackagePickup handleNextStep={handleNextStep} handlePreviousStep={handlePreviousStep} />}
       {currentStep === 7 && <PackagePayment handleNextStep={handleNextStep} handlePreviousStep={handlePreviousStep} />}
-    </div>
     </>
   )
 }

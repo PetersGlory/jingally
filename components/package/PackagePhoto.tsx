@@ -1,7 +1,10 @@
+'use client'
+
 import React, { useState, useEffect, useRef } from 'react';
-import { useRouter } from 'next/router';
+import { useRouter } from 'next/navigation';
 import { Camera, Image, Info, X, ChevronRight } from 'lucide-react';
 import styles from './PackagePhoto.module.css';
+import { updateShipmentPhotos } from '@/lib/shipment';
 
 interface PhotoItem {
   url: string;
@@ -12,7 +15,6 @@ interface PhotoItem {
 
 export default function PackagePhoto({ handleNextStep, handlePreviousStep }: { handleNextStep: () => void, handlePreviousStep: () => void }) {
   const router = useRouter();
-  const { packageId } = router.query;
   const [token, setToken] = useState("");
   const [photos, setPhotos] = useState<PhotoItem[]>([]);
   const [isUploading, setIsUploading] = useState(false);
@@ -99,7 +101,7 @@ export default function PackagePhoto({ handleNextStep, handlePreviousStep }: { h
       const packageInfo = localStorage.getItem('packageInfo');
       const packageInfoData = JSON.parse(packageInfo || '{}');
       
-      formData.append('packageId', packageId as string || packageInfoData.id);
+      formData.append('packageId', packageInfoData.id);
 
       photos.forEach((photo, index) => {
         if (photo.file) {
@@ -114,26 +116,16 @@ export default function PackagePhoto({ handleNextStep, handlePreviousStep }: { h
         }
       });
 
-      // Upload photos using the API
-      const response = await fetch('/api/shipment/photos', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-        body: formData,
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to upload photos');
-      }
-
-      const data = await response.json();
       
-      // Store the updated package info
-      localStorage.setItem('packageInfo', JSON.stringify(data));
+      // Upload photos using the API
+      const response = await updateShipmentPhotos(packageInfoData.id, formData, token);
 
-      // Navigate to the next screen
-      handleNextStep();
+      if (response.success) {
+        localStorage.setItem('packageInfo', JSON.stringify(response.data));
+        handleNextStep();
+      } else {
+        throw new Error(response.message || 'Failed to update package photos');
+      }
     } catch (error) {
       console.error('Error uploading photos:', error);
       alert('Failed to upload photos. Please try again.');

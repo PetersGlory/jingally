@@ -1,5 +1,7 @@
+'use client'
+
 import React, { useState, useEffect } from 'react';
-import { useRouter } from 'next/router';
+import { useRouter } from 'next/navigation';
 import { CreditCard, Shield, Check, X, Edit2 } from 'lucide-react';
 import styles from './PackagePayment.module.css';
 

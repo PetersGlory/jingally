@@ -1,3 +1,5 @@
+"use client"
+
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Package, Truck, Box, FileText, AlertCircle } from 'lucide-react';
@@ -49,13 +51,12 @@ const PACKAGE_TYPES = [
 
 interface PackageDetailsProps {
   selectedType?: string;
-  onSelectType: (type: string) => void;
   serviceType: string;
   handleNextStep: () => void;
   handlePreviousStep: () => void;
 }
 
-export default function PackageDetails({ selectedType, onSelectType, serviceType, handleNextStep, handlePreviousStep }: PackageDetailsProps) {
+export default function PackageDetails({ selectedType, serviceType, handleNextStep, handlePreviousStep }: PackageDetailsProps) {
   const router = useRouter();
   const [formData, setFormData] = useState<PackageDetails>({
     type: selectedType || '',
@@ -84,7 +85,6 @@ export default function PackageDetails({ selectedType, onSelectType, serviceType
 
   const handleTypeSelect = (type: string) => {
     setFormData(prev => ({ ...prev, type }));
-    onSelectType(type);
     setErrors(prev => ({ ...prev, type: undefined }));
   };
 
@@ -136,7 +136,7 @@ export default function PackageDetails({ selectedType, onSelectType, serviceType
   };
 
   return (
-    <div className={styles.container}>
+    <div className='w-full h-full bg-white'>
       <div className={styles.header}>
         <h1>Package Information</h1>
         <p>Select your package type and provide details</p>

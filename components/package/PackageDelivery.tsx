@@ -1,7 +1,10 @@
+'use client'
+
 import React, { useState, useEffect } from 'react';
-import { useRouter } from 'next/router';
+import { useRouter } from 'next/navigation';
 import { MapPin, Truck, Info, X, ChevronDown, ArrowRight, Loader, Check } from 'lucide-react';
 import styles from './PackageDelivery.module.css';
+import { updateDeliveryAddress } from '@/lib/shipment';
 
 interface CountryCode {
   code: string;
@@ -139,24 +142,17 @@ export default function PackageDelivery({ handleNextStep, handlePreviousStep }: 
       };
 
       const token = localStorage.getItem('accessToken');
-      const response = await fetch(`/api/shipment/${packageInfo.id}/delivery`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify(deliveryDetails)
-      });
 
-      if (response.ok) {
-        const data = await response.json();
-        localStorage.setItem('packageInfo', JSON.stringify(data));
+      const response = await updateDeliveryAddress(packageInfo.id, deliveryDetails, token as string);
+
+      if (response.success) {        
+        localStorage.setItem('packageInfo', JSON.stringify(response.data));
         handleNextStep();
       } else {
-        const error = await response.json();
-        alert(error.message || 'Failed to update delivery details');
+        throw new Error(response.message || 'Failed to update delivery details');
       }
     } catch (error: any) {
+         
       console.error('Error saving delivery details:', error);
       alert(error.message || 'Failed to save delivery details. Please try again.');
     } finally {

@@ -1,7 +1,10 @@
+"use client"
+
 import React, { useEffect, useState, useCallback } from 'react';
-import { useRouter } from 'next/router';
 import { Package, Maximize2, Box, AlertCircle, ArrowRight } from 'lucide-react';
 import styles from './PackageDimension.module.css';
+import { useRouter } from 'next/navigation';
+import { updatePackageDimensions } from '@/lib/shipment';
 
 // Constants
 const MAX_DIMENSION = 1000;
@@ -69,7 +72,6 @@ const DimensionInput: React.FC<{
 // Main Component
 export default function PackageDimension({ handleNextStep, handlePreviousStep }: { handleNextStep: () => void, handlePreviousStep: () => void }) {
   const router = useRouter();
-  const { packageId } = router.query;
   const [token, setToken] = useState<string>("");
   const [formData, setFormData] = useState<PackageDimensions>({
     weight: '',
@@ -125,31 +127,30 @@ export default function PackageDimension({ handleNextStep, handlePreviousStep }:
 
     try {
       setIsLoading(true);
+
+      const packageInfo = localStorage.getItem('packageInfo');
+      const packageId = JSON.parse(packageInfo || '{}').id;
       
-      const response = await fetch('/api/shipment/dimensions', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
+      // Update dimensions in the backend
+      const response = await updatePackageDimensions(
+        packageId,
+        {
+        weight: parseFloat(formData.weight.toString()),
+        dimensions: {
+          length: parseFloat(formData.length.toString()),
+          width: parseFloat(formData.width.toString()),
+          height: parseFloat(formData.height.toString()),
+        }
         },
-        body: JSON.stringify({
-          packageId,
-          weight: parseFloat(formData.weight),
-          dimensions: {
-            length: parseFloat(formData.length),
-            width: parseFloat(formData.width),
-            height: parseFloat(formData.height),
-          }
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to update package dimensions');
+        token
+      );
+      
+      if(response.success) {
+        localStorage.setItem('packageInfo', JSON.stringify(response.data));
+        handleNextStep();
+      } else {
+        throw new Error(response.message || 'Failed to update package dimensions');
       }
-
-      const data = await response.json();
-      localStorage.setItem('packageInfo', JSON.stringify(data));
-      handleNextStep();
     } catch (error) {
       console.error('Error updating package dimensions:', error);
       setErrors(prev => ({ ...prev, general: 'An error occurred while updating package dimensions' }));

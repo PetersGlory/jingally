@@ -85,13 +85,13 @@ export default function LoginPage() {
             Jingally Logistics
           </div>
           <div className="relative z-20 mt-auto">
-            <blockquote className="space-y-2">
-              <p className="text-lg">
-                "Jingally Logistics has transformed our supply chain with their reliable and efficient shipping
-                solutions."
-              </p>
-              <footer className="text-sm">Sofia Davis, Logistics Manager</footer>
-            </blockquote>
+            <Image 
+              src="/logistics-hero.jpg" 
+              alt="Logistics Operations" 
+              width={600} 
+              height={400}
+              className="rounded-lg shadow-lg"
+            />
           </div>
         </div>
 
