@@ -10,7 +10,7 @@ interface PhotoItem {
   file?: File;
 }
 
-export default function PackagePhoto() {
+export default function PackagePhoto({ handleNextStep, handlePreviousStep }: { handleNextStep: () => void, handlePreviousStep: () => void }) {
   const router = useRouter();
   const { packageId } = router.query;
   const [token, setToken] = useState("");
@@ -133,10 +133,7 @@ export default function PackagePhoto() {
       localStorage.setItem('packageInfo', JSON.stringify(data));
 
       // Navigate to the next screen
-      router.push({
-        pathname: '/package-dimension',
-        query: { packageId }
-      });
+      handleNextStep();
     } catch (error) {
       console.error('Error uploading photos:', error);
       alert('Failed to upload photos. Please try again.');

@@ -44,7 +44,7 @@ const countryCodes: CountryCode[] = [
   { code: 'GM', name: 'Gambia', flag: '🇬🇲', dial_code: '+220' },
 ];
 
-export default function PackageDelivery() {
+export default function PackageDelivery({ handleNextStep, handlePreviousStep }: { handleNextStep: () => void, handlePreviousStep: () => void }) {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [addresses, setAddresses] = useState<Address[]>([]);
@@ -151,7 +151,7 @@ export default function PackageDelivery() {
       if (response.ok) {
         const data = await response.json();
         localStorage.setItem('packageInfo', JSON.stringify(data));
-        router.push('/package-pickup');
+        handleNextStep();
       } else {
         const error = await response.json();
         alert(error.message || 'Failed to update delivery details');

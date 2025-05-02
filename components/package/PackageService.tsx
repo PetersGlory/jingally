@@ -82,7 +82,7 @@ const ServiceCard: React.FC<{
   );
 };
 
-export default function PackageService() {
+export default function PackageService({ handleNextStep }: { handleNextStep: () => void }) {
   const router = useRouter();
   const [selectedService, setSelectedService] = useState<string | null>(null);
 
@@ -113,7 +113,7 @@ export default function PackageService() {
         return;
       }
 
-      router.push(`/package-details?service=${selectedService}`);
+      handleNextStep();
     } catch (error) {
       console.error('Error in handleContinue:', error);
       alert('Something went wrong. Please try again.');

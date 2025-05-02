@@ -67,7 +67,7 @@ const DimensionInput: React.FC<{
 };
 
 // Main Component
-export default function PackageDimension() {
+export default function PackageDimension({ handleNextStep, handlePreviousStep }: { handleNextStep: () => void, handlePreviousStep: () => void }) {
   const router = useRouter();
   const { packageId } = router.query;
   const [token, setToken] = useState<string>("");
@@ -149,7 +149,7 @@ export default function PackageDimension() {
 
       const data = await response.json();
       localStorage.setItem('packageInfo', JSON.stringify(data));
-      router.push('/package-delivery');
+      handleNextStep();
     } catch (error) {
       console.error('Error updating package dimensions:', error);
       setErrors(prev => ({ ...prev, general: 'An error occurred while updating package dimensions' }));

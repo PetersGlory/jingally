@@ -50,7 +50,7 @@ const FROZEN_PRICE_PER_KG = 1100;
 const SEA_FREIGHT_PRICE_PER_CUBIC_METER = 300;
 const SEA_MAX_WEIGHT_PER_ITEM = 40; // kg
 
-export default function PackagePayment() {
+export default function PackagePayment({ handleNextStep, handlePreviousStep }: { handleNextStep: () => void, handlePreviousStep: () => void }) {
   const router = useRouter();
   const [selectedMethod, setSelectedMethod] = useState<PaymentMethod['id'] | null>(null);
   const [showCardModal, setShowCardModal] = useState(false);
@@ -248,7 +248,7 @@ export default function PackagePayment() {
       
       setTimeout(() => {
         setShowSuccessModal(false);
-        router.push('/package-tracking');
+        handleNextStep();
       }, 2000);
     } catch (error: any) {
       console.error('Payment error:', error);

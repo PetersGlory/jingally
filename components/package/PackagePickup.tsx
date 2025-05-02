@@ -9,7 +9,7 @@ interface TimeSlot {
   isFree: boolean;
 }
 
-export default function PackagePickup() {
+export default function PackagePickup({ handleNextStep, handlePreviousStep }: { handleNextStep: () => void, handlePreviousStep: () => void }) {
   const router = useRouter();
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [selectedSlot, setSelectedSlot] = useState<number | null>(null);
@@ -125,7 +125,7 @@ export default function PackagePickup() {
       // Store updated package info
       localStorage.setItem('packageInfo', JSON.stringify(data));
       
-      router.push('/payment');
+      handleNextStep();
     } catch (error) {
       console.error('Error scheduling pickup:', error);
       alert('Failed to schedule pickup. Please try again.');
