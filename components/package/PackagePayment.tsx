@@ -243,7 +243,7 @@ export default function PackagePayment({ handleNextStep, handlePreviousStep }: {
         
       setTimeout(() => {
         setShowSuccessModal(false);
-        handleNextStep();
+        router.replace("/dashboard/shipments");
         }, 2000);
       } else {
         console.log(paymentResponse.message || 'Payment failed');
