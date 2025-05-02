@@ -49,7 +49,8 @@ export default function DashboardPage() {
     try {
       // Fetch user data
       const userResponse = await getUser(token as string)
-      setUserData(userResponse.data)
+      console.log(userResponse)
+      setUserData(userResponse)
 
       // Fetch addresses
       const addressesResponse = await getAddress(token as string)
