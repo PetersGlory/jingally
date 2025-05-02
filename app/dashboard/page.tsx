@@ -98,16 +98,7 @@ export default function DashboardPage() {
   }
 
   const handleNewShipment = () => {
-    if (addresses.length === 0) {
-      toast({
-        variant: "destructive",
-        title: "No Addresses Found",
-        description: "Please add an address before creating a shipment",
-      })
-      router.push("/settings/add-address")
-    } else {
-      router.push("/dashboard/shipments/create")
-    }
+    router.push("/dashboard/shipments/create")
   }
 
   const handleSearch = async () => {

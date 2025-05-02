@@ -1,0 +1,195 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background-color: white;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 2rem;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.header h1 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #111827;
+}
+
+.closeButton {
+  background: none;
+  border: none;
+  padding: 0.5rem;
+  color: #6b7280;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.closeButton:hover {
+  color: #111827;
+}
+
+.datesContainer {
+  display: flex;
+  padding: 1rem 2rem;
+  border-bottom: 1px solid #e5e7eb;
+  gap: 1rem;
+}
+
+.dateButton {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0.75rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.dateButton:hover {
+  background-color: #f9fafb;
+}
+
+.selectedDate {
+  border-bottom: 2px solid #2563eb;
+}
+
+.weekday {
+  font-weight: 500;
+  color: #6b7280;
+  margin-bottom: 0.25rem;
+}
+
+.selectedDate .weekday {
+  color: #2563eb;
+}
+
+.date {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #111827;
+}
+
+.main {
+  flex: 1;
+  padding: 2rem;
+  overflow-y: auto;
+}
+
+.selectedDateTitle {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #111827;
+  margin-bottom: 1.5rem;
+}
+
+.timeSlots {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.timeSlot {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.75rem;
+  background: none;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.timeSlot:hover {
+  border-color: #2563eb;
+  background-color: rgba(37, 99, 235, 0.05);
+}
+
+.selectedSlot {
+  border-color: #2563eb;
+  background-color: rgba(37, 99, 235, 0.05);
+}
+
+.timeText {
+  font-size: 1rem;
+  color: #111827;
+}
+
+.selectedSlot .timeText {
+  color: #2563eb;
+  font-weight: 500;
+}
+
+.emptyState {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 200px;
+  color: #6b7280;
+  text-align: center;
+}
+
+.footer {
+  padding: 1rem 2rem;
+  border-top: 1px solid #e5e7eb;
+}
+
+.confirmButton {
+  width: 100%;
+  padding: 1rem;
+  border: none;
+  border-radius: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.active {
+  background-color: #2563eb;
+  color: white;
+}
+
+.active:hover {
+  background-color: #1d4ed8;
+}
+
+.disabled {
+  background-color: #f3f4f6;
+  color: #9ca3af;
+  cursor: not-allowed;
+}
+
+.loading {
+  background-color: #93c5fd;
+  color: white;
+  cursor: not-allowed;
+}
+
+@media (max-width: 640px) {
+  .header {
+    padding: 1rem;
+  }
+
+  .datesContainer {
+    padding: 1rem;
+    flex-wrap: wrap;
+  }
+
+  .dateButton {
+    flex: 1 1 calc(50% - 0.5rem);
+  }
+
+  .main {
+    padding: 1rem;
+  }
+
+  .footer {
+    padding: 1rem;
+  }
+} 

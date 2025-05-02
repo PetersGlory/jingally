@@ -7,7 +7,6 @@ import { useState } from "react"
 import Link from "next/link"
 import Image from "next/image"
 import { useRouter, useSearchParams } from "next/navigation"
-import { signIn } from "next-auth/react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -16,6 +15,7 @@ import { Card, CardContent, CardFooter } from "@/components/ui/card"
 import { ArrowLeft, Eye, EyeOff, AlertCircle } from "lucide-react"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { useToast } from "@/components/ui/use-toast"
+import { signIn } from "@/lib/api"
 
 export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false)
@@ -35,25 +35,32 @@ export default function LoginPage() {
     setError("")
 
     try {
-      const result = await signIn("credentials", {
-        redirect: false,
-        email,
-        password,
-      })
+      const result = await signIn(email, password);
 
-      if (result?.error) {
-        setError("Invalid email or password")
-        setIsLoading(false)
-        return
+      if (result?.token) {
+        localStorage.setItem('user', JSON.stringify(result?.user));
+        localStorage.setItem('accessToken', result?.token);
+        
+        if (result?.user?.isVerified) {
+          toast({
+            title: "Login successful",
+            description: "Welcome back to Jingally Logistics!",
+          });
+          router.push(callbackUrl);
+          router.refresh();
+        } else {
+          toast({
+            title: "Email Not Verified",
+            description: "Please verify your email to continue",
+            variant: "destructive",
+          });
+          router.push(`/auth/verification?email=${email}`);
+          return;
+        }
+      } else {
+        setError(result?.message || "Invalid email or password");
+        setIsLoading(false);
       }
-
-      toast({
-        title: "Login successful",
-        description: "Welcome back to Jingally Logistics!",
-      })
-
-      router.push(callbackUrl)
-      router.refresh()
     } catch (error) {
       setError("An error occurred. Please try again.")
       setIsLoading(false)
