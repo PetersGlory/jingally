@@ -13,6 +13,7 @@ import { AlertCircle } from "lucide-react"
 import { getUser, getAddress } from "@/lib/api"
 import { useSession } from "next-auth/react"
 import { useAuth } from "@/components/auth-provider"
+import { getShipments } from "@/lib/shipment"
 
 interface Shipment {
   id: string
@@ -58,32 +59,28 @@ export default function DashboardPage() {
         setAddresses(addressesResponse.data)
       }
 
-      // Fetch shipments (you'll need to implement this in your API)
-      // const shipmentsResponse = await getShipments(session?.user?.accessToken as string)
-      // if (shipmentsResponse.success) {
-      //   setShipments(shipmentsResponse.data)
-      // }
+     await fetchShipmentHistory();
 
       // For now, using mock data until you implement the shipments API
-      const mockShipments: Shipment[] = [
-        {
-          id: "1",
-          trackingNumber: "JL-2023001",
-          status: "In Transit",
-          receiverName: "Sarah Johnson",
-          deliveryAddress: { city: "New York" },
-          pickupAddress: { city: "Los Angeles" }
-        },
-        {
-          id: "2",
-          trackingNumber: "JL-2023002",
-          status: "Delivered",
-          receiverName: "Michael Brown",
-          deliveryAddress: { city: "Chicago" },
-          pickupAddress: { city: "Miami" }
-        }
-      ]
-      setShipments(mockShipments)
+      // const mockShipments: Shipment[] = [
+      //   {
+      //     id: "1",
+      //     trackingNumber: "JL-2023001",
+      //     status: "In Transit",
+      //     receiverName: "Sarah Johnson",
+      //     deliveryAddress: { city: "New York" },
+      //     pickupAddress: { city: "Los Angeles" }
+      //   },
+      //   {
+      //     id: "2",
+      //     trackingNumber: "JL-2023002",
+      //     status: "Delivered",
+      //     receiverName: "Michael Brown",
+      //     deliveryAddress: { city: "Chicago" },
+      //     pickupAddress: { city: "Miami" }
+      //   }
+      // ]
+      // setShipments(mockShipments)
 
     } catch (error: any) {
       console.error("Error loading data:", error)
@@ -97,6 +94,42 @@ export default function DashboardPage() {
       setIsLoading(false)
     }
   }
+
+  const fetchShipmentHistory = async () => {
+    try {
+      const token = localStorage.getItem('accessToken');
+      if (!token) {
+        setError('Authentication required');
+        return;
+      }
+
+      const response = await getShipments(token as string);
+      if (response.success) {
+        // Validate each shipment
+        const validShipments = response.data.filter((shipment: Shipment) => {
+          if(shipment.receiverName !== ""){
+            return (
+              shipment.id &&
+              shipment.trackingNumber &&
+              shipment.status &&
+              shipment.pickupAddress &&
+              shipment.deliveryAddress
+            );
+          }
+        });
+        // console.log(response.data);
+        setShipments(validShipments);
+        setError(null);
+      } else {
+        setError('Failed to fetch shipments');
+      }
+    } catch (err:any) {
+      console.log(err.response.data);
+      setError('An error occurred while fetching shipments');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handleNewShipment = () => {
     router.push("/dashboard/shipments/create")
