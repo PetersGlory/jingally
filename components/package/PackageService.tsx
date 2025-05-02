@@ -1,5 +1,7 @@
+"use client"
+
 import React, { useState, useEffect } from 'react';
-import { useRouter } from 'next/router';
+import { useRouter } from 'next/navigation';
 import { Package, Send, Anchor, ChevronRight, HelpCircle } from 'lucide-react';
 import styles from './PackageService.module.css';
 
@@ -111,10 +113,7 @@ export default function PackageService() {
         return;
       }
 
-      router.push({
-        pathname: '/package-details',
-        query: { service: selectedService }
-      });
+      router.push(`/package-details?service=${selectedService}`);
     } catch (error) {
       console.error('Error in handleContinue:', error);
       alert('Something went wrong. Please try again.');
