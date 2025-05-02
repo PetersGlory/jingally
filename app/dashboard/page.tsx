@@ -240,7 +240,7 @@ export default function DashboardPage() {
               <Card 
                 key={shipment.id} 
                 className="cursor-pointer hover:bg-muted/50"
-                onClick={() => router.push(`/dashboard/shipments/${shipment.trackingNumber}`)}
+                onClick={() => router.push(`/dashboard/shipments/${shipment.id}`)}
               >
                 <CardContent className="p-4">
                   <div className="flex items-center justify-between">

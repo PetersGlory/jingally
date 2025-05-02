@@ -155,7 +155,7 @@ export default function PackagePayment({ handleNextStep, handlePreviousStep }: {
         methodName = 'Sea Freight';
         break;
       default:
-        throw new Error('Invalid shipping method');
+        console.log('Invalid shipping method');
     }
 
     const serviceFee = Math.round(baseFee * 0.1 * 100) / 100;

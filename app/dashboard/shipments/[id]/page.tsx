@@ -9,52 +9,59 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import { ArrowLeft, Package, Truck, MapPin, Calendar, Clock, FileText, Download, AlertCircle, X } from "lucide-react"
+import { ArrowLeft, Package, Truck, MapPin, Calendar, Clock, FileText, Download, AlertCircle, X, Phone, Mail } from "lucide-react"
 import { getShipmentDetails, cancelShipment } from "@/lib/shipment"
+import PackagePayment from "@/components/package/PackagePayment"
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 
 interface Shipment {
   id: string;
   trackingNumber: string;
   status: 'pending' | 'picked_up' | 'in_transit' | 'delivered' | 'cancelled';
-  pickupAddress: {
-    latitude: number;
-    longitude: number;
-    address: string;
-    type: string;
-    street: string;
-    city: string;
-    state: string;
-    country: string;
-  };
-  deliveryAddress: {
-    latitude: number;
-    longitude: number;
-    address: string;
-    type: string;
-    street: string;
-    city: string;
-    state: string;
-    country: string;
-  };
-  currentLocation?: {
-    latitude: number;
-    longitude: number;
-  };
-  scheduledPickupTime: string;
-  estimatedDeliveryTime: string;
+  packageType: string | null;
+  serviceType: string | null;
+  packageDescription: string | null;
+  fragile: boolean | null;
   weight: number;
   dimensions: {
     length: number;
     width: number;
     height: number;
   };
-  receiver: {
-    name: string;
-    phone: string;
+  pickupAddress: {
+    street: string;
+    city: string;
+    state: string;
+    country: string;
+    postcode: string;
+    latitude: number;
+    longitude: number;
+    placeId: string;
+    type: 'residential' | 'business';
   };
+  deliveryAddress: {
+    street: string;
+    city: string;
+    state: string;
+    country: string;
+    postcode: string;
+    latitude: number;
+    longitude: number;
+    placeId: string;
+    type: 'residential' | 'business';
+  };
+  scheduledPickupTime: string;
+  estimatedDeliveryTime: string;
+  receiverName: string;
+  receiverPhoneNumber: string;
+  receiverEmail: string;
+  price: number | null;
   paymentStatus: 'pending' | 'paid' | 'failed';
-  lastUpdated: string;
-  images?: string[];
+  notes: string | null;
+  driverId: string | null;
+  images: string[];
+  createdAt: string;
+  updatedAt: string;
 }
 
 interface TrackingEvent {
@@ -79,19 +86,18 @@ export default function ShipmentDetailPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [showCancelConfirmation, setShowCancelConfirmation] = useState(false)
-
-
+  const [paymentModal, setPaymentModal] = useState(false)
   useEffect(() => {
     const fetchShipmentDetails = async () => {
       try {
         setIsLoading(true)
         const token = localStorage.getItem('accessToken')
         if (!token) {
-          router.push('/login')
+          router.replace('/')
           return
         }
 
-        const response = await getShipmentDetails(id as string, token)
+        const response = await getShipmentDetails(id as string, JSON.parse(token))
         if (response.success) {
           setShipment(response.data)
         } else {
@@ -111,13 +117,13 @@ export default function ShipmentDetailPage() {
     try {
       const token = localStorage.getItem('accessToken')
       if (!token) {
-        router.push('/login')
+        router.replace('/')
         return
       }
 
-      const response = await cancelShipment(id as string, token)
+      const response = await cancelShipment(id as string, JSON.parse(token))
       if (response.success) {
-        router.push('/dashboard/shipments')
+        router.replace('/dashboard/shipments')
       } else {
         setError(response.message || 'Failed to cancel shipment')
       }
@@ -158,6 +164,17 @@ export default function ShipmentDetailPage() {
     }
   }
 
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    })
+  }
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-screen">
@@ -193,183 +210,284 @@ export default function ShipmentDetailPage() {
   }
 
   return (
-        <main className="flex flex-col">
-          <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
-            <div className="flex flex-col space-y-2 md:flex-row md:items-center md:justify-between md:space-y-0">
-              <div className="flex items-center space-x-2">
-                <Link href="/dashboard/shipments">
-                  <Button variant="ghost" size="sm">
-                    <ArrowLeft className="mr-2 h-4 w-4" />
-                    Back to Shipments
-                  </Button>
-                </Link>
-              </div>
-              <div className="flex items-center space-x-2">
-                <Button variant="outline" size="sm">
-                  <Download className="mr-2 h-4 w-4" />
-                  Download
-                </Button>
-            <Button onClick={() => setShowCancelConfirmation(true)} variant="outline" size="sm">
+    <main className="flex flex-col">
+      <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
+        <div className="flex flex-col space-y-2 md:flex-row md:items-center md:justify-between md:space-y-0">
+          <div className="flex items-center space-x-2">
+            <Link href="/dashboard/shipments">
+              <Button variant="ghost" size="sm">
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                Back to Shipments
+              </Button>
+            </Link>
+          </div>
+          <div className="flex items-center space-x-2">
+            <Button variant="outline" size="sm">
+              <Download className="mr-2 h-4 w-4" />
+              Download
+            </Button>
+            <Button 
+              onClick={() => setShowCancelConfirmation(true)} 
+              variant="outline" 
+              size="sm"
+              disabled={shipment.status === 'cancelled' || shipment.status === 'delivered'}
+            >
               <X className="mr-2 h-4 w-4" />
               Cancel
-                </Button>
-              </div>
-            </div>
+            </Button>
+          </div>
+        </div>
 
-            <div className="grid gap-4 md:grid-cols-[2fr_1fr]">
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+        <div className="grid gap-4 md:grid-cols-[2fr_1fr]">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-xl font-bold">Shipment {shipment.trackingNumber}</CardTitle>
               <Badge className={`${getStatusColor(shipment.status)} text-white`}>
                 {shipment.status.charAt(0).toUpperCase() + shipment.status.slice(1)}
               </Badge>
-                </CardHeader>
-                <CardContent>
-                  <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-                    <TabsList className="grid w-full grid-cols-3">
-                      <TabsTrigger value="tracking">Tracking</TabsTrigger>
-                      <TabsTrigger value="details">Details</TabsTrigger>
-                      <TabsTrigger value="documents">Documents</TabsTrigger>
-                    </TabsList>
-                    <TabsContent value="tracking" className="space-y-4">
-                      <div className="mt-4 space-y-4">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center space-x-2">
-                            <Package className="h-5 w-5 text-orange-500" />
-                            <span className="font-medium">Current Status:</span>
-                          </div>
-                      <span>{shipment?.status}</span>
-                        </div>
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center space-x-2">
-                            <Calendar className="h-5 w-5 text-orange-500" />
-                            <span className="font-medium">Estimated Delivery:</span>
-                          </div>
-                      <span>{new Date(shipment?.estimatedDeliveryTime).toLocaleDateString()}</span>
-                        </div>
-
-                        <div className="relative mt-8 pl-6">
-                          <div className="absolute left-2 top-0 bottom-0 w-0.5 bg-gray-200"></div>
-                      {/* Add tracking events here */}
+            </CardHeader>
+            <CardContent>
+              <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+                <TabsList className="grid w-full grid-cols-3">
+                  <TabsTrigger value="tracking">Tracking</TabsTrigger>
+                  <TabsTrigger value="details">Details</TabsTrigger>
+                  <TabsTrigger value="documents">Documents</TabsTrigger>
+                </TabsList>
+                <TabsContent value="tracking" className="space-y-4">
+                  <div className="mt-4 space-y-4">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-2">
+                        <Package className="h-5 w-5 text-orange-500" />
+                        <span className="font-medium">Current Status:</span>
+                      </div>
+                      <span className="font-semibold">{shipment.status.charAt(0).toUpperCase() + shipment.status.slice(1)}</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-2">
+                        <Calendar className="h-5 w-5 text-orange-500" />
+                        <span className="font-medium">Estimated Delivery:</span>
+                      </div>
+                      <span className="font-semibold">{formatDate(shipment.estimatedDeliveryTime)}</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-2">
+                        <Calendar className="h-5 w-5 text-orange-500" />
+                        <span className="font-medium">Scheduled Pickup:</span>
+                      </div>
+                      <span className="font-semibold">{formatDate(shipment.scheduledPickupTime)}</span>
+                    </div>
+                  </div>
+                </TabsContent>
+                <TabsContent value="details" className="space-y-4">
+                  <div className="grid gap-4 md:grid-cols-2">
+                    <div className="space-y-4">
+                      <div>
+                        <h3 className="mb-2 font-medium">Sender</h3>
+                        <div className="rounded-lg border p-3">
+                          <p className="font-medium">{shipment.pickupAddress.street}</p>
+                          <p className="text-sm">{shipment.pickupAddress.city}, {shipment.pickupAddress.state}</p>
+                          <p className="text-sm">{shipment.pickupAddress.country} {shipment.pickupAddress.postcode}</p>
+                          <p className="text-sm mt-2">
+                            <span className="capitalize">{shipment.pickupAddress.type}</span> Address
+                          </p>
                         </div>
                       </div>
-                    </TabsContent>
-                    <TabsContent value="details" className="space-y-4">
-                      <div className="grid gap-4 md:grid-cols-2">
-                        <div className="space-y-4">
-                          <div>
-                            <h3 className="mb-2 font-medium">Sender</h3>
-                            <div className="rounded-lg border p-3">
-                          <p className="font-medium">{shipment?.pickupAddress?.address}</p>
-                          <p className="text-sm">{shipment?.pickupAddress?.street}</p>
-                          <p className="text-sm">{shipment?.pickupAddress?.city}, {shipment?.pickupAddress?.state}</p>
-                            </div>
-                          </div>
-                          <div>
-                            <h3 className="mb-2 font-medium">Package Information</h3>
-                            <div className="rounded-lg border p-3 text-sm">
-                              <div className="grid grid-cols-2 gap-2">
-                                <span className="text-muted-foreground">Weight:</span>
-                            <span>{shipment?.weight} kg</span>
-                                <span className="text-muted-foreground">Dimensions:</span>
-                            <span>{shipment?.dimensions?.length} × {shipment?.dimensions?.width} × {shipment?.dimensions?.height} cm</span>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                        <div className="space-y-4">
-                          <div>
-                            <h3 className="mb-2 font-medium">Recipient</h3>
-                            <div className="rounded-lg border p-3">
-                          <p className="font-medium">{shipment?.receiver?.name}</p>
-                          <p className="text-sm">{shipment?.deliveryAddress?.address}</p>
-                          <p className="text-sm">{shipment?.deliveryAddress?.street}</p>
-                          <p className="text-sm">{shipment?.deliveryAddress?.city}, {shipment?.deliveryAddress?.state}</p>
-                            </div>
+                      <div>
+                        <h3 className="mb-2 font-medium">Package Information</h3>
+                        <div className="rounded-lg border p-3 text-sm">
+                          <div className="grid grid-cols-2 gap-2">
+                            <span className="text-muted-foreground">Weight:</span>
+                            <span>{shipment.weight} kg</span>
+                            <span className="text-muted-foreground">Dimensions:</span>
+                            <span>{shipment.dimensions.length} × {shipment.dimensions.width} × {shipment.dimensions.height} cm</span>
+                            <span className="text-muted-foreground">Package Type:</span>
+                            <span>{shipment.packageType || 'Not specified'}</span>
+                            <span className="text-muted-foreground">Service Type:</span>
+                            <span>{shipment.serviceType || 'Not specified'}</span>
+                            <span className="text-muted-foreground">Fragile:</span>
+                            <span>{shipment.fragile ? 'Yes' : 'No'}</span>
                           </div>
                         </div>
                       </div>
-                    </TabsContent>
-                    <TabsContent value="documents" className="space-y-4">
-                  {/* Add documents section here */}
-                    </TabsContent>
-                  </Tabs>
-                </CardContent>
-              </Card>
+                    </div>
+                    <div className="space-y-4">
+                      <div>
+                        <h3 className="mb-2 font-medium">Recipient</h3>
+                        <div className="rounded-lg border p-3">
+                          <p className="font-medium">{shipment.receiverName}</p>
+                          <div className="flex items-center space-x-2 text-sm mt-1">
+                            <Phone className="h-4 w-4" />
+                            <span>{shipment.receiverPhoneNumber}</span>
+                          </div>
+                          <div className="flex items-center space-x-2 text-sm mt-1">
+                            <Mail className="h-4 w-4" />
+                            <span>{shipment.receiverEmail}</span>
+                          </div>
+                          <div className="mt-2">
+                            <p className="font-medium">{shipment.deliveryAddress.street}</p>
+                            <p className="text-sm">{shipment.deliveryAddress.city}, {shipment.deliveryAddress.state}</p>
+                            <p className="text-sm">{shipment.deliveryAddress.country} {shipment.deliveryAddress.postcode}</p>
+                            <p className="text-sm mt-2">
+                              <span className="capitalize">{shipment.deliveryAddress.type}</span> Address
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </TabsContent>
+                <TabsContent value="documents" className="space-y-4">
+                  {shipment.images && shipment.images.length > 0 ? (
+                    <div className="grid grid-cols-2 gap-4">
+                      {shipment.images.map((image, index) => (
+                        <div key={index} className="relative aspect-square">
+                          <img
+                            src={image}
+                            alt={`Package image ${index + 1}`}
+                            className="rounded-lg object-cover w-full h-full"
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-8">
+                      <p className="text-muted-foreground">No documents or images available</p>
+                    </div>
+                  )}
+                </TabsContent>
+              </Tabs>
+            </CardContent>
+          </Card>
 
-              <div className="space-y-4">
-                <Card>
-                  <CardHeader className="pb-2">
+          <div className="space-y-4">
+            <Card>
+              <CardHeader className="pb-2">
                 <CardTitle className="text-lg">Shipment Progress</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-3">
-                  <Progress value={getProgressValue(shipment?.status)} className="h-2" />
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  <Progress value={getProgressValue(shipment.status)} className="h-2" />
                   <div className="flex justify-between text-sm text-muted-foreground">
                     <span>Started</span>
-                    <span>{getProgressValue(shipment?.status)}% Complete</span>
+                    <span>{getProgressValue(shipment.status)}% Complete</span>
                     <span>Delivered</span>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
 
-                <Card>
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-lg">Need Help?</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-3">
-                      <Button variant="outline" className="w-full justify-start">
-                        <Clock className="mr-2 h-4 w-4 text-orange-500" />
-                        Modify Delivery
-                      </Button>
-                      <Button variant="outline" className="w-full justify-start">
-                        <Package className="mr-2 h-4 w-4 text-orange-500" />
-                        Report an Issue
-                      </Button>
-                      <Button variant="outline" className="w-full justify-start">
-                        <FileText className="mr-2 h-4 w-4 text-orange-500" />
-                        Request Documents
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-            </div>
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-lg">Payment Status</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2">
+                  <Badge 
+                    className={`${
+                      shipment.paymentStatus === 'paid' 
+                        ? 'bg-green-500' 
+                        : shipment.paymentStatus === 'failed' 
+                          ? 'bg-red-500' 
+                          : 'bg-yellow-500'
+                    } text-white`}
+                  >
+                    {shipment.paymentStatus.charAt(0).toUpperCase() + shipment.paymentStatus.slice(1)}
+                  </Badge>
+                  {shipment.price && (
+                    <p className="text-lg font-semibold">${shipment.price.toFixed(2)}</p>
+                  )}
+                  {shipment.paymentStatus !== 'paid' && (
+                    <Button 
+                      className="w-full mt-2"
+                      onClick={() => {
+                        localStorage.setItem('packageInfo', JSON.stringify(shipment))
+                        setPaymentModal(true)}}
+                    >
+                      Pay Now
+                    </Button>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-lg">Need Help?</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  <Button variant="outline" className="w-full justify-start">
+                    <Clock className="mr-2 h-4 w-4 text-orange-500" />
+                    Modify Delivery
+                  </Button>
+                  <Button variant="outline" className="w-full justify-start">
+                    <Package className="mr-2 h-4 w-4 text-orange-500" />
+                    Report an Issue
+                  </Button>
+                  <Button variant="outline" className="w-full justify-start">
+                    <FileText className="mr-2 h-4 w-4 text-orange-500" />
+                    Request Documents
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
           </div>
-
-    {showCancelConfirmation && (
-      <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-        <Card className="w-[400px]">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <AlertCircle className="h-5 w-5 text-red-500" />
-              Cancel Shipment
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-muted-foreground mb-4">
-              Are you sure you want to cancel this shipment? This action cannot be undone.
-            </p>
-            <div className="flex justify-end gap-2">
-              <Button
-                variant="outline"
-                onClick={() => setShowCancelConfirmation(false)}
-              >
-                No, Keep It
-              </Button>
-              <Button
-                variant="destructive"
-                onClick={handleCancelOrder}
-              >
-                Yes, Cancel Shipment
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+        </div>
       </div>
-    )}
-        </main>
+
+      {showCancelConfirmation && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <Card className="w-[400px]">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <AlertCircle className="h-5 w-5 text-red-500" />
+                Cancel Shipment
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-muted-foreground mb-4">
+                Are you sure you want to cancel this shipment? This action cannot be undone.
+              </p>
+              <div className="flex justify-end gap-2">
+                <Button
+                  variant="outline"
+                  onClick={() => setShowCancelConfirmation(false)}
+                >
+                  No, Keep It
+                </Button>
+                <Button
+                  variant="destructive"
+                  onClick={handleCancelOrder}
+                >
+                  Yes, Cancel Shipment
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {paymentModal && (
+        <Dialog open={paymentModal} onOpenChange={setPaymentModal}>
+          <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
+            <DialogHeader className="sticky top-0 bg-background z-10">
+              <DialogTitle>Complete Payment</DialogTitle>
+              <DialogDescription>
+                Please complete your payment to proceed with the shipment.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="p-6">
+              <PackagePayment 
+                handleNextStep={() => {
+                  setPaymentModal(false);
+                  router.refresh();
+                }} 
+                handlePreviousStep={() => setPaymentModal(false)} 
+              />
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
+    </main>
   )
 }
