@@ -1,314 +1,375 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Link from "next/link"
+import { useParams, useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Badge } from "@/components/ui/badge"
-import { ArrowLeft, Package, Truck, MapPin, Calendar, Clock, FileText, Download, Share2 } from "lucide-react"
+import { Progress } from "@/components/ui/progress"
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import { ArrowLeft, Package, Truck, MapPin, Calendar, Clock, FileText, Download, AlertCircle, X } from "lucide-react"
+import { getShipmentDetails, cancelShipment } from "@/lib/shipment"
 
-export default function ShipmentDetailPage({ params }: { params: { id: string } }) {
+interface Shipment {
+  id: string;
+  trackingNumber: string;
+  status: 'pending' | 'picked_up' | 'in_transit' | 'delivered' | 'cancelled';
+  pickupAddress: {
+    latitude: number;
+    longitude: number;
+    address: string;
+    type: string;
+    street: string;
+    city: string;
+    state: string;
+    country: string;
+  };
+  deliveryAddress: {
+    latitude: number;
+    longitude: number;
+    address: string;
+    type: string;
+    street: string;
+    city: string;
+    state: string;
+    country: string;
+  };
+  currentLocation?: {
+    latitude: number;
+    longitude: number;
+  };
+  scheduledPickupTime: string;
+  estimatedDeliveryTime: string;
+  weight: number;
+  dimensions: {
+    length: number;
+    width: number;
+    height: number;
+  };
+  receiver: {
+    name: string;
+    phone: string;
+  };
+  paymentStatus: 'pending' | 'paid' | 'failed';
+  lastUpdated: string;
+  images?: string[];
+}
+
+interface TrackingEvent {
+  id: string;
+  title: string;
+  time: string;
+  status: 'completed' | 'in-progress' | 'pending';
+  hasCheck?: boolean;
+  hasImage?: boolean;
+  image?: any;
+  description?: string;
+  hasButton?: boolean;
+  buttonText?: string;
+  hasNotification?: boolean;
+}
+
+export default function ShipmentDetailPage() {
+  const router = useRouter()
+  const {id} = useParams();
   const [activeTab, setActiveTab] = useState("tracking")
+  const [shipment, setShipment] = useState<Shipment | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [showCancelConfirmation, setShowCancelConfirmation] = useState(false)
 
-  // Mock shipment data
-  const shipment = {
-    id: params.id,
-    date: "Apr 28, 2025",
-    origin: "New York, NY",
-    originAddress: "123 Broadway, New York, NY 10001",
-    originContact: "John Doe",
-    originPhone: "(555) 123-4567",
-    destination: "Los Angeles, CA",
-    destinationAddress: "456 Hollywood Blvd, Los Angeles, CA 90028",
-    destinationContact: "Jane Smith",
-    destinationPhone: "(555) 987-6543",
-    type: "Standard",
-    status: "In Transit",
-    statusColor: "bg-orange-500",
-    estimatedDelivery: "May 5, 2025",
-    weight: "5.2 kg",
-    dimensions: "30 × 20 × 15 cm",
-    service: "Standard (3-5 business days)",
-    additionalServices: ["Shipping Insurance"],
-    trackingUpdates: [
-      {
-        date: "Apr 30, 2025",
-        time: "10:24 AM",
-        location: "Chicago, IL",
-        status: "In transit to next facility",
-        description: "Package is in transit to the next facility",
-      },
-      {
-        date: "Apr 29, 2025",
-        time: "8:15 PM",
-        location: "Columbus, OH",
-        status: "Departed sorting facility",
-        description: "Package has left the sorting facility",
-      },
-      {
-        date: "Apr 29, 2025",
-        time: "2:30 PM",
-        location: "Columbus, OH",
-        status: "Arrived at sorting facility",
-        description: "Package has arrived at the sorting facility",
-      },
-      {
-        date: "Apr 28, 2025",
-        time: "9:45 AM",
-        location: "New York, NY",
-        status: "Shipment picked up",
-        description: "Package has been picked up by carrier",
-      },
-    ],
-    documents: [
-      { name: "Shipping Label", type: "PDF" },
-      { name: "Commercial Invoice", type: "PDF" },
-      { name: "Proof of Pickup", type: "PDF" },
-    ],
+
+  useEffect(() => {
+    const fetchShipmentDetails = async () => {
+      try {
+        setIsLoading(true)
+        const token = localStorage.getItem('accessToken')
+        if (!token) {
+          router.push('/login')
+          return
+        }
+
+        const response = await getShipmentDetails(id as string, token)
+        if (response.success) {
+          setShipment(response.data)
+        } else {
+          setError(response.message || 'Failed to fetch shipment details')
+        }
+      } catch (err: any) {
+        setError(err.message || 'An error occurred while fetching shipment details')
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    fetchShipmentDetails()
+  }, [id, router])
+
+  const handleCancelOrder = async () => {
+    try {
+      const token = localStorage.getItem('accessToken')
+      if (!token) {
+        router.push('/login')
+        return
+      }
+
+      const response = await cancelShipment(id as string, token)
+      if (response.success) {
+        router.push('/dashboard/shipments')
+      } else {
+        setError(response.message || 'Failed to cancel shipment')
+      }
+    } catch (err: any) {
+      setError(err.message || 'An error occurred while cancelling the shipment')
+    }
+  }
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'delivered':
+        return 'bg-green-500'
+      case 'in_transit':
+        return 'bg-blue-500'
+      case 'picked_up':
+        return 'bg-orange-500'
+      case 'cancelled':
+        return 'bg-red-500'
+      default:
+        return 'bg-gray-500'
+    }
+  }
+
+  const getProgressValue = (status: string) => {
+    switch (status) {
+      case 'cancelled':
+        return 0
+      case 'pending':
+        return 20
+      case 'picked_up':
+        return 40
+      case 'in_transit':
+        return 60
+      case 'delivered':
+        return 100
+      default:
+        return 0
+    }
+  }
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900"></div>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <Alert variant="destructive" className="w-1/2">
+          <AlertCircle className="h-4 w-4" />
+          <AlertTitle>Error</AlertTitle>
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      </div>
+    )
+  }
+
+  if (!shipment) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <Alert>
+          <AlertCircle className="h-4 w-4" />
+          <AlertTitle>No Shipment Found</AlertTitle>
+          <AlertDescription>
+            The shipment you are looking for does not exist.
+          </AlertDescription>
+        </Alert>
+      </div>
+    )
   }
 
   return (
-    
-        <main className="flex flex-col">
-          <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
-            <div className="flex flex-col space-y-2 md:flex-row md:items-center md:justify-between md:space-y-0">
-              <div className="flex items-center space-x-2">
-                <Link href="/dashboard/shipments">
-                  <Button variant="ghost" size="sm">
-                    <ArrowLeft className="mr-2 h-4 w-4" />
-                    Back to Shipments
-                  </Button>
-                </Link>
-              </div>
-              <div className="flex items-center space-x-2">
-                <Button variant="outline" size="sm">
-                  <Download className="mr-2 h-4 w-4" />
-                  Download
-                </Button>
-                <Button variant="outline" size="sm">
-                  <Share2 className="mr-2 h-4 w-4" />
-                  Share
-                </Button>
-              </div>
-            </div>
-
-            <div className="grid gap-4 md:grid-cols-[2fr_1fr]">
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-xl font-bold">Shipment {shipment.id}</CardTitle>
-                  <Badge className={`${shipment.statusColor} text-white`}>{shipment.status}</Badge>
-                </CardHeader>
-                <CardContent>
-                  <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-                    <TabsList className="grid w-full grid-cols-3">
-                      <TabsTrigger value="tracking">Tracking</TabsTrigger>
-                      <TabsTrigger value="details">Details</TabsTrigger>
-                      <TabsTrigger value="documents">Documents</TabsTrigger>
-                    </TabsList>
-                    <TabsContent value="tracking" className="space-y-4">
-                      <div className="mt-4 space-y-4">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center space-x-2">
-                            <Package className="h-5 w-5 text-orange-500" />
-                            <span className="font-medium">Current Status:</span>
-                          </div>
-                          <span>{shipment.trackingUpdates[0].status}</span>
-                        </div>
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center space-x-2">
-                            <Calendar className="h-5 w-5 text-orange-500" />
-                            <span className="font-medium">Estimated Delivery:</span>
-                          </div>
-                          <span>{shipment.estimatedDelivery}</span>
-                        </div>
-
-                        <div className="relative mt-8 pl-6">
-                          <div className="absolute left-2 top-0 bottom-0 w-0.5 bg-gray-200"></div>
-                          {shipment.trackingUpdates.map((update, index) => (
-                            <div key={index} className="relative mb-8 last:mb-0">
-                              <div
-                                className={`absolute left-[-18px] top-0 h-4 w-4 rounded-full border-2 border-white ${
-                                  index === 0 ? "bg-orange-500" : "bg-gray-300"
-                                }`}
-                              ></div>
-                              <div className="mb-1 flex items-center justify-between">
-                                <span className="font-medium">{update.status}</span>
-                                <span className="text-sm text-muted-foreground">
-                                  {update.date} • {update.time}
-                                </span>
-                              </div>
-                              <div className="flex items-center space-x-2 text-sm text-muted-foreground">
-                                <MapPin className="h-4 w-4" />
-                                <span>{update.location}</span>
-                              </div>
-                              <p className="mt-1 text-sm">{update.description}</p>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    </TabsContent>
-                    <TabsContent value="details" className="space-y-4">
-                      <div className="grid gap-4 md:grid-cols-2">
-                        <div className="space-y-4">
-                          <div>
-                            <h3 className="mb-2 font-medium">Sender</h3>
-                            <div className="rounded-lg border p-3">
-                              <p className="font-medium">{shipment.originContact}</p>
-                              <p className="text-sm">{shipment.originAddress}</p>
-                              <p className="text-sm">{shipment.originPhone}</p>
-                            </div>
-                          </div>
-                          <div>
-                            <h3 className="mb-2 font-medium">Package Information</h3>
-                            <div className="rounded-lg border p-3 text-sm">
-                              <div className="grid grid-cols-2 gap-2">
-                                <span className="text-muted-foreground">Weight:</span>
-                                <span>{shipment.weight}</span>
-                                <span className="text-muted-foreground">Dimensions:</span>
-                                <span>{shipment.dimensions}</span>
-                                <span className="text-muted-foreground">Service:</span>
-                                <span>{shipment.service}</span>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                        <div className="space-y-4">
-                          <div>
-                            <h3 className="mb-2 font-medium">Recipient</h3>
-                            <div className="rounded-lg border p-3">
-                              <p className="font-medium">{shipment.destinationContact}</p>
-                              <p className="text-sm">{shipment.destinationAddress}</p>
-                              <p className="text-sm">{shipment.destinationPhone}</p>
-                            </div>
-                          </div>
-                          <div>
-                            <h3 className="mb-2 font-medium">Additional Services</h3>
-                            <div className="rounded-lg border p-3">
-                              {shipment.additionalServices.length > 0 ? (
-                                <ul className="list-inside list-disc text-sm">
-                                  {shipment.additionalServices.map((service, index) => (
-                                    <li key={index}>{service}</li>
-                                  ))}
-                                </ul>
-                              ) : (
-                                <p className="text-sm text-muted-foreground">No additional services</p>
-                              )}
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </TabsContent>
-                    <TabsContent value="documents" className="space-y-4">
-                      <div className="space-y-4">
-                        {shipment.documents.map((doc, index) => (
-                          <div key={index} className="flex items-center justify-between rounded-lg border p-3">
-                            <div className="flex items-center space-x-3">
-                              <FileText className="h-5 w-5 text-orange-500" />
-                              <div>
-                                <p className="font-medium">{doc.name}</p>
-                                <p className="text-xs text-muted-foreground">{doc.type} Document</p>
-                              </div>
-                            </div>
-                            <Button variant="ghost" size="sm">
-                              <Download className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        ))}
-                      </div>
-                    </TabsContent>
-                  </Tabs>
-                </CardContent>
-              </Card>
-
-              <div className="space-y-4">
-                <Card>
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-lg">Shipment Summary</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-3">
-                      <div className="flex justify-between">
-                        <span className="text-sm text-muted-foreground">Tracking Number:</span>
-                        <span className="font-medium">{shipment.id}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-sm text-muted-foreground">Ship Date:</span>
-                        <span>{shipment.date}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-sm text-muted-foreground">Service Type:</span>
-                        <span>{shipment.type}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-sm text-muted-foreground">Estimated Delivery:</span>
-                        <span>{shipment.estimatedDelivery}</span>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                <Card>
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-lg">Route Information</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-4">
-                      <div className="space-y-2">
-                        <div className="flex items-center space-x-2">
-                          <div className="flex h-6 w-6 items-center justify-center rounded-full bg-blue-900 text-white">
-                            <MapPin className="h-3 w-3" />
-                          </div>
-                          <span className="font-medium">Origin</span>
-                        </div>
-                        <p className="pl-8 text-sm">{shipment.origin}</p>
-                      </div>
-
-                      <div className="relative pl-3">
-                        <div className="absolute left-3 top-0 h-full w-0.5 bg-gray-200"></div>
-                        <div className="flex items-center space-x-2">
-                          <Truck className="h-4 w-4 text-orange-500" />
-                          <span className="text-xs text-muted-foreground">In Transit</span>
-                        </div>
-                      </div>
-
-                      <div className="space-y-2">
-                        <div className="flex items-center space-x-2">
-                          <div className="flex h-6 w-6 items-center justify-center rounded-full bg-orange-500 text-white">
-                            <MapPin className="h-3 w-3" />
-                          </div>
-                          <span className="font-medium">Destination</span>
-                        </div>
-                        <p className="pl-8 text-sm">{shipment.destination}</p>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                <Card>
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-lg">Need Help?</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-3">
-                      <Button variant="outline" className="w-full justify-start">
-                        <Clock className="mr-2 h-4 w-4 text-orange-500" />
-                        Modify Delivery
-                      </Button>
-                      <Button variant="outline" className="w-full justify-start">
-                        <Package className="mr-2 h-4 w-4 text-orange-500" />
-                        Report an Issue
-                      </Button>
-                      <Button variant="outline" className="w-full justify-start">
-                        <FileText className="mr-2 h-4 w-4 text-orange-500" />
-                        Request Documents
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-            </div>
+    <main className="flex flex-col">
+      <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
+        <div className="flex flex-col space-y-2 md:flex-row md:items-center md:justify-between md:space-y-0">
+          <div className="flex items-center space-x-2">
+            <Link href="/dashboard/shipments">
+              <Button variant="ghost" size="sm">
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                Back to Shipments
+              </Button>
+            </Link>
           </div>
-        </main>
+          <div className="flex items-center space-x-2">
+            <Button variant="outline" size="sm">
+              <Download className="mr-2 h-4 w-4" />
+              Download
+            </Button>
+            <Button onClick={() => setShowCancelConfirmation(true)} variant="outline" size="sm">
+              <X className="mr-2 h-4 w-4" />
+              Cancel
+            </Button>
+          </div>
+        </div>
+
+        <div className="grid gap-4 md:grid-cols-[2fr_1fr]">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-xl font-bold">Shipment {shipment.trackingNumber}</CardTitle>
+              <Badge className={`${getStatusColor(shipment.status)} text-white`}>
+                {shipment.status.charAt(0).toUpperCase() + shipment.status.slice(1)}
+              </Badge>
+            </CardHeader>
+            <CardContent>
+              <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+                <TabsList className="grid w-full grid-cols-3">
+                  <TabsTrigger value="tracking">Tracking</TabsTrigger>
+                  <TabsTrigger value="details">Details</TabsTrigger>
+                  <TabsTrigger value="documents">Documents</TabsTrigger>
+                </TabsList>
+                <TabsContent value="tracking" className="space-y-4">
+                  <div className="mt-4 space-y-4">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-2">
+                        <Package className="h-5 w-5 text-orange-500" />
+                        <span className="font-medium">Current Status:</span>
+                      </div>
+                      <span>{shipment?.status}</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-2">
+                        <Calendar className="h-5 w-5 text-orange-500" />
+                        <span className="font-medium">Estimated Delivery:</span>
+                      </div>
+                      <span>{new Date(shipment?.estimatedDeliveryTime).toLocaleDateString()}</span>
+                    </div>
+
+                    <div className="relative mt-8 pl-6">
+                      <div className="absolute left-2 top-0 bottom-0 w-0.5 bg-gray-200"></div>
+                      {/* Add tracking events here */}
+                    </div>
+                  </div>
+                </TabsContent>
+                <TabsContent value="details" className="space-y-4">
+                  <div className="grid gap-4 md:grid-cols-2">
+                    <div className="space-y-4">
+                      <div>
+                        <h3 className="mb-2 font-medium">Sender</h3>
+                        <div className="rounded-lg border p-3">
+                          <p className="font-medium">{shipment?.pickupAddress?.address}</p>
+                          <p className="text-sm">{shipment?.pickupAddress?.street}</p>
+                          <p className="text-sm">{shipment?.pickupAddress?.city}, {shipment?.pickupAddress?.state}</p>
+                        </div>
+                      </div>
+                      <div>
+                        <h3 className="mb-2 font-medium">Package Information</h3>
+                        <div className="rounded-lg border p-3 text-sm">
+                          <div className="grid grid-cols-2 gap-2">
+                            <span className="text-muted-foreground">Weight:</span>
+                            <span>{shipment?.weight} kg</span>
+                            <span className="text-muted-foreground">Dimensions:</span>
+                            <span>{shipment?.dimensions?.length} × {shipment?.dimensions?.width} × {shipment?.dimensions?.height} cm</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="space-y-4">
+                      <div>
+                        <h3 className="mb-2 font-medium">Recipient</h3>
+                        <div className="rounded-lg border p-3">
+                          <p className="font-medium">{shipment?.receiver?.name}</p>
+                          <p className="text-sm">{shipment?.deliveryAddress?.address}</p>
+                          <p className="text-sm">{shipment?.deliveryAddress?.street}</p>
+                          <p className="text-sm">{shipment?.deliveryAddress?.city}, {shipment?.deliveryAddress?.state}</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </TabsContent>
+                <TabsContent value="documents" className="space-y-4">
+                  {/* Add documents section here */}
+                </TabsContent>
+              </Tabs>
+            </CardContent>
+          </Card>
+
+          <div className="space-y-4">
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-lg">Shipment Progress</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  <Progress value={getProgressValue(shipment?.status)} className="h-2" />
+                  <div className="flex justify-between text-sm text-muted-foreground">
+                    <span>Started</span>
+                    <span>{getProgressValue(shipment?.status)}% Complete</span>
+                    <span>Delivered</span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-lg">Need Help?</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  <Button variant="outline" className="w-full justify-start">
+                    <Clock className="mr-2 h-4 w-4 text-orange-500" />
+                    Modify Delivery
+                  </Button>
+                  <Button variant="outline" className="w-full justify-start">
+                    <Package className="mr-2 h-4 w-4 text-orange-500" />
+                    Report an Issue
+                  </Button>
+                  <Button variant="outline" className="w-full justify-start">
+                    <FileText className="mr-2 h-4 w-4 text-orange-500" />
+                    Request Documents
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </div>
+
+    {showCancelConfirmation && (
+      <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+        <Card className="w-[400px]">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <AlertCircle className="h-5 w-5 text-red-500" />
+              Cancel Shipment
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-muted-foreground mb-4">
+              Are you sure you want to cancel this shipment? This action cannot be undone.
+            </p>
+            <div className="flex justify-end gap-2">
+              <Button
+                variant="outline"
+                onClick={() => setShowCancelConfirmation(false)}
+              >
+                No, Keep It
+              </Button>
+              <Button
+                variant="destructive"
+                onClick={handleCancelOrder}
+              >
+                Yes, Cancel Shipment
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    )}
+    </main>
   )
 }

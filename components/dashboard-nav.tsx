@@ -6,7 +6,7 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
-import { Package, Truck, Clock, Settings, Home, HelpCircle, LogOut } from "lucide-react"
+import { Package, Truck, Settings, Home, HelpCircle, LogOut } from "lucide-react"
 
 interface NavItem {
   title: string
@@ -30,11 +30,11 @@ const navItems: NavItem[] = [
     href: "/dashboard/tracking",
     icon: Truck,
   },
-  {
-    title: "History",
-    href: "/dashboard/history",
-    icon: Clock,
-  },
+  // {
+  //   title: "History",
+  //   href: "/dashboard/history",
+  //   icon: Clock,
+  // },
   {
     title: "Settings",
     href: "/dashboard/settings",

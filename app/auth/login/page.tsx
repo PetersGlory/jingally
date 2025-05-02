@@ -86,10 +86,10 @@ export default function LoginPage() {
           </div>
           <div className="relative z-20 mt-auto">
             <Image 
-              src="/logistics-hero.jpg" 
+              src="/logo.png" 
               alt="Logistics Operations" 
-              width={600} 
-              height={400}
+              width={500} 
+              height={500}
               className="rounded-lg shadow-lg"
             />
           </div>
@@ -174,12 +174,12 @@ export default function LoginPage() {
                 </CardFooter>
               </form>
             </Card>
-
+{/* 
             <div className="px-8 text-center text-sm text-muted-foreground">
               <p>Demo credentials:</p>
               <p className="font-medium">Email: john@example.com</p>
               <p className="font-medium">Password: password</p>
-            </div>
+            </div> */}
 
             <p className="px-8 text-center text-sm text-muted-foreground">
               Don't have an account?{" "}
