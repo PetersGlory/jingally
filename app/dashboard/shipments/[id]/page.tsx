@@ -230,7 +230,7 @@ export default function ShipmentDetailPage() {
               onClick={() => setShowCancelConfirmation(true)} 
               variant="outline" 
               size="sm"
-              disabled={shipment.status === 'cancelled' || shipment.status === 'delivered'}
+              disabled={shipment?.status === 'cancelled' || shipment?.status === 'delivered'}
             >
               <X className="mr-2 h-4 w-4" />
               Cancel
@@ -241,9 +241,9 @@ export default function ShipmentDetailPage() {
         <div className="grid gap-4 md:grid-cols-[2fr_1fr]">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-xl font-bold">Shipment {shipment.trackingNumber}</CardTitle>
-              <Badge className={`${getStatusColor(shipment.status)} text-white`}>
-                {shipment.status.charAt(0).toUpperCase() + shipment.status.slice(1)}
+              <CardTitle className="text-xl font-bold">Shipment {shipment?.trackingNumber}</CardTitle>
+              <Badge className={`${getStatusColor(shipment?.status || '')} text-white`}>
+                {shipment?.status?.charAt(0).toUpperCase() + shipment?.status?.slice(1)}
               </Badge>
             </CardHeader>
             <CardContent>
@@ -260,21 +260,21 @@ export default function ShipmentDetailPage() {
                         <Package className="h-5 w-5 text-orange-500" />
                         <span className="font-medium">Current Status:</span>
                       </div>
-                      <span className="font-semibold">{shipment.status.charAt(0).toUpperCase() + shipment.status.slice(1)}</span>
+                      <span className="font-semibold">{shipment?.status?.charAt(0).toUpperCase() + shipment?.status?.slice(1)}</span>
                     </div>
                     <div className="flex items-center justify-between">
                       <div className="flex items-center space-x-2">
                         <Calendar className="h-5 w-5 text-orange-500" />
                         <span className="font-medium">Estimated Delivery:</span>
                       </div>
-                      <span className="font-semibold">{formatDate(shipment.estimatedDeliveryTime)}</span>
+                      <span className="font-semibold">{formatDate(shipment?.estimatedDeliveryTime || '')}</span>
                     </div>
                     <div className="flex items-center justify-between">
                       <div className="flex items-center space-x-2">
                         <Calendar className="h-5 w-5 text-orange-500" />
                         <span className="font-medium">Scheduled Pickup:</span>
                       </div>
-                      <span className="font-semibold">{formatDate(shipment.scheduledPickupTime)}</span>
+                      <span className="font-semibold">{formatDate(shipment?.scheduledPickupTime || '')}</span>
                     </div>
                   </div>
                 </TabsContent>
@@ -284,11 +284,11 @@ export default function ShipmentDetailPage() {
                       <div>
                         <h3 className="mb-2 font-medium">Sender</h3>
                         <div className="rounded-lg border p-3">
-                          <p className="font-medium">{shipment.pickupAddress.street}</p>
-                          <p className="text-sm">{shipment.pickupAddress.city}, {shipment.pickupAddress.state}</p>
-                          <p className="text-sm">{shipment.pickupAddress.country} {shipment.pickupAddress.postcode}</p>
+                          <p className="font-medium">{shipment?.pickupAddress?.street}</p>
+                          <p className="text-sm">{shipment?.pickupAddress?.city}, {shipment?.pickupAddress?.state}</p>
+                          <p className="text-sm">{shipment?.pickupAddress?.country} {shipment?.pickupAddress?.postcode}</p>
                           <p className="text-sm mt-2">
-                            <span className="capitalize">{shipment.pickupAddress.type}</span> Address
+                            <span className="capitalize">{shipment?.pickupAddress?.type}</span> Address
                           </p>
                         </div>
                       </div>
@@ -297,15 +297,15 @@ export default function ShipmentDetailPage() {
                         <div className="rounded-lg border p-3 text-sm">
                           <div className="grid grid-cols-2 gap-2">
                             <span className="text-muted-foreground">Weight:</span>
-                            <span>{shipment.weight} kg</span>
+                            <span>{shipment?.weight} kg</span>
                             <span className="text-muted-foreground">Dimensions:</span>
-                            <span>{shipment.dimensions.length} × {shipment.dimensions.width} × {shipment.dimensions.height} cm</span>
+                            <span>{shipment?.dimensions?.length} × {shipment?.dimensions?.width} × {shipment?.dimensions?.height} cm</span>
                             <span className="text-muted-foreground">Package Type:</span>
-                            <span>{shipment.packageType || 'Not specified'}</span>
+                            <span>{shipment?.packageType || 'Not specified'}</span>
                             <span className="text-muted-foreground">Service Type:</span>
-                            <span>{shipment.serviceType || 'Not specified'}</span>
+                            <span>{shipment?.serviceType || 'Not specified'}</span>
                             <span className="text-muted-foreground">Fragile:</span>
-                            <span>{shipment.fragile ? 'Yes' : 'No'}</span>
+                            <span>{shipment?.fragile ? 'Yes' : 'No'}</span>
                           </div>
                         </div>
                       </div>
@@ -314,21 +314,21 @@ export default function ShipmentDetailPage() {
                       <div>
                         <h3 className="mb-2 font-medium">Recipient</h3>
                         <div className="rounded-lg border p-3">
-                          <p className="font-medium">{shipment.receiverName}</p>
+                          <p className="font-medium">{shipment?.receiverName}</p>
                           <div className="flex items-center space-x-2 text-sm mt-1">
                             <Phone className="h-4 w-4" />
-                            <span>{shipment.receiverPhoneNumber}</span>
+                            <span>{shipment?.receiverPhoneNumber}</span>
                           </div>
                           <div className="flex items-center space-x-2 text-sm mt-1">
                             <Mail className="h-4 w-4" />
-                            <span>{shipment.receiverEmail}</span>
+                            <span>{shipment?.receiverEmail}</span>
                           </div>
                           <div className="mt-2">
-                            <p className="font-medium">{shipment.deliveryAddress.street}</p>
-                            <p className="text-sm">{shipment.deliveryAddress.city}, {shipment.deliveryAddress.state}</p>
-                            <p className="text-sm">{shipment.deliveryAddress.country} {shipment.deliveryAddress.postcode}</p>
+                            <p className="font-medium">{shipment?.deliveryAddress?.street}</p>
+                            <p className="text-sm">{shipment?.deliveryAddress?.city}, {shipment?.deliveryAddress?.state}</p>
+                            <p className="text-sm">{shipment?.deliveryAddress?.country} {shipment?.deliveryAddress?.postcode}</p>
                             <p className="text-sm mt-2">
-                              <span className="capitalize">{shipment.deliveryAddress.type}</span> Address
+                              <span className="capitalize">{shipment?.deliveryAddress?.type}</span> Address
                             </p>
                           </div>
                         </div>
@@ -337,9 +337,9 @@ export default function ShipmentDetailPage() {
                   </div>
                 </TabsContent>
                 <TabsContent value="documents" className="space-y-4">
-                  {shipment.images && shipment.images.length > 0 ? (
+                  {shipment?.images && shipment?.images?.length > 0 ? (
                     <div className="grid grid-cols-2 gap-4">
-                      {shipment.images.map((image, index) => (
+                      {shipment?.images?.map((image, index) => (
                         <div key={index} className="relative aspect-square">
                           <img
                             src={image}
@@ -366,10 +366,10 @@ export default function ShipmentDetailPage() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
-                  <Progress value={getProgressValue(shipment.status)} className="h-2" />
+                  <Progress value={getProgressValue(shipment?.status || '')} className="h-2" />
                   <div className="flex justify-between text-sm text-muted-foreground">
                     <span>Started</span>
-                    <span>{getProgressValue(shipment.status)}% Complete</span>
+                    <span>{getProgressValue(shipment?.status || '')}% Complete</span>
                     <span>Delivered</span>
                   </div>
                 </div>
@@ -384,19 +384,19 @@ export default function ShipmentDetailPage() {
                 <div className="space-y-2">
                   <Badge 
                     className={`${
-                      shipment.paymentStatus === 'paid' 
+                      shipment?.paymentStatus === 'paid' 
                         ? 'bg-green-500' 
-                        : shipment.paymentStatus === 'failed' 
+                        : shipment?.paymentStatus === 'failed' 
                           ? 'bg-red-500' 
                           : 'bg-yellow-500'
                     } text-white`}
                   >
-                    {shipment.paymentStatus.charAt(0).toUpperCase() + shipment.paymentStatus.slice(1)}
+                    {shipment?.paymentStatus?.charAt(0).toUpperCase() + shipment?.paymentStatus?.slice(1)}
                   </Badge>
-                  {shipment.price && (
-                    <p className="text-lg font-semibold">${shipment.price.toFixed(2)}</p>
+                  {shipment?.price && (
+                    <p className="text-lg font-semibold">${shipment?.price}</p>
                   )}
-                  {shipment.paymentStatus !== 'paid' && (
+                  {shipment?.paymentStatus !== 'paid' && (
                     <Button 
                       className="w-full mt-2"
                       onClick={() => {
