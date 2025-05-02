@@ -97,7 +97,7 @@ export default function DashboardPage() {
 
   const fetchShipmentHistory = async () => {
     try {
-      const token = localStorage.getItem('accessToken');
+      // const token = localStorage.getItem('accessToken');
       if (!token) {
         setError('Authentication required');
         return;

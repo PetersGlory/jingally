@@ -39,7 +39,7 @@ export default function LoginPage() {
 
       if (result?.token) {
         localStorage.setItem('user', JSON.stringify(result?.user));
-        localStorage.setItem('accessToken', result?.token);
+        localStorage.setItem('accessToken', JSON.stringify(result?.token));
         
         if (result?.user?.isVerified) {
           toast({

@@ -131,8 +131,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       localStorage.removeItem("accessToken")
       setToken(null)
       setUser(null)
-      
-      router.push("/auth/login")
+      localStorage.clear();
+      router.replace("")
     } catch (error) {
       console.error("Sign out error:", error)
       throw error

@@ -10,6 +10,8 @@ export default function LogoutPage() {
   useEffect(() => {
     const handleLogout = async () => {
       await signOut({ callbackUrl: "/" })
+      localStorage.clear();
+      router.push("/")
     }
 
     handleLogout()

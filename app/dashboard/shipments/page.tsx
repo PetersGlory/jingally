@@ -38,7 +38,7 @@ export default function ShipmentsPage() {
           throw new Error('No access token found')
         }
 
-        const response = await getShipments(token)
+        const response = await getShipments(JSON.parse(token))
         if (response.success) {
           const transformedShipments = response.data.map((shipment: any) => ({
             id: shipment.id,
