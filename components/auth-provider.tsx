@@ -45,7 +45,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // Check for stored token on mount
     const storedToken = localStorage.getItem("accessToken")
     if (storedToken) {
-      setToken(storedToken)
+      setToken(JSON.parse(storedToken))
       refreshUser()
     } else {
       setIsLoading(false)
@@ -60,7 +60,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return
       }
 
-      const userData = await getUser(storedToken)
+      const userData = await getUser(JSON.parse(storedToken))
       setUser(userData)
     } catch (error) {
       console.error("Error refreshing user:", error)

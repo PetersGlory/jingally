@@ -14,12 +14,15 @@ interface CountryCode {
 }
 
 interface Address {
-  id: string;
   street: string;
   city: string;
-  postcode: string;
+  state: string;
   country: string;
-  isDefault: boolean;
+  postcode: string;
+  latitude: number;
+  longitude: number;
+  placeId: string;
+  type: 'residential' | 'business';
 }
 
 interface Receiver {
@@ -30,15 +33,10 @@ interface Receiver {
 }
 
 interface DeliveryForm {
-  street: string;
-  city: string;
-  state: string;
-  country: string;
-  zipCode: string;
-  latitude: number;
-  longitude: number;
-  placeId: string;
-  type: 'delivery';
+  pickupAddress: Address;
+  deliveryAddress: Address;
+  receiver: Receiver;
+  deliveryMode: 'home' | 'park';
 }
 
 const countryCodes: CountryCode[] = [
@@ -50,74 +48,69 @@ const countryCodes: CountryCode[] = [
 export default function PackageDelivery({ handleNextStep, handlePreviousStep }: { handleNextStep: () => void, handlePreviousStep: () => void }) {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
-  const [addresses, setAddresses] = useState<Address[]>([]);
-  const [selectedPickupAddressId, setSelectedPickupAddressId] = useState<string>('');
-  const [selectedDeliveryAddressId, setSelectedDeliveryAddressId] = useState<string>('');
   const [deliveryMode, setDeliveryMode] = useState<'home' | 'park'>('home');
-  const [receiver, setReceiver] = useState<Receiver>({
-    name: '',
-    phone: '',
-    email: '',
-    countryCode: '+44'
-  });
-  const [deliveryForm, setDeliveryForm] = useState<DeliveryForm>({
-    street: '',
-    city: '',
-    state: '',
-    country: '',
-    zipCode: '',
-    latitude: 0,
-    longitude: 0,
-    placeId: '',
-    type: 'delivery'
-  });
-  const [formErrors, setFormErrors] = useState<Partial<DeliveryForm>>({});
   const [showCountryModal, setShowCountryModal] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [formErrors, setFormErrors] = useState<Partial<DeliveryForm>>({});
 
-  useEffect(() => {
-    const fetchAddresses = async () => {
-      setIsLoading(true);
-      try {
-        const token = localStorage.getItem('accessToken');
-        if (!token) {
-          router.push('/sign-in');
-          return;
-        }
-        const response = await fetch('/api/addresses', {
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
-        });
-        if (response.ok) {
-          const data = await response.json();
-          setAddresses(data);
-        } else {
-          alert('Failed to fetch addresses');
-        }
-      } catch (error) {
-        console.error('Error fetching addresses:', error);
-        alert('An error occurred while fetching addresses');
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    fetchAddresses();
-  }, []);
+  const [form, setForm] = useState<DeliveryForm>({
+    pickupAddress: {
+      street: '',
+      city: '',
+      state: '',
+      country: '',
+      postcode: '',
+      latitude: 0,
+      longitude: 0,
+      placeId: '',
+      type: 'residential'
+    },
+    deliveryAddress: {
+      street: '',
+      city: '',
+      state: '',
+      country: '',
+      postcode: '',
+      latitude: 0,
+      longitude: 0,
+      placeId: '',
+      type: 'residential'
+    },
+    receiver: {
+      name: '',
+      phone: '',
+      email: '',
+      countryCode: '+44'
+    },
+    deliveryMode: 'home'
+  });
 
   const isValidForm = () => {
     const phoneRegex = /^[0-9]{10,15}$/;
     return (
-      selectedPickupAddressId !== '' &&
-      receiver.name.trim() !== '' &&
-      receiver.phone.trim() !== '' &&
-      phoneRegex.test(receiver.phone.trim())
+      form.pickupAddress.street.trim() !== '' &&
+      form.pickupAddress.city.trim() !== '' &&
+      form.pickupAddress.state.trim() !== '' &&
+      form.pickupAddress.country.trim() !== '' &&
+      form.pickupAddress.postcode.trim() !== '' &&
+      form.deliveryAddress.street.trim() !== '' &&
+      form.deliveryAddress.city.trim() !== '' &&
+      form.deliveryAddress.state.trim() !== '' &&
+      form.deliveryAddress.country.trim() !== '' &&
+      form.deliveryAddress.postcode.trim() !== '' &&
+      form.receiver.name.trim() !== '' &&
+      form.receiver.phone.trim() !== '' &&
+      phoneRegex.test(form.receiver.phone.trim())
     );
   };
 
   const handleSubmit = async () => {
     if (!isValidForm()) {
-      alert('Please fill in all required fields correctly');
+      setFormErrors({
+        pickupAddress: { street: 'Please fill in all required fields' },
+        deliveryAddress: { street: 'Please fill in all required fields' },
+        receiver: { name: 'Please fill in all required fields' }
+      });
       return;
     }
 
@@ -130,29 +123,24 @@ export default function PackageDelivery({ handleNextStep, handlePreviousStep }: 
       }
 
       const packageInfo = JSON.parse(packageInfoStr);
-      const deliveryAddress = addresses.find(addr => addr.id === selectedDeliveryAddressId);
-      const pickupAddress = addresses.find(addr => addr.id === selectedPickupAddressId);
-
-      const deliveryDetails = {
-        deliveryAddress: deliveryForm || deliveryAddress || {},
-        pickupAddress: pickupAddress || {},
-        receiverName: receiver.name.trim(),
-        receiverEmail: receiver.email.trim(),
-        receiverPhoneNumber: receiver.phone.trim()
-      };
-
       const token = localStorage.getItem('accessToken');
 
-      const response = await updateDeliveryAddress(packageInfo.id, deliveryDetails, token as string);
+      const response = await updateDeliveryAddress(packageInfo.id, {
+        pickupAddress: form.pickupAddress,
+        deliveryAddress: form.deliveryAddress,
+        receiverName: form.receiver.name,
+        receiverEmail: form.receiver.email,
+        receiverPhoneNumber: form.receiver.phone,
+        deliveryMode: form.deliveryMode
+      }, JSON.parse(token as string));
 
-      if (response.success) {        
+      if (response.success) {
         localStorage.setItem('packageInfo', JSON.stringify(response.data));
         handleNextStep();
       } else {
         throw new Error(response.message || 'Failed to update delivery details');
       }
     } catch (error: any) {
-         
       console.error('Error saving delivery details:', error);
       alert(error.message || 'Failed to save delivery details. Please try again.');
     } finally {
@@ -160,33 +148,12 @@ export default function PackageDelivery({ handleNextStep, handlePreviousStep }: 
     }
   };
 
-  const renderInput = (
-    label: string,
-    value: string,
-    onChange: (value: string) => void,
-    placeholder: string,
-    isOptional: boolean = false,
-    type: string = 'text'
-  ) => (
-    <div className={styles.inputGroup}>
-      <label className={styles.label}>
-        {label} {isOptional && <span className={styles.optional}>(Optional)</span>}
-      </label>
-      <input
-        type={type}
-        className={styles.input}
-        placeholder={placeholder}
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-      />
-    </div>
-  );
-
-  const renderAddressSection = (
+  const renderAddressForm = (
     title: string,
     icon: React.ReactNode,
-    selectedAddressId: string,
-    setSelectedAddressId: (id: string) => void
+    address: Address,
+    setAddress: (address: Address) => void,
+    type: 'pickup' | 'delivery'
   ) => (
     <div className={styles.section}>
       <div className={styles.sectionHeader}>
@@ -196,39 +163,96 @@ export default function PackageDelivery({ handleNextStep, handlePreviousStep }: 
         <h2 className={styles.sectionTitle}>{title}</h2>
       </div>
 
-      <div className={styles.addressList}>
-        {addresses.map((address) => (
-          <div
-            key={address.id}
-            className={`${styles.addressCard} ${selectedAddressId === address.id ? styles.selected : ''}`}
-            onClick={() => setSelectedAddressId(address.id)}
-          >
-            <div className={styles.addressHeader}>
-              <div className={styles.addressIcon}>
-                <MapPin size={20} />
-              </div>
-              <span className={styles.addressType}>
-                {address.isDefault ? 'Default Address' : 'Address'}
-              </span>
-              {address.isDefault && (
-                <span className={styles.defaultBadge}>Default</span>
-              )}
-            </div>
-            
-            <p className={styles.addressText}>
-              {address.street}<br />
-              {address.city}, {address.postcode}<br />
-              {address.country}
-            </p>
-          </div>
-        ))}
+      <div className={styles.addressForm}>
+        <div className={styles.inputGroup}>
+          <label className={styles.label}>Street Address</label>
+          <input
+            type="text"
+            className={`${styles.input} ${formErrors[`${type}Address`]?.street ? styles.error : ''}`}
+            placeholder="Enter street address"
+            value={address.street}
+            onChange={(e) => setAddress({ ...address, street: e.target.value })}
+          />
+          {formErrors[`${type}Address`]?.street && (
+            <span className={styles.errorMessage}>{formErrors[`${type}Address`]?.street}</span>
+          )}
+        </div>
 
-        <button
-          className={styles.addAddressButton}
-          onClick={() => router.push('/settings/add-address')}
-        >
-          Add New Address
-        </button>
+        <div className={styles.formRow}>
+          <div className={styles.inputGroup}>
+            <label className={styles.label}>City</label>
+            <input
+              type="text"
+              className={`${styles.input} ${formErrors[`${type}Address`]?.city ? styles.error : ''}`}
+              placeholder="City"
+              value={address.city}
+              onChange={(e) => setAddress({ ...address, city: e.target.value })}
+            />
+            {formErrors[`${type}Address`]?.city && (
+              <span className={styles.errorMessage}>{formErrors[`${type}Address`]?.city}</span>
+            )}
+          </div>
+          <div className={styles.inputGroup}>
+            <label className={styles.label}>State</label>
+            <input
+              type="text"
+              className={`${styles.input} ${formErrors[`${type}Address`]?.state ? styles.error : ''}`}
+              placeholder="State"
+              value={address.state}
+              onChange={(e) => setAddress({ ...address, state: e.target.value })}
+            />
+            {formErrors[`${type}Address`]?.state && (
+              <span className={styles.errorMessage}>{formErrors[`${type}Address`]?.state}</span>
+            )}
+          </div>
+        </div>
+
+        <div className={styles.formRow}>
+          <div className={styles.inputGroup}>
+            <label className={styles.label}>Country</label>
+            <input
+              type="text"
+              className={`${styles.input} ${formErrors[`${type}Address`]?.country ? styles.error : ''}`}
+              placeholder="Country"
+              value={address.country}
+              onChange={(e) => setAddress({ ...address, country: e.target.value })}
+            />
+            {formErrors[`${type}Address`]?.country && (
+              <span className={styles.errorMessage}>{formErrors[`${type}Address`]?.country}</span>
+            )}
+          </div>
+          <div className={styles.inputGroup}>
+            <label className={styles.label}>Postcode</label>
+            <input
+              type="text"
+              className={`${styles.input} ${formErrors[`${type}Address`]?.postcode ? styles.error : ''}`}
+              placeholder="Postcode"
+              value={address.postcode}
+              onChange={(e) => setAddress({ ...address, postcode: e.target.value })}
+            />
+            {formErrors[`${type}Address`]?.postcode && (
+              <span className={styles.errorMessage}>{formErrors[`${type}Address`]?.postcode}</span>
+            )}
+          </div>
+        </div>
+
+        <div className={styles.inputGroup}>
+          <label className={styles.label}>Address Type</label>
+          <div className={styles.addressTypeButtons}>
+            <button
+              className={`${styles.typeButton} ${address.type === 'residential' ? styles.active : ''}`}
+              onClick={() => setAddress({ ...address, type: 'residential' })}
+            >
+              Residential
+            </button>
+            <button
+              className={`${styles.typeButton} ${address.type === 'business' ? styles.active : ''}`}
+              onClick={() => setAddress({ ...address, type: 'business' })}
+            >
+              Business
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   );
@@ -271,108 +295,52 @@ export default function PackageDelivery({ handleNextStep, handlePreviousStep }: 
           </div>
         </div>
 
+        {/* Pickup Address Form */}
+        {renderAddressForm(
+          'Pickup Address',
+          <Truck size={20} />,
+          form.pickupAddress,
+          (address) => setForm({ ...form, pickupAddress: address }),
+          'pickup'
+        )}
+
         {/* Delivery Address Form */}
-        {deliveryMode === 'home' && (
-          <div className={styles.section}>
-            <div className={styles.sectionHeader}>
-              <MapPin size={20} />
-              <h2 className={styles.sectionTitle}>Delivery Address</h2>
-            </div>
-
-            <div className={styles.addressForm}>
-              <div className={styles.inputGroup}>
-                <label className={styles.label}>Street Address</label>
-                <input
-                  type="text"
-                  className={`${styles.input} ${formErrors.street ? styles.error : ''}`}
-                  placeholder="Search for an address"
-                  value={deliveryForm.street}
-                  onChange={(e) => setDeliveryForm({ ...deliveryForm, street: e.target.value })}
-                />
-                {formErrors.street && (
-                  <span className={styles.errorMessage}>{formErrors.street}</span>
-                )}
-              </div>
-
-              <div className={styles.formRow}>
-                <div className={styles.inputGroup}>
-                  <label className={styles.label}>City</label>
-                  <input
-                    type="text"
-                    className={`${styles.input} ${formErrors.city ? styles.error : ''}`}
-                    placeholder="City"
-                    value={deliveryForm.city}
-                    onChange={(e) => setDeliveryForm({ ...deliveryForm, city: e.target.value })}
-                  />
-                  {formErrors.city && (
-                    <span className={styles.errorMessage}>{formErrors.city}</span>
-                  )}
-                </div>
-                <div className={styles.inputGroup}>
-                  <label className={styles.label}>State</label>
-                  <input
-                    type="text"
-                    className={`${styles.input} ${formErrors.state ? styles.error : ''}`}
-                    placeholder="State"
-                    value={deliveryForm.state}
-                    onChange={(e) => setDeliveryForm({ ...deliveryForm, state: e.target.value })}
-                  />
-                  {formErrors.state && (
-                    <span className={styles.errorMessage}>{formErrors.state}</span>
-                  )}
-                </div>
-              </div>
-
-              <div className={styles.formRow}>
-                <div className={styles.inputGroup}>
-                  <label className={styles.label}>Country</label>
-                  <input
-                    type="text"
-                    className={`${styles.input} ${formErrors.country ? styles.error : ''}`}
-                    placeholder="Country"
-                    value={deliveryForm.country}
-                    onChange={(e) => setDeliveryForm({ ...deliveryForm, country: e.target.value })}
-                  />
-                  {formErrors.country && (
-                    <span className={styles.errorMessage}>{formErrors.country}</span>
-                  )}
-                </div>
-                <div className={styles.inputGroup}>
-                  <label className={styles.label}>ZIP Code</label>
-                  <input
-                    type="text"
-                    className={`${styles.input} ${formErrors.zipCode ? styles.error : ''}`}
-                    placeholder="ZIP code"
-                    value={deliveryForm.zipCode}
-                    onChange={(e) => setDeliveryForm({ ...deliveryForm, zipCode: e.target.value })}
-                  />
-                  {formErrors.zipCode && (
-                    <span className={styles.errorMessage}>{formErrors.zipCode}</span>
-                  )}
-                </div>
-              </div>
-            </div>
-          </div>
+        {renderAddressForm(
+          'Delivery Address',
+          <MapPin size={20} />,
+          form.deliveryAddress,
+          (address) => setForm({ ...form, deliveryAddress: address }),
+          'delivery'
         )}
 
         {/* Receiver Details */}
         <div className={styles.section}>
           <h2 className={styles.sectionTitle}>Receiver Details</h2>
           
-          {renderInput(
-            'Full Name',
-            receiver.name,
-            (text) => setReceiver({ ...receiver, name: text }),
-            'Enter receiver\'s full name'
-          )}
+          <div className={styles.inputGroup}>
+            <label className={styles.label}>Full Name</label>
+            <input
+              type="text"
+              className={`${styles.input} ${formErrors.receiver?.name ? styles.error : ''}`}
+              placeholder="Enter receiver's full name"
+              value={form.receiver.name}
+              onChange={(e) => setForm({ ...form, receiver: { ...form.receiver, name: e.target.value } })}
+            />
+            {formErrors.receiver?.name && (
+              <span className={styles.errorMessage}>{formErrors.receiver?.name}</span>
+            )}
+          </div>
 
-          {renderInput(
-            'Email Address',
-            receiver.email,
-            (text) => setReceiver({ ...receiver, email: text }),
-            'Enter receiver\'s email address',
-            true
-          )}
+          <div className={styles.inputGroup}>
+            <label className={styles.label}>Email Address</label>
+            <input
+              type="email"
+              className={styles.input}
+              placeholder="Enter receiver's email address"
+              value={form.receiver.email}
+              onChange={(e) => setForm({ ...form, receiver: { ...form.receiver, email: e.target.value } })}
+            />
+          </div>
 
           <div className={styles.inputGroup}>
             <label className={styles.label}>Phone Number</label>
@@ -382,29 +350,24 @@ export default function PackageDelivery({ handleNextStep, handlePreviousStep }: 
                 onClick={() => setShowCountryModal(true)}
               >
                 <span className={styles.flag}>
-                  {countryCodes.find(c => c.dial_code === receiver.countryCode)?.flag}
+                  {countryCodes.find(c => c.dial_code === form.receiver.countryCode)?.flag}
                 </span>
-                <span className={styles.dialCode}>{receiver.countryCode}</span>
+                <span className={styles.dialCode}>{form.receiver.countryCode}</span>
                 <ChevronDown size={16} />
               </button>
               <input
                 type="tel"
-                className={styles.phoneNumberInput}
+                className={`${styles.phoneNumberInput} ${formErrors.receiver?.phone ? styles.error : ''}`}
                 placeholder="Enter phone number"
-                value={receiver.phone}
-                onChange={(e) => setReceiver({ ...receiver, phone: e.target.value })}
+                value={form.receiver.phone}
+                onChange={(e) => setForm({ ...form, receiver: { ...form.receiver, phone: e.target.value } })}
               />
             </div>
+            {formErrors.receiver?.phone && (
+              <span className={styles.errorMessage}>{formErrors.receiver?.phone}</span>
+            )}
           </div>
         </div>
-
-        {/* Pickup Address */}
-        {renderAddressSection(
-          'Pickup Address',
-          <Truck size={20} />,
-          selectedPickupAddressId,
-          setSelectedPickupAddressId
-        )}
 
         {/* Info Note */}
         <div className={styles.infoNote}>
@@ -465,9 +428,9 @@ export default function PackageDelivery({ handleNextStep, handlePreviousStep }: 
                   .map(country => (
                     <button
                       key={country.code}
-                      className={`${styles.countryItem} ${receiver.countryCode === country.dial_code ? styles.selected : ''}`}
+                      className={`${styles.countryItem} ${form.receiver.countryCode === country.dial_code ? styles.selected : ''}`}
                       onClick={() => {
-                        setReceiver({ ...receiver, countryCode: country.dial_code });
+                        setForm({ ...form, receiver: { ...form.receiver, countryCode: country.dial_code } });
                         setShowCountryModal(false);
                       }}
                     >
@@ -476,7 +439,7 @@ export default function PackageDelivery({ handleNextStep, handlePreviousStep }: 
                         <span className={styles.countryName}>{country.name}</span>
                         <span className={styles.dialCode}>{country.dial_code}</span>
                       </div>
-                      {receiver.countryCode === country.dial_code && (
+                      {form.receiver.countryCode === country.dial_code && (
                         <div className={styles.checkIcon}>
                           <Check size={20} />
                         </div>

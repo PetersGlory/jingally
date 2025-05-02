@@ -193,151 +193,151 @@ export default function ShipmentDetailPage() {
   }
 
   return (
-    <main className="flex flex-col">
-      <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
-        <div className="flex flex-col space-y-2 md:flex-row md:items-center md:justify-between md:space-y-0">
-          <div className="flex items-center space-x-2">
-            <Link href="/dashboard/shipments">
-              <Button variant="ghost" size="sm">
-                <ArrowLeft className="mr-2 h-4 w-4" />
-                Back to Shipments
-              </Button>
-            </Link>
-          </div>
-          <div className="flex items-center space-x-2">
-            <Button variant="outline" size="sm">
-              <Download className="mr-2 h-4 w-4" />
-              Download
-            </Button>
+        <main className="flex flex-col">
+          <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
+            <div className="flex flex-col space-y-2 md:flex-row md:items-center md:justify-between md:space-y-0">
+              <div className="flex items-center space-x-2">
+                <Link href="/dashboard/shipments">
+                  <Button variant="ghost" size="sm">
+                    <ArrowLeft className="mr-2 h-4 w-4" />
+                    Back to Shipments
+                  </Button>
+                </Link>
+              </div>
+              <div className="flex items-center space-x-2">
+                <Button variant="outline" size="sm">
+                  <Download className="mr-2 h-4 w-4" />
+                  Download
+                </Button>
             <Button onClick={() => setShowCancelConfirmation(true)} variant="outline" size="sm">
               <X className="mr-2 h-4 w-4" />
               Cancel
-            </Button>
-          </div>
-        </div>
+                </Button>
+              </div>
+            </div>
 
-        <div className="grid gap-4 md:grid-cols-[2fr_1fr]">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <div className="grid gap-4 md:grid-cols-[2fr_1fr]">
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-xl font-bold">Shipment {shipment.trackingNumber}</CardTitle>
               <Badge className={`${getStatusColor(shipment.status)} text-white`}>
                 {shipment.status.charAt(0).toUpperCase() + shipment.status.slice(1)}
               </Badge>
-            </CardHeader>
-            <CardContent>
-              <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-                <TabsList className="grid w-full grid-cols-3">
-                  <TabsTrigger value="tracking">Tracking</TabsTrigger>
-                  <TabsTrigger value="details">Details</TabsTrigger>
-                  <TabsTrigger value="documents">Documents</TabsTrigger>
-                </TabsList>
-                <TabsContent value="tracking" className="space-y-4">
-                  <div className="mt-4 space-y-4">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-2">
-                        <Package className="h-5 w-5 text-orange-500" />
-                        <span className="font-medium">Current Status:</span>
-                      </div>
+                </CardHeader>
+                <CardContent>
+                  <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+                    <TabsList className="grid w-full grid-cols-3">
+                      <TabsTrigger value="tracking">Tracking</TabsTrigger>
+                      <TabsTrigger value="details">Details</TabsTrigger>
+                      <TabsTrigger value="documents">Documents</TabsTrigger>
+                    </TabsList>
+                    <TabsContent value="tracking" className="space-y-4">
+                      <div className="mt-4 space-y-4">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center space-x-2">
+                            <Package className="h-5 w-5 text-orange-500" />
+                            <span className="font-medium">Current Status:</span>
+                          </div>
                       <span>{shipment?.status}</span>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-2">
-                        <Calendar className="h-5 w-5 text-orange-500" />
-                        <span className="font-medium">Estimated Delivery:</span>
-                      </div>
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center space-x-2">
+                            <Calendar className="h-5 w-5 text-orange-500" />
+                            <span className="font-medium">Estimated Delivery:</span>
+                          </div>
                       <span>{new Date(shipment?.estimatedDeliveryTime).toLocaleDateString()}</span>
-                    </div>
+                        </div>
 
-                    <div className="relative mt-8 pl-6">
-                      <div className="absolute left-2 top-0 bottom-0 w-0.5 bg-gray-200"></div>
+                        <div className="relative mt-8 pl-6">
+                          <div className="absolute left-2 top-0 bottom-0 w-0.5 bg-gray-200"></div>
                       {/* Add tracking events here */}
-                    </div>
-                  </div>
-                </TabsContent>
-                <TabsContent value="details" className="space-y-4">
-                  <div className="grid gap-4 md:grid-cols-2">
-                    <div className="space-y-4">
-                      <div>
-                        <h3 className="mb-2 font-medium">Sender</h3>
-                        <div className="rounded-lg border p-3">
+                        </div>
+                      </div>
+                    </TabsContent>
+                    <TabsContent value="details" className="space-y-4">
+                      <div className="grid gap-4 md:grid-cols-2">
+                        <div className="space-y-4">
+                          <div>
+                            <h3 className="mb-2 font-medium">Sender</h3>
+                            <div className="rounded-lg border p-3">
                           <p className="font-medium">{shipment?.pickupAddress?.address}</p>
                           <p className="text-sm">{shipment?.pickupAddress?.street}</p>
                           <p className="text-sm">{shipment?.pickupAddress?.city}, {shipment?.pickupAddress?.state}</p>
-                        </div>
-                      </div>
-                      <div>
-                        <h3 className="mb-2 font-medium">Package Information</h3>
-                        <div className="rounded-lg border p-3 text-sm">
-                          <div className="grid grid-cols-2 gap-2">
-                            <span className="text-muted-foreground">Weight:</span>
+                            </div>
+                          </div>
+                          <div>
+                            <h3 className="mb-2 font-medium">Package Information</h3>
+                            <div className="rounded-lg border p-3 text-sm">
+                              <div className="grid grid-cols-2 gap-2">
+                                <span className="text-muted-foreground">Weight:</span>
                             <span>{shipment?.weight} kg</span>
-                            <span className="text-muted-foreground">Dimensions:</span>
+                                <span className="text-muted-foreground">Dimensions:</span>
                             <span>{shipment?.dimensions?.length} × {shipment?.dimensions?.width} × {shipment?.dimensions?.height} cm</span>
+                              </div>
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    </div>
-                    <div className="space-y-4">
-                      <div>
-                        <h3 className="mb-2 font-medium">Recipient</h3>
-                        <div className="rounded-lg border p-3">
+                        <div className="space-y-4">
+                          <div>
+                            <h3 className="mb-2 font-medium">Recipient</h3>
+                            <div className="rounded-lg border p-3">
                           <p className="font-medium">{shipment?.receiver?.name}</p>
                           <p className="text-sm">{shipment?.deliveryAddress?.address}</p>
                           <p className="text-sm">{shipment?.deliveryAddress?.street}</p>
                           <p className="text-sm">{shipment?.deliveryAddress?.city}, {shipment?.deliveryAddress?.state}</p>
+                            </div>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  </div>
-                </TabsContent>
-                <TabsContent value="documents" className="space-y-4">
+                    </TabsContent>
+                    <TabsContent value="documents" className="space-y-4">
                   {/* Add documents section here */}
-                </TabsContent>
-              </Tabs>
-            </CardContent>
-          </Card>
+                    </TabsContent>
+                  </Tabs>
+                </CardContent>
+              </Card>
 
-          <div className="space-y-4">
-            <Card>
-              <CardHeader className="pb-2">
+              <div className="space-y-4">
+                <Card>
+                  <CardHeader className="pb-2">
                 <CardTitle className="text-lg">Shipment Progress</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-3">
                   <Progress value={getProgressValue(shipment?.status)} className="h-2" />
                   <div className="flex justify-between text-sm text-muted-foreground">
                     <span>Started</span>
                     <span>{getProgressValue(shipment?.status)}% Complete</span>
                     <span>Delivered</span>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
 
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-lg">Need Help?</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  <Button variant="outline" className="w-full justify-start">
-                    <Clock className="mr-2 h-4 w-4 text-orange-500" />
-                    Modify Delivery
-                  </Button>
-                  <Button variant="outline" className="w-full justify-start">
-                    <Package className="mr-2 h-4 w-4 text-orange-500" />
-                    Report an Issue
-                  </Button>
-                  <Button variant="outline" className="w-full justify-start">
-                    <FileText className="mr-2 h-4 w-4 text-orange-500" />
-                    Request Documents
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-lg">Need Help?</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-3">
+                      <Button variant="outline" className="w-full justify-start">
+                        <Clock className="mr-2 h-4 w-4 text-orange-500" />
+                        Modify Delivery
+                      </Button>
+                      <Button variant="outline" className="w-full justify-start">
+                        <Package className="mr-2 h-4 w-4 text-orange-500" />
+                        Report an Issue
+                      </Button>
+                      <Button variant="outline" className="w-full justify-start">
+                        <FileText className="mr-2 h-4 w-4 text-orange-500" />
+                        Request Documents
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            </div>
           </div>
-        </div>
-      </div>
 
     {showCancelConfirmation && (
       <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
@@ -370,6 +370,6 @@ export default function ShipmentDetailPage() {
         </Card>
       </div>
     )}
-    </main>
+        </main>
   )
 }

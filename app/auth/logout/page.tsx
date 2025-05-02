@@ -1,7 +1,6 @@
 "use client"
 
 import { useEffect } from "react"
-import { signOut } from "next-auth/react"
 import { useRouter } from "next/navigation"
 
 export default function LogoutPage() {
@@ -9,9 +8,10 @@ export default function LogoutPage() {
 
   useEffect(() => {
     const handleLogout = async () => {
-      await signOut({ callbackUrl: "/" })
       localStorage.clear();
-      router.push("/")
+      setTimeout(() => {
+        window.location.href = "/";
+      }, 2000);
     }
 
     handleLogout()

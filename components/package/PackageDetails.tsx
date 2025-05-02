@@ -113,11 +113,11 @@ export default function PackageDetails({ selectedType, serviceType, handleNextSt
 
       const token = localStorage.getItem('accessToken');
       if (!token) {
-        router.push('/sign-in');
+        router.replace('/');
         return;
       }
 
-      const response = await createShipment(packageDetails, token);
+      const response = await createShipment(packageDetails, JSON.parse(token));
 
       if (response.success) {
         localStorage.setItem('packageInfo', JSON.stringify(response.data));

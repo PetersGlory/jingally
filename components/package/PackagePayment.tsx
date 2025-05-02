@@ -246,7 +246,7 @@ export default function PackagePayment({ handleNextStep, handlePreviousStep }: {
         handleNextStep();
         }, 2000);
       } else {
-        throw new Error(paymentResponse.message || 'Payment failed');
+        console.log(paymentResponse.message || 'Payment failed');
       }
     } catch (error: any) {
       console.error('Payment error:', error);
