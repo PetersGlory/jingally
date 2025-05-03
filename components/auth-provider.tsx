@@ -126,10 +126,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }) => {
     try {
       setIsLoading(true)
-      await signUp(data)
+      const response = await signUp(data)
+
+      if(response){
+        localStorage.setItem('user', JSON.stringify(response?.user));
+        localStorage.setItem('accessToken', JSON.stringify(response?.token));
+      }
       
       localStorage.setItem("email", data.email)
-      router.replace(`/`)
+      router.replace(`/auth/verification?email=${data.email}`)
     } catch (error: any) {
       setAuthError(error.message || "Failed to sign up. Please try again.")
       throw error

@@ -44,22 +44,22 @@ export default function LoginPage() {
         localStorage.setItem('user', JSON.stringify(result?.user));
         localStorage.setItem('accessToken', JSON.stringify(result?.token));
         
-        // if (result?.user?.isVerified) {
+        if (result?.user?.isVerified) {
           toast({
             title: "Login successful",
             description: "Welcome back to Jingally Logistics!",
           });
           router.replace("/dashboard");
           // router.push(callbackUrl);
-        // } else {
-        //   toast({
-        //     title: "Email Not Verified",
-        //     description: "Please verify your email to continue",
-        //     variant: "destructive",
-        //   });
-        //   router.push(`/auth/verification?email=${email}`);
-        //   return;
-        // }
+        } else {
+          toast({
+            title: "Email Not Verified",
+            description: "Please verify your email to continue",
+            variant: "destructive",
+          });
+          router.push(`/auth/verification?email=${email}`);
+          return;
+        }
       } else {
         setError(result?.message || "Invalid email or password");
         setIsLoading(false);

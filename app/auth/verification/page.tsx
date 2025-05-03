@@ -76,7 +76,7 @@ export default function VerificationPage() {
       const response = await verifyEmail(postData, accessToken);
       alert(response.message || "Email verified successfully");
       setTimeout(() => {
-        router.push('/auth/sign-in');
+        router.replace('/dashboard');
       }, 1500);
     } catch (error: any) {
       alert(error.response?.data?.message || "An error occurred. Please try again.");
@@ -130,7 +130,11 @@ export default function VerificationPage() {
             {otp.map((digit, index) => (
               <input
                 key={index}
-                ref={ref => inputRefs.current[index] = ref}
+                ref={(ref) => {
+                  if (ref) {
+                    inputRefs.current[index] = ref;
+                  }
+                }}
                 className="w-12 h-14 border border-gray-300 rounded-lg text-center text-xl font-bold bg-white shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
                 type="text"
                 inputMode="numeric"

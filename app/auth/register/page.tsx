@@ -151,7 +151,7 @@ export default function RegisterPage() {
         description: "Please check your email for a verification code.",
       });
     } catch (error: any) {
-      console.error("Registration error:", error);
+      console.error("Registration error:", error.response.data);
       
       if (error.response?.data?.errors) {
         const apiErrors = error.response.data.errors;
@@ -164,7 +164,7 @@ export default function RegisterPage() {
         setErrors(newErrors);
       } else {
         setErrors({ 
-          general: error.response?.data?.message || "An error occurred during registration. Please try again." 
+          general: error.response?.data?.error || "An error occurred during registration. Please try again." 
         });
       }
     } finally {
