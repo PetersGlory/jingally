@@ -39,6 +39,9 @@ const SHIPPING_METHODS = {
   SEA: 'sea'
 } as const;
 
+// Air freight price per kg
+const AIR_PRICE_PER_KG = 10; // £10 per kg
+
 // Jingslly price tiers
 const JINGSLY_PRICES = {
   TIER_1: { maxWeight: 50, pricePerKg: 650 },
@@ -109,6 +112,12 @@ export default function PackagePayment({ handleNextStep, handlePreviousStep }: {
     return (dimensions.length * dimensions.width * dimensions.height) / 6000;
   };
 
+  const calculateAirFreightPrice = (weight: number, dimensions: { length: number; width: number; height: number }) => {
+    const volumetricWeight = calculateVolumetricWeight(dimensions);
+    const chargeableWeight = Math.max(weight, volumetricWeight);
+    return chargeableWeight * AIR_PRICE_PER_KG;
+  };
+
   const calculateJingsllyPrice = (weight: number) => {
     if (weight <= JINGSLY_PRICES.TIER_1.maxWeight) {
       return weight * JINGSLY_PRICES.TIER_1.pricePerKg;
@@ -128,15 +137,12 @@ export default function PackagePayment({ handleNextStep, handlePreviousStep }: {
     if (!packageInfo) return [];
     
     const { weight, dimensions, serviceType } = packageInfo;
-    const volumetricWeight = calculateVolumetricWeight(dimensions);
-    const chargeableWeight = Math.max(weight, volumetricWeight);
-    
     let baseFee = 0;
     let methodName = '';
 
     switch (serviceType) {
       case SHIPPING_METHODS.AIR:
-        baseFee = chargeableWeight * 10; // £10 per kg
+        baseFee = calculateAirFreightPrice(weight, dimensions);
         methodName = 'Air Freight';
         break;
       case SHIPPING_METHODS.JINGSLY:
@@ -155,7 +161,7 @@ export default function PackagePayment({ handleNextStep, handlePreviousStep }: {
         methodName = 'Sea Freight';
         break;
       default:
-        console.log('Invalid shipping method');
+        throw new Error('Invalid shipping method');
     }
 
     const serviceFee = Math.round(baseFee * 0.1 * 100) / 100;
