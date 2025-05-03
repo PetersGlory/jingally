@@ -287,6 +287,7 @@ export default function PackagePayment({ handleNextStep, handlePreviousStep }: {
       const paymentDetails = {
         method: 'card',
         amount,
+        paymentStatus: 'paid',
         currency: 'GBP',
         card: {
           ...cardDetails,
