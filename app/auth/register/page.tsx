@@ -275,12 +275,13 @@ export default function RegisterPage() {
                   </div>
                   <div className="grid gap-2">
                     <Label htmlFor="phone">Phone number (Optional)</Label>
-                    <div className="flex gap-2">
+                    <div className="flex gap-2 text-gray-700">
                       <Select
-                        value={selectedCountry.code}
+                        value={selectedCountry.dialCode}
                         onValueChange={(value) => {
                           const country = countries.find(c => c.code === value) || defaultCountry;
                           setSelectedCountry(country);
+                          console.log(country);
                         }}
                       >
                         <SelectTrigger className="w-[120px]">

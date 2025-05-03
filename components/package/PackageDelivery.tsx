@@ -238,8 +238,8 @@ export default function PackageDelivery({ handleNextStep, handlePreviousStep }: 
             libraries={["places"]}
             onLoad={() => setMapLoaded(true)}
           >
-            <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <div className="relative items-center">
+              <div className="relative w-6 inset-y-0 left-0 flex items-center pointer-events-none">
                 <MapPin className="h-5 w-5 text-gray-400" />
               </div>
               <Autocomplete

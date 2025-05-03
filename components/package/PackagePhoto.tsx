@@ -175,6 +175,7 @@ export default function PackagePhoto({ handleNextStep, handlePreviousStep }: { h
                 </div>
               ))}
               
+              {/* <>
               {photos.length < 4 && (
                 <button
                   className={styles.addPhotoButton}
@@ -186,6 +187,7 @@ export default function PackagePhoto({ handleNextStep, handlePreviousStep }: { h
                   <span>Take Photo</span>
                 </button>
               )}
+              </> */}
             </div>
 
             {photos.length < 4 && (
