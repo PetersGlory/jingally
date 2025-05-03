@@ -40,21 +40,22 @@ export default function DashboardPage() {
   const [addresses, setAddresses] = useState<any[]>([])
 
   useEffect(() => {
-    if (token) {
+    // if (token) {
       loadData()
-    }
+    // }
   }, [token])
 
   const loadData = async () => {
     setIsLoading(true)
     try {
+      const authToken = token ||JSON.parse(localStorage.getItem('accessToken') || '{}')
       // Fetch user data
-      const userResponse = await getUser(token as string)
+      const userResponse = await getUser(authToken as string)
       console.log(userResponse)
       setUserData(userResponse)
 
       // Fetch addresses
-      const addressesResponse = await getAddress(token as string)
+      const addressesResponse = await getAddress(authToken as string)
       if (addressesResponse.success) {
         setAddresses(addressesResponse.data)
       }
@@ -97,13 +98,15 @@ export default function DashboardPage() {
 
   const fetchShipmentHistory = async () => {
     try {
+
+      const authToken = token ||JSON.parse(localStorage.getItem('accessToken') || '{}')
+      const response = await getShipments(authToken as string);
       // const token = localStorage.getItem('accessToken');
-      if (!token) {
+      if (!authToken) {
         setError('Authentication required');
         return;
       }
 
-      const response = await getShipments(token as string);
       if (response.success) {
         // Validate each shipment
         const validShipments = response.data.filter((shipment: Shipment) => {
