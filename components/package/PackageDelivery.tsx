@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { MapPin, Truck, Info, X, ChevronDown, ArrowRight, Loader, Check } from 'lucide-react';
+import { LoadScript, Autocomplete } from '@react-google-maps/api';
 import styles from './PackageDelivery.module.css';
 import { updateDeliveryAddress } from '@/lib/shipment';
 
@@ -48,6 +49,9 @@ const countryCodes: CountryCode[] = [
 export default function PackageDelivery({ handleNextStep, handlePreviousStep }: { handleNextStep: () => void, handlePreviousStep: () => void }) {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
+  const [mapLoaded, setMapLoaded] = useState(false);
+  const [pickupAutocomplete, setPickupAutocomplete] = useState<google.maps.places.Autocomplete | null>(null);
+  const [deliveryAutocomplete, setDeliveryAutocomplete] = useState<google.maps.places.Autocomplete | null>(null);
   const [deliveryMode, setDeliveryMode] = useState<'home' | 'park'>('home');
   const [showCountryModal, setShowCountryModal] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -85,6 +89,44 @@ export default function PackageDelivery({ handleNextStep, handlePreviousStep }: 
     deliveryMode: 'home'
   });
 
+  const handlePlaceSelect = (type: 'pickup' | 'delivery') => {
+    const autocomplete = type === 'pickup' ? pickupAutocomplete : deliveryAutocomplete;
+    if (autocomplete) {
+      const place = autocomplete.getPlace();
+      if (place.geometry) {
+        const addressComponents = place.address_components || [];
+        
+        const street = place.formatted_address || '';
+        const city = addressComponents.find(c => c.types.includes('locality'))?.long_name || '';
+        const state = addressComponents.find(c => c.types.includes('administrative_area_level_1'))?.long_name || '';
+        const country = addressComponents.find(c => c.types.includes('country'))?.long_name || '';
+        const postcode = addressComponents.find(c => c.types.includes('postal_code'))?.long_name || '';
+        
+        const address = {
+          street,
+          city,
+          state,
+          country,
+          postcode,
+          latitude: place.geometry?.location?.lat() || 0,
+          longitude: place.geometry?.location?.lng() || 0,
+          placeId: place.place_id || '',
+          type: type === 'pickup' ? form.pickupAddress.type : form.deliveryAddress.type
+        };
+
+        setForm(prev => ({
+          ...prev,
+          [`${type}Address`]: address
+        }));
+
+        setFormErrors(prev => ({
+          ...prev,
+          [`${type}Address`]: undefined
+        }));
+      }
+    }
+  };
+
   const isValidForm = () => {
     const phoneRegex = /^[0-9]{10,15}$/;
     return (
@@ -107,9 +149,34 @@ export default function PackageDelivery({ handleNextStep, handlePreviousStep }: 
   const handleSubmit = async () => {
     if (!isValidForm()) {
       setFormErrors({
-        pickupAddress: { street: 'Please fill in all required fields' },
-        deliveryAddress: { street: 'Please fill in all required fields' },
-        receiver: { name: 'Please fill in all required fields' }
+        pickupAddress: {
+          street: 'Please fill in all required fields',
+          city: '',
+          state: '',
+          country: '',
+          postcode: '',
+          latitude: 0,
+          longitude: 0,
+          placeId: '',
+          type: 'residential'
+        },
+        deliveryAddress: {
+          street: 'Please fill in all required fields',
+          city: '',
+          state: '',
+          country: '',
+          postcode: '',
+          latitude: 0,
+          longitude: 0,
+          placeId: '',
+          type: 'residential'
+        },
+        receiver: {
+          name: 'Please fill in all required fields',
+          phone: '',
+          email: '',
+          countryCode: ''
+        }
       });
       return;
     }
@@ -166,13 +233,35 @@ export default function PackageDelivery({ handleNextStep, handlePreviousStep }: 
       <div className={styles.addressForm}>
         <div className={styles.inputGroup}>
           <label className={styles.label}>Street Address</label>
-          <input
-            type="text"
-            className={`${styles.input} ${formErrors[`${type}Address`]?.street ? styles.error : ''}`}
-            placeholder="Enter street address"
-            value={address.street}
-            onChange={(e) => setAddress({ ...address, street: e.target.value })}
-          />
+          <LoadScript
+            googleMapsApiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || ''}
+            libraries={["places"]}
+            onLoad={() => setMapLoaded(true)}
+          >
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <MapPin className="h-5 w-5 text-gray-400" />
+              </div>
+              <Autocomplete
+                onLoad={(autocomplete: google.maps.places.Autocomplete) => {
+                  if (type === 'pickup') {
+                    setPickupAutocomplete(autocomplete);
+                  } else {
+                    setDeliveryAutocomplete(autocomplete);
+                  }
+                }}
+                onPlaceChanged={() => handlePlaceSelect(type)}
+              >
+                <input
+                  type="text"
+                  className={`${styles.input} ${formErrors[`${type}Address`]?.street ? styles.error : ''}`}
+                  placeholder="Enter street address"
+                  value={address.street}
+                  onChange={(e) => setAddress({ ...address, street: e.target.value })}
+                />
+              </Autocomplete>
+            </div>
+          </LoadScript>
           {formErrors[`${type}Address`]?.street && (
             <span className={styles.errorMessage}>{formErrors[`${type}Address`]?.street}</span>
           )}

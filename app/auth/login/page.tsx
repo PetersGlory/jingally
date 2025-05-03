@@ -1,12 +1,12 @@
 "use client"
 
 import type React from "react"
-import { Suspense } from 'react'
+import { Suspense, useEffect } from 'react'
 
 import { useState } from "react"
 import Link from "next/link"
 import Image from "next/image"
-import { useRouter, useSearchParams } from "next/navigation"
+import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -25,9 +25,12 @@ export default function LoginPage() {
   const [error, setError] = useState("")
 
   const router = useRouter()
-  const searchParams = useSearchParams()
-  // const callbackUrl = searchParams.get("callbackUrl") || "/dashboard"
+  
   const { toast } = useToast()
+
+  useEffect(() => {
+    localStorage.clear();
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()

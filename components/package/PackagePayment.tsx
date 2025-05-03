@@ -139,6 +139,7 @@ export default function PackagePayment({ handleNextStep, handlePreviousStep }: {
     const { weight, dimensions, serviceType } = packageInfo;
     let baseFee = 0;
     let methodName = '';
+    console.log(serviceType);
 
     switch (serviceType) {
       case SHIPPING_METHODS.AIR:
