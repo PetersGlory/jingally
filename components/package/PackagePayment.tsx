@@ -127,14 +127,14 @@ export default function PackagePayment({ handleNextStep, handlePreviousStep }: {
   const calculateCosts = (): CostItem[] => {
     if (!packageInfo) return [];
     
-    const { weight, dimensions, shippingMethod } = packageInfo;
+    const { weight, dimensions, serviceType } = packageInfo;
     const volumetricWeight = calculateVolumetricWeight(dimensions);
     const chargeableWeight = Math.max(weight, volumetricWeight);
     
     let baseFee = 0;
     let methodName = '';
 
-    switch (shippingMethod) {
+    switch (serviceType) {
       case SHIPPING_METHODS.AIR:
         baseFee = chargeableWeight * 10; // £10 per kg
         methodName = 'Air Freight';
