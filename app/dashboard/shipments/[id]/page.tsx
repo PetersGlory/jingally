@@ -188,7 +188,7 @@ export default function ShipmentDetailPage() {
   const paymentModalContent = useMemo(() => (
     <Dialog open={paymentModal} onOpenChange={setPaymentModal}>
       <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
-        <DialogHeader className="sticky top-0 bg-background z-10">
+        <DialogHeader className="top-0 bg-transparent z-10">
           <DialogTitle>Complete Payment</DialogTitle>
           <DialogDescription>
             Please complete your payment to proceed with the shipment.

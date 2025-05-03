@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { CreditCard, Shield, Check, X, Edit2, AlertCircle } from 'lucide-react';
 import styles from './PackagePayment.module.css';
@@ -74,8 +74,8 @@ export default function PackagePayment({ handleNextStep, handlePreviousStep }: {
   });
 
   const fetchData = useCallback(async () => {
-    setIsLoading(true);
     try {
+      setIsLoading(true);
       const [packageInfoStr, accessToken] = await Promise.all([
         localStorage.getItem('packageInfo'),
         localStorage.getItem('accessToken')
@@ -87,9 +87,9 @@ export default function PackagePayment({ handleNextStep, handlePreviousStep }: {
       }
     } catch (error) {
       console.error('Error fetching data:', error);
+      setError('Failed to load package information');
     } finally {
       setIsLoading(false);
-      setError('');
     }
   }, []);
 
@@ -97,7 +97,7 @@ export default function PackagePayment({ handleNextStep, handlePreviousStep }: {
     fetchData();
   }, [fetchData]);
 
-  const paymentMethods: PaymentMethod[] = [
+  const paymentMethods = useMemo(() => [
     {
       id: 'card',
       name: 'Credit/Debit Card',
@@ -112,19 +112,19 @@ export default function PackagePayment({ handleNextStep, handlePreviousStep }: {
       icon: <CreditCard size={20} />,
       isEnabled: true
     }
-  ];
+  ], []);
 
-  const calculateVolumetricWeight = (dimensions: { length: number; width: number; height: number }) => {
+  const calculateVolumetricWeight = useCallback((dimensions: { length: number; width: number; height: number }) => {
     return (dimensions.length * dimensions.width * dimensions.height) / 6000;
-  };
+  }, []);
 
-  const calculateAirFreightPrice = (weight: number, dimensions: { length: number; width: number; height: number }) => {
+  const calculateAirFreightPrice = useCallback((weight: number, dimensions: { length: number; width: number; height: number }) => {
     const volumetricWeight = calculateVolumetricWeight(dimensions);
     const chargeableWeight = Math.max(weight, volumetricWeight);
     return chargeableWeight * AIR_PRICE_PER_KG;
-  };
+  }, [calculateVolumetricWeight]);
 
-  const calculateJingsllyPrice = (weight: number) => {
+  const calculateJingsllyPrice = useCallback((weight: number) => {
     if (weight <= JINGSLY_PRICES.TIER_1.maxWeight) {
       return weight * JINGSLY_PRICES.TIER_1.pricePerKg;
     } else if (weight <= JINGSLY_PRICES.TIER_2.maxWeight) {
@@ -132,12 +132,12 @@ export default function PackagePayment({ handleNextStep, handlePreviousStep }: {
     } else {
       return weight * JINGSLY_PRICES.TIER_3.pricePerKg;
     }
-  };
+  }, []);
 
-  const calculateSeaFreightPrice = (dimensions: { length: number; width: number; height: number }) => {
-    const volume = (dimensions.length * dimensions.width * dimensions.height) / 1000000; // Convert to cubic meters
+  const calculateSeaFreightPrice = useCallback((dimensions: { length: number; width: number; height: number }) => {
+    const volume = (dimensions.length * dimensions.width * dimensions.height) / 1000000;
     return volume * SEA_FREIGHT_PRICE_PER_CUBIC_METER;
-  };
+  }, []);
 
   const calculateCosts = useCallback((): CostItem[] => {
     if (!packageInfo) return [];
@@ -182,45 +182,45 @@ export default function PackagePayment({ handleNextStep, handlePreviousStep }: {
       { label: 'VAT (20%)', amount: `£${vat.toFixed(2)}`, type: 'regular' },
       { label: 'Total', amount: `£${total.toFixed(2)}`, type: 'total' }
     ];
-  }, [packageInfo]);
+  }, [packageInfo, calculateAirFreightPrice, calculateJingsllyPrice, calculateSeaFreightPrice]);
 
-  const costs = calculateCosts();
+  const costs = useMemo(() => calculateCosts(), [calculateCosts]);
 
-  const handleCardNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleCardNumberChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value.replace(/\s/g, '').replace(/(\d{4})/g, '$1 ').trim();
     setCardDetails(prev => ({ ...prev, cardNumber: value }));
-  };
+  }, []);
 
-  const handleExpiryDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleExpiryDateChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value.replace(/\D/g, '')
       .replace(/(\d{2})(\d)/, '$1/$2')
       .substr(0, 5);
     setCardDetails(prev => ({ ...prev, expiryDate: value }));
-  };
+  }, []);
 
-  const validateCard = () => {
+  const validateCard = useCallback(() => {
     if (cardDetails.cardNumber.replace(/\s/g, '').length !== 16) {
-      alert('Please enter a valid 16-digit card number');
+      setError('Please enter a valid 16-digit card number');
       return false;
     }
     if (!/^\d{2}\/\d{2}$/.test(cardDetails.expiryDate)) {
-      alert('Please enter a valid expiry date (MM/YY)');
+      setError('Please enter a valid expiry date (MM/YY)');
       return false;
     }
     if (cardDetails.cvv.length !== 3) {
-      alert('Please enter a valid 3-digit CVV');
+      setError('Please enter a valid 3-digit CVV');
       return false;
     }
     if (!cardDetails.cardHolderName.trim()) {
-      alert('Please enter the cardholder name');
+      setError('Please enter the cardholder name');
       return false;
     }
     return true;
-  };
+  }, [cardDetails]);
 
-  const handlePayment = async () => {
+  const handlePayment = useCallback(async () => {
     if (!selectedMethod) {
-      alert('Please select a payment method');
+      setError('Please select a payment method');
       return;
     }
 
@@ -229,6 +229,10 @@ export default function PackagePayment({ handleNextStep, handlePreviousStep }: {
 
       if (selectedMethod === 'paypal') {
         setShowPayPalModal(true);
+        return;
+      }
+
+      if (!validateCard()) {
         return;
       }
 
@@ -245,9 +249,7 @@ export default function PackagePayment({ handleNextStep, handlePreviousStep }: {
 
       const paymentResponse = await updatePaymentStatus(
         packageInfo.id,
-        {
-            ...paymentDetails
-          },
+        paymentDetails,
         token
       );
 
@@ -260,36 +262,14 @@ export default function PackagePayment({ handleNextStep, handlePreviousStep }: {
           router.replace("/dashboard/shipments");
         }, 2000);
       } else {
-        console.log(paymentResponse.message || 'Payment failed');
+        setError(paymentResponse.message || 'Payment failed');
       }
     } catch (error: any) {
-      console.error('Payment error:', error);
-      alert(error.message || 'Payment failed. Please try again.');
+      setError(error.message || 'Payment failed. Please try again.');
     } finally {
       setIsLoading(false);
     }
-  };
-
-  // if (error) {
-  //   return (
-  //     <div className="flex flex-col items-center justify-center min-h-[200px] bg-red-50/50 border border-red-200 rounded-lg p-6 shadow-sm">
-  //       <div className="flex items-center space-x-3 mb-2">
-  //         <AlertCircle className="w-6 h-6 text-red-500" />
-  //         <h3 className="text-lg font-semibold text-red-700">Payment Error</h3>
-  //       </div>
-  //       <p className="text-red-600 text-center max-w-md">{error}</p>
-  //       <button 
-  //         onClick={() => {
-  //           setError('');
-  //           fetchData();
-  //         }}
-  //         className="mt-4 px-4 py-2 bg-red-100 hover:bg-red-200 text-red-700 rounded-md transition-colors duration-200"
-  //       >
-  //         Try Again
-  //       </button>
-  //     </div>
-  //   );
-  // }
+  }, [selectedMethod, validateCard, costs, packageInfo, token, router, cardDetails]);
 
   return (
     <div className={styles.container}>
@@ -381,7 +361,7 @@ export default function PackagePayment({ handleNextStep, handlePreviousStep }: {
                     if (method.id === 'card') {
                       setShowCardModal(true);
                     } else {
-                      setSelectedMethod(method.id);
+                      setSelectedMethod(method.id as PaymentMethod['id']);
                     }
                   }}
                   disabled={!method.isEnabled}
