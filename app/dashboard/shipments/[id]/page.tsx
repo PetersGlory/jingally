@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback, useMemo } from "react"
 import Link from "next/link"
 import { useParams, useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
@@ -87,33 +87,34 @@ export default function ShipmentDetailPage() {
   const [error, setError] = useState<string | null>(null)
   const [showCancelConfirmation, setShowCancelConfirmation] = useState(false)
   const [paymentModal, setPaymentModal] = useState(false)
-  useEffect(() => {
-    const fetchShipmentDetails = async () => {
-      try {
-        setIsLoading(true)
-        const token = localStorage.getItem('accessToken')
-        if (!token) {
-          router.replace('/')
-          return
-        }
 
-        const response = await getShipmentDetails(id as string, JSON.parse(token))
-        if (response.success) {
-          setShipment(response.data)
-        } else {
-          setError(response.message || 'Failed to fetch shipment details')
-        }
-      } catch (err: any) {
-        setError(err.message || 'An error occurred while fetching shipment details')
-      } finally {
-        setIsLoading(false)
+  const fetchShipmentDetails = useCallback(async () => {
+    try {
+      setIsLoading(true)
+      const token = localStorage.getItem('accessToken')
+      if (!token) {
+        router.replace('/')
+        return
       }
-    }
 
-    fetchShipmentDetails()
+      const response = await getShipmentDetails(id as string, JSON.parse(token))
+      if (response.success) {
+        setShipment(response.data)
+      } else {
+        setError(response.message || 'Failed to fetch shipment details')
+      }
+    } catch (err: any) {
+      setError(err.message || 'An error occurred while fetching shipment details')
+    } finally {
+      setIsLoading(false)
+    }
   }, [id, router])
 
-  const handleCancelOrder = async () => {
+  useEffect(() => {
+    fetchShipmentDetails()
+  }, [fetchShipmentDetails])
+
+  const handleCancelOrder = useCallback(async () => {
     try {
       const token = localStorage.getItem('accessToken')
       if (!token) {
@@ -130,9 +131,9 @@ export default function ShipmentDetailPage() {
     } catch (err: any) {
       setError(err.message || 'An error occurred while cancelling the shipment')
     }
-  }
+  }, [id, router])
 
-  const getStatusColor = (status: string) => {
+  const getStatusColor = useCallback((status: string) => {
     switch (status) {
       case 'delivered':
         return 'bg-green-500'
@@ -145,9 +146,9 @@ export default function ShipmentDetailPage() {
       default:
         return 'bg-gray-500'
     }
-  }
+  }, [])
 
-  const getProgressValue = (status: string) => {
+  const getProgressValue = useCallback((status: string) => {
     switch (status) {
       case 'cancelled':
         return 0
@@ -162,9 +163,9 @@ export default function ShipmentDetailPage() {
       default:
         return 0
     }
-  }
+  }, [])
 
-  const formatDate = (dateString: string) => {
+  const formatDate = useCallback((dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
       weekday: 'long',
       year: 'numeric',
@@ -173,7 +174,35 @@ export default function ShipmentDetailPage() {
       hour: '2-digit',
       minute: '2-digit'
     })
-  }
+  }, [])
+
+  const handlePaymentSuccess = useCallback(() => {
+    setPaymentModal(false);
+    router.refresh();
+  }, [router]);
+
+  const handlePaymentClose = useCallback(() => {
+    setPaymentModal(false);
+  }, []);
+
+  const paymentModalContent = useMemo(() => (
+    <Dialog open={paymentModal} onOpenChange={setPaymentModal}>
+      <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
+        <DialogHeader className="sticky top-0 bg-background z-10">
+          <DialogTitle>Complete Payment</DialogTitle>
+          <DialogDescription>
+            Please complete your payment to proceed with the shipment.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="p-6">
+          <PackagePayment
+            handleNextStep={handlePaymentSuccess}
+            handlePreviousStep={handlePaymentClose}
+          />
+        </div>
+      </DialogContent>
+    </Dialog>
+  ), [paymentModal, handlePaymentSuccess, handlePaymentClose]);
 
   if (isLoading) {
     return (
@@ -401,7 +430,8 @@ export default function ShipmentDetailPage() {
                       className="w-full mt-2"
                       onClick={() => {
                         localStorage.setItem('packageInfo', JSON.stringify(shipment))
-                        setPaymentModal(true)}}
+                        setPaymentModal(true)
+                      }}
                     >
                       Pay Now
                     </Button>
@@ -467,27 +497,7 @@ export default function ShipmentDetailPage() {
         </div>
       )}
 
-      {paymentModal && (
-        <Dialog open={paymentModal} onOpenChange={setPaymentModal}>
-          <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
-            <DialogHeader className="sticky top-0 bg-background z-10">
-              <DialogTitle>Complete Payment</DialogTitle>
-              <DialogDescription>
-                Please complete your payment to proceed with the shipment.
-              </DialogDescription>
-            </DialogHeader>
-            <div className="p-6">
-              <PackagePayment 
-                handleNextStep={() => {
-                  setPaymentModal(false);
-                  router.refresh();
-                }} 
-                handlePreviousStep={() => setPaymentModal(false)} 
-              />
-            </div>
-          </DialogContent>
-        </Dialog>
-      )}
+      {paymentModal && paymentModalContent}
     </main>
   )
 }

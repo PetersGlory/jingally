@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { CreditCard, Shield, Check, X, Edit2, AlertCircle } from 'lucide-react';
 import styles from './PackagePayment.module.css';
@@ -73,7 +73,8 @@ export default function PackagePayment({ handleNextStep, handlePreviousStep }: {
     cardHolderName: ''
   });
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
+    setIsLoading(true);
     try {
       const [packageInfoStr, accessToken] = await Promise.all([
         localStorage.getItem('packageInfo'),
@@ -86,13 +87,15 @@ export default function PackagePayment({ handleNextStep, handlePreviousStep }: {
       }
     } catch (error) {
       console.error('Error fetching data:', error);
+    } finally {
+      setIsLoading(false);
+      setError('');
     }
-  };
+  }, []);
 
   useEffect(() => {
-    
     fetchData();
-  }, []);
+  }, [fetchData]);
 
   const paymentMethods: PaymentMethod[] = [
     {
@@ -136,13 +139,12 @@ export default function PackagePayment({ handleNextStep, handlePreviousStep }: {
     return volume * SEA_FREIGHT_PRICE_PER_CUBIC_METER;
   };
 
-  const calculateCosts = (): CostItem[] => {
+  const calculateCosts = useCallback((): CostItem[] => {
     if (!packageInfo) return [];
     
     const { weight, dimensions, serviceType } = packageInfo;
     let baseFee = 0;
     let methodName = '';
-    console.log(serviceType);
 
     switch (serviceType) {
       case SHIPPING_METHODS.AIR:
@@ -180,20 +182,20 @@ export default function PackagePayment({ handleNextStep, handlePreviousStep }: {
       { label: 'VAT (20%)', amount: `£${vat.toFixed(2)}`, type: 'regular' },
       { label: 'Total', amount: `£${total.toFixed(2)}`, type: 'total' }
     ];
-  };
+  }, [packageInfo]);
 
   const costs = calculateCosts();
 
   const handleCardNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value.replace(/\s/g, '').replace(/(\d{4})/g, '$1 ').trim();
-    setCardDetails({ ...cardDetails, cardNumber: value });
+    setCardDetails(prev => ({ ...prev, cardNumber: value }));
   };
 
   const handleExpiryDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value.replace(/\D/g, '')
       .replace(/(\d{2})(\d)/, '$1/$2')
       .substr(0, 5);
-    setCardDetails({ ...cardDetails, expiryDate: value });
+    setCardDetails(prev => ({ ...prev, expiryDate: value }));
   };
 
   const validateCard = () => {
@@ -253,9 +255,9 @@ export default function PackagePayment({ handleNextStep, handlePreviousStep }: {
         localStorage.setItem('packageInfo', JSON.stringify(paymentResponse.data));
         setShowSuccessModal(true);
         
-      setTimeout(() => {
-        setShowSuccessModal(false);
-        router.replace("/dashboard/shipments");
+        setTimeout(() => {
+          setShowSuccessModal(false);
+          router.replace("/dashboard/shipments");
         }, 2000);
       } else {
         console.log(paymentResponse.message || 'Payment failed');
@@ -268,26 +270,26 @@ export default function PackagePayment({ handleNextStep, handlePreviousStep }: {
     }
   };
 
-  if (error) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-[200px] bg-red-50/50 border border-red-200 rounded-lg p-6 shadow-sm">
-        <div className="flex items-center space-x-3 mb-2">
-          <AlertCircle className="w-6 h-6 text-red-500" />
-          <h3 className="text-lg font-semibold text-red-700">Payment Error</h3>
-        </div>
-        <p className="text-red-600 text-center max-w-md">{error}</p>
-        <button 
-          onClick={() => {
-            setError('');
-            fetchData();
-          }}
-          className="mt-4 px-4 py-2 bg-red-100 hover:bg-red-200 text-red-700 rounded-md transition-colors duration-200"
-        >
-          Try Again
-        </button>
-      </div>
-    );
-  }
+  // if (error) {
+  //   return (
+  //     <div className="flex flex-col items-center justify-center min-h-[200px] bg-red-50/50 border border-red-200 rounded-lg p-6 shadow-sm">
+  //       <div className="flex items-center space-x-3 mb-2">
+  //         <AlertCircle className="w-6 h-6 text-red-500" />
+  //         <h3 className="text-lg font-semibold text-red-700">Payment Error</h3>
+  //       </div>
+  //       <p className="text-red-600 text-center max-w-md">{error}</p>
+  //       <button 
+  //         onClick={() => {
+  //           setError('');
+  //           fetchData();
+  //         }}
+  //         className="mt-4 px-4 py-2 bg-red-100 hover:bg-red-200 text-red-700 rounded-md transition-colors duration-200"
+  //       >
+  //         Try Again
+  //       </button>
+  //     </div>
+  //   );
+  // }
 
   return (
     <div className={styles.container}>
@@ -313,22 +315,22 @@ export default function PackagePayment({ handleNextStep, handlePreviousStep }: {
               </div>
               <div className={styles.summaryItem}>
                 <span>Weight</span>
-                <span>{packageInfo.weight}kg</span>
+                <span>{packageInfo?.weight}kg</span>
               </div>
               <div className={styles.summaryItem}>
                 <span>Dimensions</span>
                 <span>
-                  {packageInfo.dimensions.length}x{packageInfo.dimensions.width}x{packageInfo.dimensions.height}cm
+                  {packageInfo?.dimensions?.length}x{packageInfo?.dimensions?.width}x{packageInfo?.dimensions?.height}cm
                 </span>
               </div>
               <div className={styles.summaryItem}>
                 <span>Receiver</span>
-                <span>{packageInfo.receiverName}</span>
+                <span>{packageInfo?.receiverName}</span>
               </div>
               <div className={styles.summaryItem}>
                 <span>Pickup Date</span>
                 <span>
-                  {new Date(packageInfo.scheduledPickupTime).toLocaleDateString('en-GB', {
+                  {new Date(packageInfo?.scheduledPickupTime).toLocaleDateString('en-GB', {
                     day: 'numeric',
                     month: 'short',
                     year: 'numeric'
@@ -338,7 +340,7 @@ export default function PackagePayment({ handleNextStep, handlePreviousStep }: {
               <div className={styles.summaryItem}>
                 <span>Delivery Address</span>
                 <span>
-                  {packageInfo.deliveryAddress.street}, {packageInfo.deliveryAddress.city}
+                  {packageInfo?.deliveryAddress?.street}, {packageInfo?.deliveryAddress?.city}
                 </span>
               </div>
             </div>
@@ -479,7 +481,7 @@ export default function PackagePayment({ handleNextStep, handlePreviousStep }: {
                     type="password"
                     placeholder="123"
                     value={cardDetails.cvv}
-                    onChange={(e) => setCardDetails({ ...cardDetails, cvv: e.target.value })}
+                    onChange={(e) => setCardDetails(prev => ({ ...prev, cvv: e.target.value }))}
                     maxLength={3}
                   />
                 </div>
@@ -491,7 +493,7 @@ export default function PackagePayment({ handleNextStep, handlePreviousStep }: {
                   type="text"
                   placeholder="JOHN SMITH"
                   value={cardDetails.cardHolderName}
-                  onChange={(e) => setCardDetails({ ...cardDetails, cardHolderName: e.target.value })}
+                  onChange={(e) => setCardDetails(prev => ({ ...prev, cardHolderName: e.target.value }))}
                 />
               </div>
 
