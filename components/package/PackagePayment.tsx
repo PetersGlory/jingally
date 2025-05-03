@@ -271,6 +271,42 @@ export default function PackagePayment({ handleNextStep, handlePreviousStep }: {
     }
   }, [selectedMethod, validateCard, costs, packageInfo, token, router, cardDetails]);
 
+  const handlePayPalPayment = useCallback(async () => {
+    try {
+      setIsLoading(true);
+      const amount = parseFloat(costs.find(c => c.type === 'total')?.amount.replace('£', '') || '0');
+      
+      const paymentDetails = {
+        method: 'paypal',
+        amount,
+        currency: 'GBP'
+      };
+
+      const paymentResponse = await updatePaymentStatus(
+        packageInfo.id,
+        paymentDetails,
+        token
+      );
+
+      if (paymentResponse.success) {
+        localStorage.setItem('packageInfo', JSON.stringify(paymentResponse.data));
+        setShowSuccessModal(true);
+        
+        setTimeout(() => {
+          setShowSuccessModal(false);
+          router.replace("/dashboard/shipments");
+        }, 2000);
+      } else {
+        setError(paymentResponse.message || 'Payment failed');
+      }
+    } catch (error: any) {
+      setError(error.message || 'Payment failed. Please try again.');
+    } finally {
+      setIsLoading(false);
+      setShowPayPalModal(false);
+    }
+  }, [costs, packageInfo, token, router]);
+
   return (
     <div className={styles.container}>
       <header className={styles.header}>
@@ -488,6 +524,36 @@ export default function PackagePayment({ handleNextStep, handlePreviousStep }: {
               >
                 Save Card
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* PayPal Modal */}
+      {showPayPalModal && (
+        <div className={styles.modalOverlay}>
+          <div className={styles.modal}>
+            <div className={styles.modalHeader}>
+              <h2>Pay with PayPal</h2>
+              <button onClick={() => setShowPayPalModal(false)}>
+                <X size={24} />
+              </button>
+            </div>
+
+            <div className={styles.modalContent}>
+              <div className="flex flex-col items-center justify-center p-6">
+                <p className="text-center mb-4">You will be redirected to PayPal to complete your payment.</p>
+                <p className="text-center mb-6 font-semibold">
+                  Total Amount: {costs.find(c => c.type === 'total')?.amount}
+                </p>
+                <button
+                  className={styles.saveButton}
+                  onClick={handlePayPalPayment}
+                  disabled={isLoading}
+                >
+                  {isLoading ? 'Processing...' : 'Proceed to PayPal'}
+                </button>
+              </div>
             </div>
           </div>
         </div>
