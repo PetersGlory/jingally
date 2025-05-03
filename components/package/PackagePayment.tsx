@@ -152,13 +152,13 @@ export default function PackagePayment({ handleNextStep, handlePreviousStep }: {
       icon: <CreditCard size={20} />,
       isEnabled: true
     },
-    {
-      id: 'paypal',
-      name: 'PayPal',
-      description: 'Pay with your PayPal account',
-      icon: <CreditCard size={20} />,
-      isEnabled: true
-    }
+    // {
+    //   id: 'paypal',
+    //   name: 'PayPal',
+    //   description: 'Pay with your PayPal account',
+    //   icon: <CreditCard size={20} />,
+    //   isEnabled: true
+    // }
   ], []);
 
   const calculateVolumetricWeight = useCallback((dimensions: { length: number; width: number; height: number }) => {

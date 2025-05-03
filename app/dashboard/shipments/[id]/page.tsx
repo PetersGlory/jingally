@@ -9,7 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import { ArrowLeft, Package, Truck, MapPin, Calendar, Clock, FileText, Download, AlertCircle, X, Phone, Mail, HelpCircle } from "lucide-react"
+import { ArrowLeft, Package, Truck, MapPin, Calendar, Clock, FileText, Download, AlertCircle, X, Phone, Mail, HelpCircle, Check } from "lucide-react"
 import { getShipmentDetails, cancelShipment } from "@/lib/shipment"
 import PackagePayment from "@/components/package/PackagePayment"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
@@ -164,6 +164,68 @@ export default function ShipmentDetailPage() {
         return 0
     }
   }, [])
+
+  const getTrackingSteps = useCallback((status: string) => {
+    const steps = [
+      {
+        id: 'payment',
+        title: 'Payment Successful',
+        description: 'Your payment has been processed successfully',
+        icon: <Check className="h-5 w-5 text-green-500" />,
+        status: 'completed'
+      },
+      {
+        id: 'pickup',
+        title: 'Package Pickup',
+        description: 'Your package is scheduled for pickup',
+        icon: <Package className="h-5 w-5" />,
+        status: 'pending'
+      },
+      {
+        id: 'transit',
+        title: 'In Transit',
+        description: 'Your package is on its way',
+        icon: <Truck className="h-5 w-5" />,
+        status: 'pending'
+      },
+      {
+        id: 'delivery',
+        title: 'Package Delivered',
+        description: 'Your package has been delivered',
+        icon: <Check className="h-5 w-5" />,
+        status: 'pending'
+      }
+    ];
+
+    switch (status) {
+      case 'pending':
+        steps[0].status = 'completed';
+        steps[1].status = 'in-progress';
+        break;
+      case 'picked_up':
+        steps[0].status = 'completed';
+        steps[1].status = 'completed';
+        steps[2].status = 'in-progress';
+        break;
+      case 'in_transit':
+        steps[0].status = 'completed';
+        steps[1].status = 'completed';
+        steps[2].status = 'completed';
+        steps[3].status = 'in-progress';
+        break;
+      case 'delivered':
+        steps.forEach(step => step.status = 'completed');
+        break;
+      case 'cancelled':
+        steps[0].status = 'completed';
+        steps[1].status = 'cancelled';
+        steps[2].status = 'cancelled';
+        steps[3].status = 'cancelled';
+        break;
+    }
+
+    return steps;
+  }, []);
 
   const formatDate = useCallback((dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
@@ -394,12 +456,45 @@ export default function ShipmentDetailPage() {
                 <CardTitle className="text-lg">Shipment Progress</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="space-y-3">
+                <div className="space-y-6">
                   <Progress value={getProgressValue(shipment?.status || '')} className="h-2" />
                   <div className="flex justify-between text-sm text-muted-foreground">
                     <span>Started</span>
                     <span>{getProgressValue(shipment?.status || '')}% Complete</span>
                     <span>Delivered</span>
+                  </div>
+                  
+                  <div className="space-y-4">
+                    {getTrackingSteps(shipment?.status || '').map((step, index) => (
+                      <div key={step.id} className="flex items-start gap-3">
+                        <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${
+                          step.status === 'completed' ? 'bg-green-100' :
+                          step.status === 'in-progress' ? 'bg-blue-100' :
+                          step.status === 'cancelled' ? 'bg-red-100' :
+                          'bg-gray-100'
+                        }`}>
+                          {step.icon}
+                        </div>
+                        <div className="flex-1">
+                          <div className="flex items-center justify-between">
+                            <h4 className={`font-medium ${
+                              step.status === 'completed' ? 'text-green-700' :
+                              step.status === 'in-progress' ? 'text-blue-700' :
+                              step.status === 'cancelled' ? 'text-red-700' :
+                              'text-gray-700'
+                            }`}>
+                              {step.title}
+                            </h4>
+                            {step.status === 'completed' && (
+                              <Check className="h-4 w-4 text-green-500" />
+                            )}
+                          </div>
+                          <p className="text-sm text-muted-foreground mt-1">
+                            {step.description}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 </div>
               </CardContent>
