@@ -27,7 +27,7 @@ export default function RootLayout({
       </head>
       <body className={inter.className}>
         <AuthProvider>
-          <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
+          <ThemeProvider attribute="class" defaultTheme="light" enableSystem disableTransitionOnChange>
             <Suspense fallback={
               <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-blue-950 via-background to-muted">
                 <div className="flex flex-col items-center space-y-8">
