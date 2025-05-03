@@ -277,9 +277,9 @@ export default function RegisterPage() {
                     <Label htmlFor="phone">Phone number (Optional)</Label>
                     <div className="flex gap-2 text-gray-700">
                       <Select
-                        value={selectedCountry.dialCode}
+                        value={selectedCountry.code}
                         onValueChange={(value) => {
-                          const country = countries.find(c => c.dialCode === value) || defaultCountry;
+                          const country = countries.find(c => c.code === value) || defaultCountry;
                           setSelectedCountry(country);
                           console.log(country);
                         }}
@@ -289,7 +289,7 @@ export default function RegisterPage() {
                         </SelectTrigger>
                         <SelectContent>
                           {countries.map((country) => (
-                            <SelectItem key={country.code} value={country.dialCode}>
+                            <SelectItem key={country.code} value={country.code}>
                               {country.flag} {country.dialCode}
                             </SelectItem>
                           ))}
