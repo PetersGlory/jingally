@@ -51,7 +51,6 @@ export default function LoginPage() {
           });
           router.replace("/dashboard");
           // router.push(callbackUrl);
-          router.refresh();
         // } else {
         //   toast({
         //     title: "Email Not Verified",
