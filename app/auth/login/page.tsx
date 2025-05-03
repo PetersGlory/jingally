@@ -26,7 +26,7 @@ export default function LoginPage() {
 
   const router = useRouter()
   const searchParams = useSearchParams()
-  const callbackUrl = searchParams.get("callbackUrl") || "/dashboard"
+  // const callbackUrl = searchParams.get("callbackUrl") || "/dashboard"
   const { toast } = useToast()
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -41,22 +41,23 @@ export default function LoginPage() {
         localStorage.setItem('user', JSON.stringify(result?.user));
         localStorage.setItem('accessToken', JSON.stringify(result?.token));
         
-        if (result?.user?.isVerified) {
+        // if (result?.user?.isVerified) {
           toast({
             title: "Login successful",
             description: "Welcome back to Jingally Logistics!",
           });
-          router.push(callbackUrl);
+          router.replace("/dashboard");
+          // router.push(callbackUrl);
           router.refresh();
-        } else {
-          toast({
-            title: "Email Not Verified",
-            description: "Please verify your email to continue",
-            variant: "destructive",
-          });
-          router.push(`/auth/verification?email=${email}`);
-          return;
-        }
+        // } else {
+        //   toast({
+        //     title: "Email Not Verified",
+        //     description: "Please verify your email to continue",
+        //     variant: "destructive",
+        //   });
+        //   router.push(`/auth/verification?email=${email}`);
+        //   return;
+        // }
       } else {
         setError(result?.message || "Invalid email or password");
         setIsLoading(false);

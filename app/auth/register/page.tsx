@@ -27,6 +27,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 import { useAuth } from "@/components/auth-provider"
+import { countries } from "@/lib/countries"
 
 interface FormErrors {
   firstName?: string;
@@ -270,12 +271,7 @@ export default function RegisterPage() {
                       <Select
                         value={selectedCountry.code}
                         onValueChange={(value) => {
-                          const country = {
-                            name: "Bangladesh",
-                            code: value,
-                            flag: "🇧🇩",
-                            dialCode: "+880"
-                          };
+                          const country = countries.find(c => c.code === value) || defaultCountry;
                           setSelectedCountry(country);
                         }}
                       >
@@ -283,9 +279,11 @@ export default function RegisterPage() {
                           <SelectValue placeholder="Select country" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="BD">🇧🇩 +880</SelectItem>
-                          <SelectItem value="US">🇺🇸 +1</SelectItem>
-                          <SelectItem value="GB">🇬🇧 +44</SelectItem>
+                          {countries.map((country) => (
+                            <SelectItem key={country.code} value={country.code}>
+                              {country.flag} {country.dialCode}
+                            </SelectItem>
+                          ))}
                         </SelectContent>
                       </Select>
                       <Input
@@ -388,7 +386,7 @@ export default function RegisterPage() {
                       type="button"
                       variant="ghost"
                       size="icon"
-                      className="h-5 w-5 rounded-full p-0"
+                      className="h-5 bg-orange-500 w-5 rounded-full p-0"
                       onClick={() => setAgreeToTerms(!agreeToTerms)}
                     >
                       {agreeToTerms && <Check className="h-4 w-4" />}

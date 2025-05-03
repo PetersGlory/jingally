@@ -71,12 +71,15 @@ export function DashboardNav() {
             Help & Support
           </Button>
         </Link>
-        <Link href="/auth/logout">
-          <Button variant="ghost" className="w-full justify-start text-red-500 hover:text-red-500 hover:bg-red-500/10">
+        {/* <Link href="/auth/logout"> */}
+          <Button onClick={()=>{
+            localStorage.clear();
+            window.location.href = "/";
+          }} variant="ghost" className="w-full justify-start text-red-500 hover:text-red-500 hover:bg-red-500/10">
             <LogOut className="mr-2 h-4 w-4" />
             Log out
           </Button>
-        </Link>
+        {/* </Link> */}
       </div>
     </nav>
   )

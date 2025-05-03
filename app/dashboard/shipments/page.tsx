@@ -7,8 +7,9 @@ import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Package, Search, Filter, ArrowUpDown, Plus } from "lucide-react"
+import { Package, Search, Filter, ArrowUpDown, Plus, Loader2 } from "lucide-react"
 import { getShipments } from "@/lib/shipment"
+import { Skeleton } from "@/components/ui/skeleton"
 
 interface Shipment {
   id: string;
@@ -72,18 +73,22 @@ export default function ShipmentsPage() {
   const getStatusColor = (status: string): string => {
     switch (status.toLowerCase()) {
       case 'pending':
-        return 'text-yellow-500'
+        return 'bg-yellow-100 text-yellow-800'
       case 'in_transit':
-        return 'text-orange-500'
+        return 'bg-orange-100 text-orange-800'
       case 'delivered':
-        return 'text-green-500'
+        return 'bg-green-100 text-green-800'
       case 'processing':
-        return 'text-blue-500'
+        return 'bg-blue-100 text-blue-800'
       case 'cancelled':
-        return 'text-red-500'
+        return 'bg-red-100 text-red-800'
       default:
-        return 'text-gray-500'
+        return 'bg-gray-100 text-gray-800'
     }
+  }
+
+  const getPaymentStatusColor = (status: string): string => {
+    return status === 'pending' ? 'bg-yellow-100 text-yellow-800' : 'bg-green-100 text-green-800'
   }
 
   // Filter shipments based on search term and filters
@@ -100,20 +105,27 @@ export default function ShipmentsPage() {
     return matchesSearch && matchesStatus && matchesType
   })
 
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900"></div>
-      </div>
-    )
-  }
+  const LoadingSkeleton = () => (
+    <div className="space-y-4">
+      {[...Array(5)].map((_, i) => (
+        <div key={i} className="flex items-center space-x-4 p-4 border rounded-lg">
+          <Skeleton className="h-12 w-12 rounded-full" />
+          <div className="space-y-2 flex-1">
+            <Skeleton className="h-4 w-[250px]" />
+            <Skeleton className="h-4 w-[200px]" />
+          </div>
+        </div>
+      ))}
+    </div>
+  )
 
   if (error) {
     return (
-      <div className="flex items-center justify-center h-screen">
-        <div className="text-red-500 text-center">
-          <p className="text-lg font-semibold">Error loading shipments</p>
-          <p className="text-sm">{error}</p>
+      <div className="flex flex-col items-center justify-center min-h-[60vh] p-4">
+        <div className="text-center space-y-4 max-w-md">
+          <div className="text-red-500 text-4xl">⚠️</div>
+          <h2 className="text-2xl font-bold">Error loading shipments</h2>
+          <p className="text-muted-foreground">{error}</p>
           <Button 
             variant="outline" 
             className="mt-4"
@@ -129,23 +141,26 @@ export default function ShipmentsPage() {
   return (
     <main className="flex flex-col w-full">
       <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
-        <div className="flex items-center justify-between space-y-2">
-          <h2 className="text-3xl font-bold tracking-tight">Shipments</h2>
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          <div>
+            <h2 className="text-2xl md:text-3xl font-bold tracking-tight">Shipments</h2>
+            <p className="text-muted-foreground mt-1">Manage and track your shipments</p>
+          </div>
           <Link href="/dashboard/shipments/create">
-            <Button>
+            <Button className="w-full md:w-auto">
               <Plus className="mr-2 h-4 w-4" /> New Shipment
             </Button>
           </Link>
         </div>
 
-        <Card className="w-full overflow-x-auto">
+        <Card className="w-full">
           <CardHeader>
             <CardTitle>All Shipments</CardTitle>
             <CardDescription>View and manage all your shipments</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="flex flex-col space-y-4 md:flex-row md:items-center md:justify-between md:space-y-0">
-              <div className="flex w-full items-center space-x-2 md:w-1/3">
+              <div className="flex w-full items-center space-x-2">
                 <Search className="h-4 w-4 text-muted-foreground" />
                 <Input
                   placeholder="Search by tracking number..."
@@ -189,65 +204,79 @@ export default function ShipmentsPage() {
               </div>
             </div>
 
-            <div className="mt-6 rounded-md border w-full overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="w-[120px]">
-                      <div className="flex items-center space-x-1">
-                        <span>Tracking #</span>
-                        <ArrowUpDown className="h-3 w-3" />
-                      </div>
-                    </TableHead>
-                    <TableHead>
-                      <div className="flex items-center space-x-1">
-                        <span>Date</span>
-                        <ArrowUpDown className="h-3 w-3" />
-                      </div>
-                    </TableHead>
-                    <TableHead>Package Type</TableHead>
-                    <TableHead>Service Type</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Payment</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredShipments.length > 0 ? (
-                    filteredShipments.map((shipment) => (
-                      <TableRow key={shipment.id}>
-                        <TableCell className="font-medium">{shipment.trackingNumber}</TableCell>
-                        <TableCell>{shipment.createdAt}</TableCell>
-                        <TableCell>{shipment.packageType}</TableCell>
-                        <TableCell>{shipment.serviceType}</TableCell>
-                        <TableCell>
-                          <span className={shipment.statusColor}>
-                            {shipment.status.charAt(0).toUpperCase() + shipment.status.slice(1)}
-                          </span>
-                        </TableCell>
-                        <TableCell>
-                          <span className={shipment.paymentStatus === 'pending' ? 'text-yellow-500' : 'text-green-500'}>
-                            {shipment.paymentStatus.charAt(0).toUpperCase() + shipment.paymentStatus.slice(1)}
-                          </span>
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <Link href={`/dashboard/shipments/${shipment.id}`}>
-                            <Button variant="ghost" size="sm">
-                              View
-                            </Button>
-                          </Link>
-                        </TableCell>
+            <div className="mt-6 rounded-md border">
+              {isLoading ? (
+                <LoadingSkeleton />
+              ) : (
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="w-[120px]">
+                          <div className="flex items-center space-x-1">
+                            <span>Tracking #</span>
+                            <ArrowUpDown className="h-3 w-3" />
+                          </div>
+                        </TableHead>
+                        <TableHead>
+                          <div className="flex items-center space-x-1">
+                            <span>Date</span>
+                            <ArrowUpDown className="h-3 w-3" />
+                          </div>
+                        </TableHead>
+                        <TableHead>Package Type</TableHead>
+                        <TableHead>Service Type</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead>Payment</TableHead>
+                        <TableHead className="text-right">Actions</TableHead>
                       </TableRow>
-                    ))
-                  ) : (
-                    <TableRow>
-                      <TableCell colSpan={7} className="h-24 text-center">
-                        No shipments found.
-                      </TableCell>
-                    </TableRow>
-                  )}
-                </TableBody>
-              </Table>
+                    </TableHeader>
+                    <TableBody>
+                      {filteredShipments.length > 0 ? (
+                        filteredShipments.map((shipment) => (
+                          <TableRow key={shipment.id}>
+                            <TableCell className="font-medium">{shipment.trackingNumber}</TableCell>
+                            <TableCell>{shipment.createdAt}</TableCell>
+                            <TableCell>{shipment.packageType}</TableCell>
+                            <TableCell>{shipment.serviceType}</TableCell>
+                            <TableCell>
+                              <span className={`px-2 py-1 rounded-full text-xs font-medium ${shipment.statusColor}`}>
+                                {shipment.status.charAt(0).toUpperCase() + shipment.status.slice(1)}
+                              </span>
+                            </TableCell>
+                            <TableCell>
+                              <span className={`px-2 py-1 rounded-full text-xs font-medium ${getPaymentStatusColor(shipment.paymentStatus)}`}>
+                                {shipment.paymentStatus.charAt(0).toUpperCase() + shipment.paymentStatus.slice(1)}
+                              </span>
+                            </TableCell>
+                            <TableCell className="text-right">
+                              <Link href={`/dashboard/shipments/${shipment.id}`}>
+                                <Button variant="ghost" size="sm">
+                                  View Details
+                                </Button>
+                              </Link>
+                            </TableCell>
+                          </TableRow>
+                        ))
+                      ) : (
+                        <TableRow>
+                          <TableCell colSpan={7} className="h-24 text-center">
+                            <div className="flex flex-col items-center justify-center space-y-2">
+                              <Package className="h-8 w-8 text-muted-foreground" />
+                              <p className="text-muted-foreground">No shipments found</p>
+                              {searchTerm && (
+                                <Button variant="outline" onClick={() => setSearchTerm("")}>
+                                  Clear search
+                                </Button>
+                              )}
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      )}
+                    </TableBody>
+                  </Table>
+                </div>
+              )}
             </div>
           </CardContent>
         </Card>
