@@ -134,6 +134,8 @@ export default function RegisterPage() {
       return;
     }
 
+    setIsLoading(true);
+
     try {
       await signUp({
         firstName,
@@ -165,6 +167,8 @@ export default function RegisterPage() {
           general: error.response?.data?.message || "An error occurred during registration. Please try again." 
         });
       }
+    } finally {
+      setIsLoading(false);
     }
   }
 
@@ -433,9 +437,9 @@ export default function RegisterPage() {
               <CardFooter>
                 <Button 
                   className="w-full bg-orange-500 hover:bg-orange-600" 
-                  disabled={isLoading || !agreeToTerms}
+                  disabled={isLoading || authLoading || !agreeToTerms}
                 >
-                  {isLoading ? (
+                  {isLoading || authLoading ? (
                     <div className="flex items-center">
                       <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent mr-2" />
                       Creating account...
