@@ -30,8 +30,8 @@ export default function CreateShipment() {
       {currentStep === 1 && <PackageService onSelectType={setSelectedType} handleNextStep={handleNextStep} />} 
       {currentStep === 2 && <PackageDetails serviceType={selectedType} handleNextStep={handleNextStep} handlePreviousStep={handlePreviousStep} />}
       {currentStep === 3 && <PackageDimension handleNextStep={handleNextStep} handlePreviousStep={handlePreviousStep} />}
-      {currentStep === 4 && <PackageDelivery handleNextStep={handleNextStep} handlePreviousStep={handlePreviousStep} />}
-      {currentStep === 5 && <PackagePhoto handleNextStep={handleNextStep} handlePreviousStep={handlePreviousStep} />}
+      {currentStep === 4 && <PackagePhoto handleNextStep={handleNextStep} handlePreviousStep={handlePreviousStep} />}
+      {currentStep === 5 && <PackageDelivery handleNextStep={handleNextStep} handlePreviousStep={handlePreviousStep} />}
       {currentStep === 6 && <PackagePickup handleNextStep={handleNextStep} handlePreviousStep={handlePreviousStep} />}
       {currentStep === 7 && <PackagePayment handleNextStep={handleNextStep} handlePreviousStep={handlePreviousStep} />}
     </>

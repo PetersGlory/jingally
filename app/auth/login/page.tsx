@@ -65,7 +65,7 @@ export default function LoginPage() {
         setIsLoading(false);
       }
     } catch (error: any) {
-      setError(error.message || "An error occurred. Please try again.")
+      setError(error.response.data.error || "An error occurred. Please try again.")
       setIsLoading(false)
     }
   }

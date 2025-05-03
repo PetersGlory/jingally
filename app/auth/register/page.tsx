@@ -279,7 +279,7 @@ export default function RegisterPage() {
                       <Select
                         value={selectedCountry.dialCode}
                         onValueChange={(value) => {
-                          const country = countries.find(c => c.code === value) || defaultCountry;
+                          const country = countries.find(c => c.dialCode === value) || defaultCountry;
                           setSelectedCountry(country);
                           console.log(country);
                         }}
@@ -289,7 +289,7 @@ export default function RegisterPage() {
                         </SelectTrigger>
                         <SelectContent>
                           {countries.map((country) => (
-                            <SelectItem key={country.code} value={country.code}>
+                            <SelectItem key={country.code} value={country.dialCode}>
                               {country.flag} {country.dialCode}
                             </SelectItem>
                           ))}
