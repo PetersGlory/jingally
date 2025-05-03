@@ -5,7 +5,6 @@ export const createShipment = async (shippingData: any, token: string) => {
   const response = await api.post('/shipments', shippingData, {
     headers: {
       Authorization: `Bearer ${token}`,
-      'Content-Type': 'multipart/form-data',
     },
   });
   return response.data;

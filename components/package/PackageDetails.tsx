@@ -103,12 +103,12 @@ export default function PackageDetails({ selectedType, serviceType, handleNextSt
     try {
       setIsLoading(true);
       setErrors({});
-
-      const formDatas = new FormData();
-      formDatas.append('serviceType', serviceType);
-      if(formData.type) formDatas.append('packageType', formData.type);
-      if(formData.description) formDatas.append('packageDescription', formData.description);
-      if(formData.isFragile) formDatas.append('fragile', formData.isFragile.toString());
+      const dataBody={
+        serviceType: serviceType,
+        packageType: formData.type,
+        packageDescription: formData.description,
+        fragile: formData.isFragile.toString()
+      }
 
       const token = localStorage.getItem('accessToken');
       if (!token) {
@@ -116,7 +116,7 @@ export default function PackageDetails({ selectedType, serviceType, handleNextSt
         return;
       }
 
-      const response = await createShipment(formDatas, JSON.parse(token));
+      const response = await createShipment(dataBody, JSON.parse(token));
 
       if (response.success) {
         localStorage.setItem('packageInfo', JSON.stringify(response.data));

@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import PackageService from '@/components/package/PackageService';
 import PackageDimension from '@/components/package/PackageDimension';
 import PackagePhoto from '@/components/package/PackagePhoto';
@@ -13,6 +13,10 @@ import PackageDetails from '@/components/package/PackageDetails';
 export default function CreateShipment() {
   const [currentStep, setCurrentStep] = useState(1);
   const [selectedType, setSelectedType] = useState('');
+
+  useEffect(() => {
+    console.log('selectedType:', selectedType);
+  }, [selectedType]);
 
   const handleNextStep = () => {
     setCurrentStep(currentStep + 1);

@@ -2,7 +2,8 @@
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
-import { CreditCard, Shield, Check, X, Edit2, AlertCircle } from 'lucide-react';
+import { CreditCard, Shield, Check, X, Edit2, AlertCircle, Package, Truck, MapPin, Calendar } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import styles from './PackagePayment.module.css';
 import { updatePaymentStatus } from '@/lib/shipment';
 
@@ -28,15 +29,59 @@ interface CostItem {
   type: 'regular' | 'total';
 }
 
+interface Shipment {
+  id: string;
+  trackingNumber: string;
+  status: string;
+  packageType: string;
+  serviceType: string;
+  packageDescription: string;
+  fragile: boolean;
+  weight: number;
+  dimensions: {
+    width: number;
+    height: number;
+    length: number;
+  };
+  pickupAddress: {
+    city: string;
+    type: string;
+    state: string;
+    street: string;
+    country: string;
+    postcode: string;
+  };
+  deliveryAddress: {
+    city: string;
+    type: string;
+    state: string;
+    street: string;
+    country: string;
+    postcode: string;
+  };
+  scheduledPickupTime: string;
+  estimatedDeliveryTime: string;
+  receiverName: string;
+  receiverPhoneNumber: string;
+  receiverEmail: string;
+  price: number | null;
+  paymentStatus: string;
+  notes: string | null;
+  driverId: string | null;
+  images: string[];
+  createdAt: string;
+  updatedAt: string;
+}
+
 // Constants
 const PAYPAL_CLIENT_ID = process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID || '';
 
 // Shipping method constants
 const SHIPPING_METHODS = {
-  AIR: 'air',
+  AIR: 'airfreight',
   JINGSLY: 'jingsly',
   FROZEN: 'frozen',
-  SEA: 'sea'
+  SEA: 'seafreight'
 } as const;
 
 // Air freight price per kg
@@ -63,7 +108,7 @@ export default function PackagePayment({ handleNextStep, handlePreviousStep }: {
   const [showPayPalModal, setShowPayPalModal] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [packageInfo, setPackageInfo] = useState<any>(null);
+  const [shipment, setShipment] = useState<Shipment | null>(null);
   const [error, setError] = useState('');
   const [token, setToken] = useState('');
   const [cardDetails, setCardDetails] = useState<CardDetails>({
@@ -76,18 +121,20 @@ export default function PackagePayment({ handleNextStep, handlePreviousStep }: {
   const fetchData = useCallback(async () => {
     try {
       setIsLoading(true);
-      const [packageInfoStr, accessToken] = await Promise.all([
+      const [shipmentStr, accessToken] = await Promise.all([
         localStorage.getItem('packageInfo'),
         localStorage.getItem('accessToken')
       ]);
 
-      if (packageInfoStr && accessToken) {
-        setPackageInfo(JSON.parse(packageInfoStr));
+      if (shipmentStr && accessToken) {
+        setShipment(JSON.parse(shipmentStr));
         setToken(JSON.parse(accessToken));
+      } else {
+        setError('No shipment information found');
       }
     } catch (error) {
       console.error('Error fetching data:', error);
-      setError('Failed to load package information');
+      setError('Failed to load shipment information');
     } finally {
       setIsLoading(false);
     }
@@ -140,9 +187,9 @@ export default function PackagePayment({ handleNextStep, handlePreviousStep }: {
   }, []);
 
   const calculateCosts = useCallback((): CostItem[] => {
-    if (!packageInfo) return [];
+    if (!shipment) return [];
     
-    const { weight, dimensions, serviceType } = packageInfo;
+    const { weight, dimensions, serviceType } = shipment;
     let baseFee = 0;
     let methodName = '';
 
@@ -182,7 +229,7 @@ export default function PackagePayment({ handleNextStep, handlePreviousStep }: {
       { label: 'VAT (20%)', amount: `£${vat.toFixed(2)}`, type: 'regular' },
       { label: 'Total', amount: `£${total.toFixed(2)}`, type: 'total' }
     ];
-  }, [packageInfo, calculateAirFreightPrice, calculateJingsllyPrice, calculateSeaFreightPrice]);
+  }, [shipment, calculateAirFreightPrice, calculateJingsllyPrice, calculateSeaFreightPrice]);
 
   const costs = useMemo(() => calculateCosts(), [calculateCosts]);
 
@@ -248,7 +295,7 @@ export default function PackagePayment({ handleNextStep, handlePreviousStep }: {
       };
 
       const paymentResponse = await updatePaymentStatus(
-        packageInfo.id,
+        shipment?.id || '',
         paymentDetails,
         token
       );
@@ -269,7 +316,7 @@ export default function PackagePayment({ handleNextStep, handlePreviousStep }: {
     } finally {
       setIsLoading(false);
     }
-  }, [selectedMethod, validateCard, costs, packageInfo, token, router, cardDetails]);
+  }, [selectedMethod, validateCard, costs, shipment, token, router, cardDetails]);
 
   const handlePayPalPayment = useCallback(async () => {
     try {
@@ -283,7 +330,7 @@ export default function PackagePayment({ handleNextStep, handlePreviousStep }: {
       };
 
       const paymentResponse = await updatePaymentStatus(
-        packageInfo.id,
+        shipment?.id || '',
         paymentDetails,
         token
       );
@@ -305,7 +352,49 @@ export default function PackagePayment({ handleNextStep, handlePreviousStep }: {
       setIsLoading(false);
       setShowPayPalModal(false);
     }
-  }, [costs, packageInfo, token, router]);
+  }, [costs, shipment, token, router]);
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900"></div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[400px] p-4">
+        <div className="text-center space-y-4 max-w-md">
+          <div className="text-red-500 text-4xl">⚠️</div>
+          <h2 className="text-2xl font-bold">Payment Error</h2>
+          <p className="text-muted-foreground">{error}</p>
+          <Button 
+            variant="outline" 
+            className="mt-4"
+            onClick={() => {
+              setError('');
+              fetchData();
+            }}
+          >
+            Try Again
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  if (!shipment) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[400px] p-4">
+        <div className="text-center space-y-4 max-w-md">
+          <div className="text-gray-500 text-4xl">📦</div>
+          <h2 className="text-2xl font-bold">No Shipment Found</h2>
+          <p className="text-muted-foreground">Please try again or contact support.</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className={styles.container}>
@@ -313,7 +402,7 @@ export default function PackagePayment({ handleNextStep, handlePreviousStep }: {
         <h1>Payment</h1>
         <button 
           className={styles.cancelButton}
-          onClick={() => router.back()}
+          onClick={handlePreviousStep}
         >
           Cancel
         </button>
@@ -321,47 +410,63 @@ export default function PackagePayment({ handleNextStep, handlePreviousStep }: {
 
       <main className={styles.main}>
         {/* Package Summary */}
-        {packageInfo && (
-          <div className={styles.summarySection}>
-            <h2 className={styles.sectionTitle}>Package Summary</h2>
-            <div className={styles.summaryGrid}>
-              <div className={styles.summaryItem}>
+        <div className={styles.summarySection}>
+          <h2 className={styles.sectionTitle}>Package Summary</h2>
+          <div className={styles.summaryGrid}>
+            <div className={styles.summaryItem}>
+              <div className="flex items-center gap-2">
+                <Package className="h-4 w-4" />
                 <span>Tracking Number</span>
-                <span>{packageInfo.trackingNumber}</span>
               </div>
-              <div className={styles.summaryItem}>
+              <span>{shipment.trackingNumber}</span>
+            </div>
+            <div className={styles.summaryItem}>
+              <div className="flex items-center gap-2">
+                <Package className="h-4 w-4" />
                 <span>Weight</span>
-                <span>{packageInfo?.weight}kg</span>
               </div>
-              <div className={styles.summaryItem}>
+              <span>{shipment.weight}kg</span>
+            </div>
+            <div className={styles.summaryItem}>
+              <div className="flex items-center gap-2">
+                <Package className="h-4 w-4" />
                 <span>Dimensions</span>
-                <span>
-                  {packageInfo?.dimensions?.length}x{packageInfo?.dimensions?.width}x{packageInfo?.dimensions?.height}cm
-                </span>
               </div>
-              <div className={styles.summaryItem}>
-                <span>Receiver</span>
-                <span>{packageInfo?.receiverName}</span>
+              <span>
+                {shipment.dimensions.length}x{shipment.dimensions.width}x{shipment.dimensions.height}cm
+              </span>
+            </div>
+            <div className={styles.summaryItem}>
+              <div className="flex items-center gap-2">
+                <Truck className="h-4 w-4" />
+                <span>Service Type</span>
               </div>
-              <div className={styles.summaryItem}>
+              <span>{shipment.serviceType}</span>
+            </div>
+            <div className={styles.summaryItem}>
+              <div className="flex items-center gap-2">
+                <Calendar className="h-4 w-4" />
                 <span>Pickup Date</span>
-                <span>
-                  {new Date(packageInfo?.scheduledPickupTime).toLocaleDateString('en-GB', {
-                    day: 'numeric',
-                    month: 'short',
-                    year: 'numeric'
-                  })}
-                </span>
               </div>
-              <div className={styles.summaryItem}>
+              <span>
+                {new Date(shipment.scheduledPickupTime).toLocaleDateString('en-GB', {
+                  day: 'numeric',
+                  month: 'short',
+                  year: 'numeric'
+                })}
+              </span>
+            </div>
+            <div className={styles.summaryItem}>
+              <div className="flex items-center gap-2">
+                <MapPin className="h-4 w-4" />
                 <span>Delivery Address</span>
-                <span>
-                  {packageInfo?.deliveryAddress?.street}, {packageInfo?.deliveryAddress?.city}
-                </span>
               </div>
+              <span>
+                {shipment.deliveryAddress.street}, {shipment.deliveryAddress.city}
+              </span>
             </div>
           </div>
-        )}
+        </div>
 
         {/* Cost Breakdown */}
         <div className={styles.costSection}>
