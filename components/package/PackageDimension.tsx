@@ -37,8 +37,16 @@ const DimensionInput: React.FC<{
   const [isFocused, setIsFocused] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    
     const numericValue = e.target.value.replace(/[^0-9.]/g, '');
     const finalValue = numericValue.replace(/(\..*)\./g, '$1');
+    if(label === "Weight"){
+    if (parseFloat(numericValue) > 40) {
+      alert('Weight cannot exceed 40kg');
+      return;
+    }
+
+    }
     onChange(finalValue);
   };
 
@@ -50,7 +58,7 @@ const DimensionInput: React.FC<{
           {icon}
         </div>
         <input
-          type="text"
+          type="number"
           className={styles.input}
           placeholder={placeholder}
           value={value}
