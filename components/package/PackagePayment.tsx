@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { CreditCard, Shield, Check, X, Edit2 } from 'lucide-react';
+import { CreditCard, Shield, Check, X, Edit2, AlertCircle } from 'lucide-react';
 import styles from './PackagePayment.module.css';
 import { updatePaymentStatus } from '@/lib/shipment';
 
@@ -64,6 +64,7 @@ export default function PackagePayment({ handleNextStep, handlePreviousStep }: {
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [packageInfo, setPackageInfo] = useState<any>(null);
+  const [error, setError] = useState('');
   const [token, setToken] = useState('');
   const [cardDetails, setCardDetails] = useState<CardDetails>({
     cardNumber: '',
@@ -72,22 +73,24 @@ export default function PackagePayment({ handleNextStep, handlePreviousStep }: {
     cardHolderName: ''
   });
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const [packageInfoStr, accessToken] = await Promise.all([
-          localStorage.getItem('packageInfo'),
-          localStorage.getItem('accessToken')
-        ]);
+  const fetchData = async () => {
+    try {
+      const [packageInfoStr, accessToken] = await Promise.all([
+        localStorage.getItem('packageInfo'),
+        localStorage.getItem('accessToken')
+      ]);
 
-        if (packageInfoStr && accessToken) {
-          setPackageInfo(JSON.parse(packageInfoStr));
-          setToken(JSON.parse(accessToken));
-        }
-      } catch (error) {
-        console.error('Error fetching data:', error);
+      if (packageInfoStr && accessToken) {
+        setPackageInfo(JSON.parse(packageInfoStr));
+        setToken(JSON.parse(accessToken));
       }
-    };
+    } catch (error) {
+      console.error('Error fetching data:', error);
+    }
+  };
+
+  useEffect(() => {
+    
     fetchData();
   }, []);
 
@@ -156,13 +159,15 @@ export default function PackagePayment({ handleNextStep, handlePreviousStep }: {
         break;
       case SHIPPING_METHODS.SEA:
         if (weight > SEA_MAX_WEIGHT_PER_ITEM) {
-          throw new Error(`Sea freight items cannot exceed ${SEA_MAX_WEIGHT_PER_ITEM}kg per item`);
+          setError(`Sea freight items cannot exceed ${SEA_MAX_WEIGHT_PER_ITEM}kg per item`);
+          return [];
         }
         baseFee = calculateSeaFreightPrice(dimensions);
         methodName = 'Sea Freight';
         break;
       default:
-        throw new Error('Invalid shipping method');
+        setError('Invalid shipping method');
+        return [];
     }
 
     const serviceFee = Math.round(baseFee * 0.1 * 100) / 100;
@@ -262,6 +267,27 @@ export default function PackagePayment({ handleNextStep, handlePreviousStep }: {
       setIsLoading(false);
     }
   };
+
+  if (error) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[200px] bg-red-50/50 border border-red-200 rounded-lg p-6 shadow-sm">
+        <div className="flex items-center space-x-3 mb-2">
+          <AlertCircle className="w-6 h-6 text-red-500" />
+          <h3 className="text-lg font-semibold text-red-700">Payment Error</h3>
+        </div>
+        <p className="text-red-600 text-center max-w-md">{error}</p>
+        <button 
+          onClick={() => {
+            setError('');
+            fetchData();
+          }}
+          className="mt-4 px-4 py-2 bg-red-100 hover:bg-red-200 text-red-700 rounded-md transition-colors duration-200"
+        >
+          Try Again
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className={styles.container}>
