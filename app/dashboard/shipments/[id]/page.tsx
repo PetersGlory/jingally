@@ -9,7 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import { ArrowLeft, Package, Truck, MapPin, Calendar, Clock, FileText, Download, AlertCircle, X, Phone, Mail } from "lucide-react"
+import { ArrowLeft, Package, Truck, MapPin, Calendar, Clock, FileText, Download, AlertCircle, X, Phone, Mail, HelpCircle } from "lucide-react"
 import { getShipmentDetails, cancelShipment } from "@/lib/shipment"
 import PackagePayment from "@/components/package/PackagePayment"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
@@ -251,10 +251,10 @@ export default function ShipmentDetailPage() {
             </Link>
           </div>
           <div className="flex items-center space-x-2">
-            <Button variant="outline" size="sm">
+            {/* <Button variant="outline" size="sm">
               <Download className="mr-2 h-4 w-4" />
               Download
-            </Button>
+            </Button> */}
             <Button 
               onClick={() => setShowCancelConfirmation(true)} 
               variant="outline" 
@@ -447,16 +447,12 @@ export default function ShipmentDetailPage() {
               <CardContent>
                 <div className="space-y-3">
                   <Button variant="outline" className="w-full justify-start">
-                    <Clock className="mr-2 h-4 w-4 text-orange-500" />
-                    Modify Delivery
-                  </Button>
-                  <Button variant="outline" className="w-full justify-start">
                     <Package className="mr-2 h-4 w-4 text-orange-500" />
                     Report an Issue
                   </Button>
                   <Button variant="outline" className="w-full justify-start">
-                    <FileText className="mr-2 h-4 w-4 text-orange-500" />
-                    Request Documents
+                    <HelpCircle className="mr-2 h-4 w-4 text-orange-500" />
+                    Contact Support
                   </Button>
                 </div>
               </CardContent>
