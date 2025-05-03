@@ -129,7 +129,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       await signUp(data)
       
       localStorage.setItem("email", data.email)
-      router.push(`/auth/verification?email=${encodeURIComponent(data.email)}`)
+      router.replace(`/`)
     } catch (error: any) {
       setAuthError(error.message || "Failed to sign up. Please try again.")
       throw error
