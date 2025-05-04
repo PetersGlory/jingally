@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Loader2, User, Phone, Globe } from 'lucide-react';
+import { getUser } from '@/lib/api';
 // import { updateUserProfile } from '@/lib/user';
 
 interface UserProfile {
@@ -36,18 +37,9 @@ export default function SettingsPage() {
         }
 
         // TODO: Replace with actual API call
-        const response = await fetch('/api/user/profile', {
-          headers: {
-            'Authorization': `Bearer ${JSON.parse(token)}`
-          }
-        });
+        const response = await getUser(token);
 
-        if (!response.ok) {
-          throw new Error('Failed to fetch profile');
-        }
-
-        const data = await response.json();
-        setProfile(data);
+        setProfile(response.data);
       } catch (err: any) {
         setError(err.message || 'Failed to load profile');
       } finally {

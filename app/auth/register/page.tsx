@@ -194,7 +194,7 @@ export default function RegisterPage() {
               "Join thousands of businesses that trust Jingally Logistics for their shipping needs and experience
               seamless global logistics solutions."
             </p>
-            <footer className="text-sm">Michael Chen, Supply Chain Director</footer>
+            {/* <footer className="text-sm">Michael Chen, Supply Chain Director</footer> */}
           </blockquote>
         </div>
       </div>

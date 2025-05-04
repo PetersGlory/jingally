@@ -51,7 +51,7 @@ export const signOut = async () => {
 
 // Users Section
 export const getUser = async (token: string) => {
-  const response = await api.get("/users/profile", {
+  const response = await api.get("/auth/me", {
     headers: {
       Authorization: `Bearer ${token}`,
     },
@@ -175,4 +175,3 @@ export const getAddresses = async (token: string) => {
   });
   return response.json();
 };
-
