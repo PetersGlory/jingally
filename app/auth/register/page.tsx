@@ -46,13 +46,6 @@ interface Country {
   dialCode: string;
 }
 
-const defaultCountry: Country = {
-  name: "Bangladesh",
-  code: "BD",
-  flag: "🇧🇩",
-  dialCode: "+880"
-};
-
 const genderOptions = ["Male", "Female", "Other", "Prefer not to say"];
 
 export default function RegisterPage() {
@@ -69,7 +62,7 @@ export default function RegisterPage() {
   const [gender, setGender] = useState("")
   const [agreeToTerms, setAgreeToTerms] = useState(false)
   const [errors, setErrors] = useState<FormErrors>({})
-  const [selectedCountry, setSelectedCountry] = useState<Country>(defaultCountry)
+  const [selectedCountry, setSelectedCountry] = useState<Country | null>(null)
   const [showPrivacyPolicy, setShowPrivacyPolicy] = useState(false)
   const [showTermsOfService, setShowTermsOfService] = useState(false)
   const [searchQuery, setSearchQuery] = useState("");
@@ -144,7 +137,7 @@ export default function RegisterPage() {
         lastName,
         email,
         password,
-        phone: phone ? `${selectedCountry.dialCode}${phone}` : undefined,
+        phone: phone ? `${selectedCountry?.dialCode}${phone}` : undefined,
         gender: gender || undefined,
       });
 
@@ -282,48 +275,58 @@ export default function RegisterPage() {
                   </div>
                   <div className="grid gap-2">
                     <Label htmlFor="phone">Phone number (Optional)</Label>
-                    <div className="flex gap-2">
-                      <div className="relative">
+                    <div className="flex flex-col sm:flex-row gap-2">
+                      <div className="relative w-full sm:w-auto">
                         <Select
                           open={isCountryOpen}
                           onOpenChange={setIsCountryOpen}
-                          value={selectedCountry.code}
+                          value={selectedCountry?.code}
                           onValueChange={(value) => {
-                            const country = countries.find(c => c.code === value) || defaultCountry;
-                            setSelectedCountry(country);
+                            const country = countries.find(c => c.code === value);
+                            setSelectedCountry(country || null);
                           }}
                         >
-                          <SelectTrigger className="w-[140px]">
+                          <SelectTrigger className="w-full sm:w-[180px] h-10">
                             <div className="flex items-center gap-2">
-                              <span className="text-lg">{selectedCountry.flag}</span>
-                              <span className="text-sm">{selectedCountry.dialCode}</span>
+                              {selectedCountry ? (
+                                <>
+                                  <span className="text-lg">{selectedCountry.flag}</span>
+                                  <span className="text-sm">{selectedCountry.dialCode}</span>
+                                </>
+                              ) : (
+                                <span className="text-sm text-muted-foreground">Select country</span>
+                              )}
                             </div>
                           </SelectTrigger>
-                          <SelectContent className="max-h-[300px]">
-                            <div className="sticky top-0 p-2">
+                          <SelectContent className="max-h-[300px] w-[300px] sm:w-[350px]">
+                            <div className="sticky top-0 p-2 bg-background border-b">
                               <Input
-                                placeholder="Search country..."
+                                placeholder="Search country or code..."
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
                                 className="w-full"
                               />
                             </div>
-                            {filteredCountries && filteredCountries.map((country) => (
-                              <SelectItem 
-                                key={country.code} 
-                                value={country.code}
-                                className="flex items-center gap-2"
-                              >
-                                <span className="text-lg">{country.flag}</span>
-                                <span className="text-sm">{country.name}</span>
-                                <span className="text-sm text-muted-foreground">{country.dialCode}</span>
-                              </SelectItem>
-                            ))}
-                            {filteredCountries.length === 0 && (
-                              <div className="p-2 text-sm text-muted-foreground text-center">
-                                No countries found
-                              </div>
-                            )}
+                            <div className="max-h-[250px] overflow-y-auto">
+                              {filteredCountries && filteredCountries.map((country) => (
+                                <SelectItem 
+                                  key={country.code} 
+                                  value={country.code}
+                                  className="flex items-center gap-2 py-2 cursor-pointer hover:bg-accent"
+                                >
+                                  <span className="text-lg">{country.flag}</span>
+                                  <div className="flex flex-col">
+                                    <span className="text-sm font-medium">{country.name}</span>
+                                    <span className="text-xs text-muted-foreground">{country.dialCode}</span>
+                                  </div>
+                                </SelectItem>
+                              ))}
+                              {filteredCountries.length === 0 && (
+                                <div className="p-4 text-sm text-muted-foreground text-center">
+                                  No countries found
+                                </div>
+                              )}
+                            </div>
                           </SelectContent>
                         </Select>
                       </div>
@@ -337,7 +340,7 @@ export default function RegisterPage() {
                           setPhone(cleaned);
                           setErrors(prev => ({ ...prev, phone: undefined }));
                         }}
-                        className={errors.phone ? "border-red-500" : ""}
+                        className={`flex-1 ${errors.phone ? "border-red-500" : ""}`}
                       />
                     </div>
                     {errors.phone && (
