@@ -182,7 +182,7 @@ export default function RegisterPage() {
         Back to home
       </Link>
 
-      <div className="relative hidden h-full flex-col bg-muted p-10 text-white lg:flex dark:border-r">
+      <div className="relative hidden h-full flex-col bg-muted py-5 p-4 md:p-10 text-white lg:flex dark:border-r">
         <div className="absolute inset-0 bg-blue-950" />
         <div className="relative z-20 flex items-center text-lg font-medium">
           <Image src="/logo.png" alt="Jingally Logistics" width={50} height={50} className="h-10 w-auto mr-2" />
@@ -286,7 +286,7 @@ export default function RegisterPage() {
                             setSelectedCountry(country || null);
                           }}
                         >
-                          <SelectTrigger className="w-full sm:w-[180px] h-10">
+                          <SelectTrigger className="w-full sm:w-[80px] h-10">
                             <div className="flex items-center gap-2">
                               {selectedCountry ? (
                                 <>
@@ -294,12 +294,27 @@ export default function RegisterPage() {
                                   <span className="text-sm">{selectedCountry.dialCode}</span>
                                 </>
                               ) : (
-                                <span className="text-sm text-muted-foreground">Select country</span>
+                                <span className="text-sm text-muted-foreground">Select</span>
                               )}
                             </div>
                           </SelectTrigger>
-                          <SelectContent className="max-h-[300px] w-[300px] sm:w-[350px]">
-                            <div className="sticky top-0 p-2 bg-background border-b">
+                          <SelectContent 
+                            className="max-h-[300px] w-[300px] sm:w-[350px]"
+                            position="popper"
+                            sideOffset={5}
+                            align="start"
+                            avoidCollisions={false}
+                            onCloseAutoFocus={(e) => {
+                              e.preventDefault();
+                            }}
+                            onPointerDownOutside={(e) => {
+                              e.preventDefault();
+                            }}
+                            // onInteractOutside={(e) => {
+                            //   e.preventDefault();
+                            // }}
+                          >
+                            <div className="sticky top-0 p-2 bg-background border-b z-10">
                               <Input
                                 placeholder="Search country or code..."
                                 value={searchQuery}
