@@ -72,6 +72,8 @@ export default function RegisterPage() {
   const [selectedCountry, setSelectedCountry] = useState<Country>(defaultCountry)
   const [showPrivacyPolicy, setShowPrivacyPolicy] = useState(false)
   const [showTermsOfService, setShowTermsOfService] = useState(false)
+  const [searchQuery, setSearchQuery] = useState("");
+  const [isCountryOpen, setIsCountryOpen] = useState(false);
 
   const router = useRouter()
   const { toast } = useToast()
@@ -171,6 +173,11 @@ export default function RegisterPage() {
       setIsLoading(false);
     }
   }
+
+  const filteredCountries = countries.filter(country => 
+    country.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    country.dialCode.includes(searchQuery)
+  );
 
   return (
     <div className="container relative flex min-h-screen flex-col items-center justify-center md:grid lg:max-w-none lg:grid-cols-2 lg:px-0">
@@ -275,26 +282,51 @@ export default function RegisterPage() {
                   </div>
                   <div className="grid gap-2">
                     <Label htmlFor="phone">Phone number (Optional)</Label>
-                    <div className="flex gap-2 text-gray-700">
-                      <Select
-                        value={selectedCountry.code}
-                        onValueChange={(value) => {
-                          const country = countries.find(c => c.code === value) || defaultCountry;
-                          setSelectedCountry(country);
-                          console.log(country);
-                        }}
-                      >
-                        <SelectTrigger className="w-[120px]">
-                          <SelectValue placeholder="Select country" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {countries.map((country) => (
-                            <SelectItem key={country.code} value={country.code}>
-                              {country.flag} {country.dialCode}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                    <div className="flex gap-2">
+                      <div className="relative">
+                        <Select
+                          open={isCountryOpen}
+                          onOpenChange={setIsCountryOpen}
+                          value={selectedCountry.code}
+                          onValueChange={(value) => {
+                            const country = countries.find(c => c.code === value) || defaultCountry;
+                            setSelectedCountry(country);
+                          }}
+                        >
+                          <SelectTrigger className="w-[140px]">
+                            <div className="flex items-center gap-2">
+                              <span className="text-lg">{selectedCountry.flag}</span>
+                              <span className="text-sm">{selectedCountry.dialCode}</span>
+                            </div>
+                          </SelectTrigger>
+                          <SelectContent className="max-h-[300px]">
+                            <div className="sticky top-0 p-2">
+                              <Input
+                                placeholder="Search country..."
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                className="w-full"
+                              />
+                            </div>
+                            {filteredCountries && filteredCountries.map((country) => (
+                              <SelectItem 
+                                key={country.code} 
+                                value={country.code}
+                                className="flex items-center gap-2"
+                              >
+                                <span className="text-lg">{country.flag}</span>
+                                <span className="text-sm">{country.name}</span>
+                                <span className="text-sm text-muted-foreground">{country.dialCode}</span>
+                              </SelectItem>
+                            ))}
+                            {filteredCountries.length === 0 && (
+                              <div className="p-2 text-sm text-muted-foreground text-center">
+                                No countries found
+                              </div>
+                            )}
+                          </SelectContent>
+                        </Select>
+                      </div>
                       <Input
                         id="phone"
                         type="tel"
