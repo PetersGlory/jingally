@@ -143,3 +143,14 @@ export const cancelShipment = async (packageId: string, token: string) => {
   });
   return response.data;
 };
+
+
+// tracking shipment
+export const trackingShipment = async (trackingNumber: string, token: string) => {
+  const response = await api.get(`/shipments/track/${trackingNumber}`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+  return response.data;
+};

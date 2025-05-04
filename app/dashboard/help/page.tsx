@@ -60,7 +60,9 @@ export default function HelpPage() {
               </p>
               <p className="flex items-center">
                 <span className="font-medium mr-2">Phone:</span>
-                +1 (555) 123-4567
+                <a href="tel:+2349063632381" className="text-blue-500 hover:underline">
+                  (+234)9063632381
+                </a>
               </p>
             </div>
           </div>
@@ -77,7 +79,9 @@ export default function HelpPage() {
               </p>
               <p className="flex items-center">
                 <span className="font-medium mr-2">Phone:</span>
-                +1 (555) 987-6543
+                <a href="tel:+4402080909183" className="text-blue-500 hover:underline">
+                  (+440)2080909183
+                </a>
               </p>
             </div>
           </div>

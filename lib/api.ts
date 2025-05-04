@@ -51,7 +51,7 @@ export const signOut = async () => {
 
 // Users Section
 export const getUser = async (token: string) => {
-  const response = await api.get("/auth/me", {
+  const response = await api.get("/users/profile", {
     headers: {
       Authorization: `Bearer ${token}`,
     },

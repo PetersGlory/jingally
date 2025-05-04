@@ -545,10 +545,10 @@ export default function ShipmentDetailPage() {
                     <Package className="mr-2 h-4 w-4 text-orange-500" />
                     Report an Issue
                   </Button>
-                  <Button variant="outline" className="w-full justify-start">
+                  <Link href="https://jingally.com/contact-us-1/" className="w-full justify-start">
                     <HelpCircle className="mr-2 h-4 w-4 text-orange-500" />
                     Contact Support
-                  </Button>
+                  </Link>
                 </div>
               </CardContent>
             </Card>

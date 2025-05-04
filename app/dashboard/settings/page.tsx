@@ -6,14 +6,21 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Loader2, User, Phone, Globe } from 'lucide-react';
+import { Loader2, User, Phone, Mail, Calendar } from 'lucide-react';
 import { getUser } from '@/lib/api';
 // import { updateUserProfile } from '@/lib/user';
 
 interface UserProfile {
-  name: string;
-  phoneNumber: string;
-  country: string;
+  id: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  phone: string;
+  gender: string;
+  isVerified: boolean;
+  role: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export default function SettingsPage() {
@@ -21,9 +28,16 @@ export default function SettingsPage() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [profile, setProfile] = useState<UserProfile>({
-    name: '',
-    phoneNumber: '',
-    country: ''
+    id: '',
+    email: '',
+    firstName: '',
+    lastName: '',
+    phone: '',
+    gender: '',
+    isVerified: false,
+    role: '',
+    createdAt: '',
+    updatedAt: ''
   });
 
   useEffect(() => {
@@ -37,11 +51,11 @@ export default function SettingsPage() {
         }
 
         // TODO: Replace with actual API call
-        const response = await getUser(token);
-
-        setProfile(response.data);
+        const response = await getUser(JSON.parse(token));
+        // console.log(response.data);
+        setProfile(response);
       } catch (err: any) {
-        setError(err.message || 'Failed to load profile');
+        setError(err.response?.data?.error || 'Failed to load profile');
       } finally {
         setIsLoading(false);
       }
@@ -82,14 +96,13 @@ export default function SettingsPage() {
     setProfile(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleCountryChange = (value: string) => {
-    setProfile(prev => ({ ...prev, country: value }));
+  const handleGenderChange = (value: string) => {
+    setProfile(prev => ({ ...prev, gender: value }));
   };
 
   return (
     <div className="container mx-auto p-4 max-w-2xl">
-      <h1 className="text-2xl font-bold mb-6">Settings</h1>
-
+      
       <Card>
         <CardHeader>
           <CardTitle>Profile Settings</CardTitle>
@@ -110,31 +123,68 @@ export default function SettingsPage() {
               </div>
             )}
 
-            <div className="space-y-2">
-              <Label htmlFor="name">Full Name</Label>
-              <div className="relative">
-                <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-                <Input
-                  id="name"
-                  name="name"
-                  value={profile.name}
-                  onChange={handleChange}
-                  placeholder="Enter your full name"
-                  className="pl-10"
-                  required
-                />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="firstName">First Name</Label>
+                <div className="relative">
+                  <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                  <Input
+                    id="firstName"
+                    name="firstName"
+                    value={profile.firstName}
+                    onChange={handleChange}
+                    placeholder="Enter your first name"
+                    className="pl-10"
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="lastName">Last Name</Label>
+                <div className="relative">
+                  <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                  <Input
+                    id="lastName"
+                    name="lastName"
+                    value={profile.lastName}
+                    onChange={handleChange}
+                    placeholder="Enter your last name"
+                    className="pl-10"
+                    required
+                  />
+                </div>
               </div>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="phoneNumber">Phone Number</Label>
+              <Label htmlFor="email">Email Address</Label>
+              <div className="relative">
+                <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                <Input
+                  id="email"
+                  name="email"
+                  type="email"
+                  value={profile.email}
+                  onChange={handleChange}
+                  placeholder="Enter your email"
+                  className="pl-10"
+                  required
+                  disabled
+                />
+              </div>
+              <p className="text-sm text-gray-500">Email cannot be changed</p>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="phone">Phone Number</Label>
               <div className="relative">
                 <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
                 <Input
-                  id="phoneNumber"
-                  name="phoneNumber"
+                  id="phone"
+                  name="phone"
                   type="tel"
-                  value={profile.phoneNumber}
+                  value={profile.phone}
                   onChange={handleChange}
                   placeholder="Enter your phone number"
                   className="pl-10"
@@ -144,25 +194,30 @@ export default function SettingsPage() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="country">Country</Label>
+              <Label htmlFor="gender">Gender</Label>
               <div className="relative">
-                <Globe className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
                 <Select
-                  value={profile.country}
-                  onValueChange={handleCountryChange}
+                  value={profile.gender}
+                  onValueChange={handleGenderChange}
                 >
-                  <SelectTrigger className="pl-10">
-                    <SelectValue placeholder="Select your country" />
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select your gender" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="nigeria">Nigeria</SelectItem>
-                    <SelectItem value="ghana">Ghana</SelectItem>
-                    <SelectItem value="south-africa">South Africa</SelectItem>
-                    <SelectItem value="kenya">Kenya</SelectItem>
-                    <SelectItem value="egypt">Egypt</SelectItem>
+                    <SelectItem value="male">Male</SelectItem>
+                    <SelectItem value="female">Female</SelectItem>
                     <SelectItem value="other">Other</SelectItem>
                   </SelectContent>
                 </Select>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-500">
+              <div>
+                <p>Account Created: {new Date(profile.createdAt).toLocaleDateString()}</p>
+              </div>
+              <div>
+                <p>Last Updated: {new Date(profile.updatedAt).toLocaleDateString()}</p>
               </div>
             </div>
 

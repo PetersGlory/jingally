@@ -395,7 +395,7 @@ export default function RegisterPage() {
                       type="button"
                       variant="ghost"
                       size="icon"
-                      className="h-5 bg-orange-500 w-5 rounded-full p-0"
+                      className="h-5 bg-gray-200 w-5 rounded-full p-0"
                       onClick={() => setAgreeToTerms(!agreeToTerms)}
                     >
                       {agreeToTerms && <Check className="h-4 w-4" />}
