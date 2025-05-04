@@ -66,7 +66,7 @@ export default function RegisterPage() {
   const [showPrivacyPolicy, setShowPrivacyPolicy] = useState(false)
   const [showTermsOfService, setShowTermsOfService] = useState(false)
   const [searchQuery, setSearchQuery] = useState("");
-  const [isCountryOpen, setIsCountryOpen] = useState(false);
+  const [isCountryDialogOpen, setIsCountryDialogOpen] = useState(false);
 
   const router = useRouter()
   const { toast } = useToast()
@@ -277,43 +277,31 @@ export default function RegisterPage() {
                     <Label htmlFor="phone">Phone number (Optional)</Label>
                     <div className="flex flex-col sm:flex-row gap-2">
                       <div className="relative w-full sm:w-auto">
-                        <Select
-                          open={isCountryOpen}
-                          onOpenChange={setIsCountryOpen}
-                          value={selectedCountry?.code}
-                          onValueChange={(value) => {
-                            const country = countries.find(c => c.code === value);
-                            setSelectedCountry(country || null);
-                          }}
+                        <Button
+                          type="button"
+                          variant="outline"
+                          className="w-[80px] h-10 flex items-center justify-between"
+                          onClick={() => setIsCountryDialogOpen(true)}
                         >
-                          <SelectTrigger className="w-full sm:w-[80px] h-10">
-                            <div className="flex items-center gap-2">
-                              {selectedCountry ? (
-                                <>
-                                  <span className="text-lg">{selectedCountry.flag}</span>
-                                  <span className="text-sm">{selectedCountry.dialCode}</span>
-                                </>
-                              ) : (
-                                <span className="text-sm text-muted-foreground">Select</span>
-                              )}
-                            </div>
-                          </SelectTrigger>
-                          <SelectContent 
-                            className="max-h-[300px] w-[300px] sm:w-[350px]"
-                            position="popper"
-                            sideOffset={5}
-                            align="start"
-                            avoidCollisions={false}
-                            onCloseAutoFocus={(e) => {
-                              e.preventDefault();
-                            }}
-                            onPointerDownOutside={(e) => {
-                              e.preventDefault();
-                            }}
-                            // onInteractOutside={(e) => {
-                            //   e.preventDefault();
-                            // }}
-                          >
+                          <div className="flex items-center gap-2">
+                            {selectedCountry ? (
+                              <>
+                                {/* <span className="text-lg">{selectedCountry.flag}</span> */}
+                                <span className="text-sm">{selectedCountry.dialCode}</span>
+                              </>
+                            ) : (
+                              <span className="text-sm text-muted-foreground">Select</span>
+                            )}
+                          </div>
+                          <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                        </Button>
+
+                        <Dialog open={isCountryDialogOpen} onOpenChange={setIsCountryDialogOpen}>
+                          <DialogContent className="max-h-[80vh] overflow-hidden flex flex-col">
+                            <DialogHeader>
+                              <DialogTitle>Select Country</DialogTitle>
+                            </DialogHeader>
+                            
                             <div className="sticky top-0 p-2 bg-background border-b z-10">
                               <Input
                                 placeholder="Search country or code..."
@@ -322,28 +310,38 @@ export default function RegisterPage() {
                                 className="w-full"
                               />
                             </div>
-                            <div className="max-h-[250px] overflow-y-auto">
-                              {filteredCountries && filteredCountries.map((country) => (
-                                <SelectItem 
-                                  key={country.code} 
-                                  value={country.code}
-                                  className="flex items-center gap-2 py-2 cursor-pointer hover:bg-accent"
-                                >
-                                  <span className="text-lg">{country.flag}</span>
-                                  <div className="flex flex-col">
-                                    <span className="text-sm font-medium">{country.name}</span>
-                                    <span className="text-xs text-muted-foreground">{country.dialCode}</span>
-                                  </div>
-                                </SelectItem>
-                              ))}
+
+                            <div className="flex-1 overflow-y-auto">
+                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 p-2">
+                                {filteredCountries && filteredCountries.map((country) => (
+                                  <button
+                                    key={country.code}
+                                    className={`flex items-center gap-2 p-3 rounded-lg border transition-colors ${
+                                      selectedCountry?.code === country.code
+                                        ? 'border-primary bg-primary/5'
+                                        : 'hover:bg-accent'
+                                    }`}
+                                    onClick={() => {
+                                      setSelectedCountry(country);
+                                      setIsCountryDialogOpen(false);
+                                    }}
+                                  >
+                                    <span className="text-lg">{country.flag}</span>
+                                    <div className="flex flex-col items-start">
+                                      <span className="text-sm font-medium">{country.name}</span>
+                                      <span className="text-xs text-muted-foreground">{country.dialCode}</span>
+                                    </div>
+                                  </button>
+                                ))}
+                              </div>
                               {filteredCountries.length === 0 && (
                                 <div className="p-4 text-sm text-muted-foreground text-center">
                                   No countries found
                                 </div>
                               )}
                             </div>
-                          </SelectContent>
-                        </Select>
+                          </DialogContent>
+                        </Dialog>
                       </div>
                       <Input
                         id="phone"
