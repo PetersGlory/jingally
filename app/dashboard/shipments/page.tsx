@@ -209,7 +209,7 @@ export default function ShipmentsPage() {
                 <LoadingSkeleton />
               ) : (
                 <div className="relative">
-                  <div className="max-h-[calc(100vh-300px)]">
+                  <div className="w-full max-h-[calc(100vh-300px)]">
                     <div className="w-full">
                       <Table className="w-auto">
                         <TableHeader className="sticky top-0 bg-background z-10">
