@@ -82,7 +82,8 @@ const SHIPPING_METHODS = {
   AIR: 'airfreight',
   JINGSLY: 'jingsly',
   FROZEN: 'frozen',
-  SEA: 'seafreight'
+  SEA: 'seafreight',
+  PARCEL: 'parcel'
 } as const;
 
 // Air freight price per kg
@@ -176,8 +177,7 @@ export default function PackagePayment({ handleNextStep, handlePreviousStep }: {
   }, []);
 
   const calculateSeaFreightPrice = useCallback((dimensions: { length: number; width: number; height: number }) => {
-    const volume = (dimensions.length * dimensions.width * dimensions.height) / 1000000;
-    return volume * SEA_FREIGHT_PRICE_PER_CUBIC_METER;
+    return (dimensions.length * dimensions.width * dimensions.height) * SEA_FREIGHT_PRICE_PER_CUBIC_METER;
   }, []);
 
   const calculateCosts = useCallback((): CostItem[] => {
@@ -297,6 +297,7 @@ export default function PackagePayment({ handleNextStep, handlePreviousStep }: {
 
       if (paymentResponse.success) {
         localStorage.setItem('packageInfo', JSON.stringify(paymentResponse.data));
+        localStorage.removeItem('currentStep')
         setShowSuccessModal(true);
         
         setTimeout(() => {
@@ -395,7 +396,8 @@ export default function PackagePayment({ handleNextStep, handlePreviousStep }: {
     <PayPalScriptProvider options={{ 
       clientId: PAYPAL_CLIENT_ID,
       currency: "GBP",
-      intent: "capture"
+      intent: "capture",
+      shippingPreference: "NO_SHIPPING"
     }}>
       <div className={styles.container}>
         <header className={styles.header}>

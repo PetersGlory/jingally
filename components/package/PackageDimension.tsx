@@ -155,6 +155,7 @@ export default function PackageDimension({ handleNextStep, handlePreviousStep }:
       
       if(response.success) {
         localStorage.setItem('packageInfo', JSON.stringify(response.data));
+        localStorage.setItem('currentStep', '4')
         handleNextStep();
       } else {
         throw new Error(response.message || 'Failed to update package dimensions');

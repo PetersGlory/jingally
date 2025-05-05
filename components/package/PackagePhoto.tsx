@@ -122,6 +122,7 @@ export default function PackagePhoto({ handleNextStep, handlePreviousStep }: { h
 
       if (response.success) {
         localStorage.setItem('packageInfo', JSON.stringify(response.data));
+        localStorage.setItem('currentStep', '5')
         handleNextStep();
       } else {
         throw new Error(response.message || 'Failed to update package photos');

@@ -120,6 +120,7 @@ export default function PackageDetails({ selectedType, serviceType, handleNextSt
 
       if (response.success) {
         localStorage.setItem('packageInfo', JSON.stringify(response.data));
+        localStorage.setItem('currentStep', '3')
         handleNextStep();
       } else {
         throw new Error(response.message || 'Failed to create shipment');

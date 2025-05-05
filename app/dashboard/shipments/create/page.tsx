@@ -16,7 +16,11 @@ export default function CreateShipment() {
 
   useEffect(() => {
     console.log('selectedType:', selectedType);
-  }, [selectedType]);
+    const currentStep = localStorage.getItem('currentStep')
+    if(currentStep){
+      setCurrentStep(parseInt(currentStep))
+    }
+  }, []);
 
   const handleNextStep = () => {
     setCurrentStep(currentStep + 1);

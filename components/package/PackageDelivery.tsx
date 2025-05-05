@@ -203,6 +203,7 @@ export default function PackageDelivery({ handleNextStep, handlePreviousStep }: 
 
       if (response.success) {
         localStorage.setItem('packageInfo', JSON.stringify(response.data));
+        localStorage.setItem('currentStep', '6')
         handleNextStep();
       } else {
         throw new Error(response.message || 'Failed to update delivery details');

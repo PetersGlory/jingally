@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Package, Search, Filter, ArrowUpDown, Plus, Loader2 } from "lucide-react"
 import { getShipments } from "@/lib/shipment"
 import { Skeleton } from "@/components/ui/skeleton"
+import { useRouter } from "next/navigation"
 
 interface Shipment {
   id: string;
@@ -29,6 +30,7 @@ export default function ShipmentsPage() {
   const [shipments, setShipments] = useState<Shipment[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const router = useRouter()
 
   useEffect(() => {
     const fetchShipments = async () => {
@@ -146,11 +148,12 @@ export default function ShipmentsPage() {
             <h2 className="text-2xl md:text-3xl font-bold tracking-tight">Shipments</h2>
             <p className="text-muted-foreground mt-1">Manage and track your shipments</p>
           </div>
-          <Link href="/dashboard/shipments/create">
-            <Button className="w-full md:w-auto">
+            <Button onClick={()=>{
+              localStorage.setItem('currentStep', '1')
+              router.push('/dashboard/shipments/create')
+            }} className="w-full md:w-auto">
               <Plus className="mr-2 h-4 w-4" /> New Shipment
             </Button>
-          </Link>
         </div>
 
         <Card className="w-full">

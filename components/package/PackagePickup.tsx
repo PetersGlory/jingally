@@ -115,6 +115,7 @@ export default function PackagePickup({ handleNextStep, handlePreviousStep }: { 
       
       if (response.success) {
         localStorage.setItem('packageInfo', JSON.stringify(response.data));
+        localStorage.setItem('currentStep', '7')
         handleNextStep();
       } else {
         throw new Error(response.message || 'Failed to update pickup date/time');

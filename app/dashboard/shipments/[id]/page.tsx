@@ -87,6 +87,7 @@ export default function ShipmentDetailPage() {
   const [error, setError] = useState<string | null>(null)
   const [showCancelConfirmation, setShowCancelConfirmation] = useState(false)
   const [paymentModal, setPaymentModal] = useState(false)
+  const [showContinueButton, setShowContinueButton] = useState(false)
 
   const fetchShipmentDetails = useCallback(async () => {
     try {
@@ -100,6 +101,14 @@ export default function ShipmentDetailPage() {
       const response = await getShipmentDetails(id as string, JSON.parse(token))
       if (response.success) {
         setShipment(response.data)
+        // Check if any required fields are missing
+        const hasMissingInfo = !response.data.receiverName || 
+                             !response.data.receiverEmail || 
+                             !response.data.deliveryAddress || 
+                             !response.data.pickupAddress ||
+                             !response.data.receiverPhoneNumber ||
+                             !response.data.receiverEmail
+        setShowContinueButton(hasMissingInfo)
       } else {
         setError(response.message || 'Failed to fetch shipment details')
       }
@@ -266,6 +275,13 @@ export default function ShipmentDetailPage() {
     </Dialog>
   ), [paymentModal, handlePaymentSuccess, handlePaymentClose]);
 
+  const handleContinueShipment = useCallback(() => {
+    if (shipment) {
+      localStorage.setItem('packageInfo', JSON.stringify(shipment))
+      router.push('/dashboard/shipments/create?current=3')
+    }
+  }, [shipment, router])
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-screen">
@@ -313,15 +329,21 @@ export default function ShipmentDetailPage() {
             </Link>
           </div>
           <div className="flex items-center space-x-2">
-            {/* <Button variant="outline" size="sm">
-              <Download className="mr-2 h-4 w-4" />
-              Download
-            </Button> */}
-            <Button 
-              onClick={() => setShowCancelConfirmation(true)} 
-              variant="outline" 
-              size="sm"
-              disabled={shipment?.status === 'cancelled' || shipment?.status === 'delivered'}
+            {showCancelConfirmation && (
+              <Button variant="outline" size="sm" onClick={()=>{
+                localStorage.setItem('packageInfo', JSON.stringify(shipment))
+                // localStorage.setItem('currentStep', '3')
+                router.push('/dashboard/shipments/create')
+              }}>
+                <Download className="mr-2 h-4 w-4" />
+                Continue Shipment
+              </Button>
+            )}
+              <Button 
+                onClick={() => setShowCancelConfirmation(true)} 
+                variant="outline" 
+                size="sm"
+                disabled={shipment?.status === 'cancelled' || shipment?.status === 'delivered'}
             >
               <X className="mr-2 h-4 w-4" />
               Cancel
@@ -451,6 +473,35 @@ export default function ShipmentDetailPage() {
           </Card>
 
           <div className="space-y-4">
+          {(!shipment?.receiverName || !shipment?.receiverEmail || !shipment?.deliveryAddress || !shipment?.pickupAddress) && (
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-lg">Complete Shipment Information</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-2">
+                    <Alert>
+                      <AlertCircle className="h-4 w-4" />
+                      <AlertDescription>
+                        Some required information is missing. Please complete the shipment details.
+                      </AlertDescription>
+                    </Alert>
+                    <Button 
+                      className="w-full mt-2"
+                      onClick={() => {
+                        localStorage.setItem('packageInfo', JSON.stringify(shipment))
+                        // localStorage.setItem('currentStep', '3')
+                        router.push('/dashboard/shipments/create')
+                      }}
+                    >
+                      Continue Shipment
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+
             <Card>
               <CardHeader className="pb-2">
                 <CardTitle className="text-lg">Shipment Progress</CardTitle>
@@ -500,6 +551,7 @@ export default function ShipmentDetailPage() {
               </CardContent>
             </Card>
 
+
             <Card>
               <CardHeader className="pb-2">
                 <CardTitle className="text-lg">Payment Status</CardTitle>
@@ -545,10 +597,12 @@ export default function ShipmentDetailPage() {
                     <Package className="mr-2 h-4 w-4 text-orange-500" />
                     Report an Issue
                   </Button>
-                  <Link href="https://jingally.com/contact-us-1/" className="w-full justify-start">
+                  <Button variant="outline" className="w-full justify-start">
+                  <Link href="https://jingally.com/contact-us-1/" className="flex flex-row items-center gap-2">
                     <HelpCircle className="mr-2 h-4 w-4 text-orange-500" />
                     Contact Support
                   </Link>
+                  </Button>
                 </div>
               </CardContent>
             </Card>
