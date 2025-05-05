@@ -393,11 +393,11 @@ export default function PackagePayment({ handleNextStep, handlePreviousStep }: {
     );
   }
   return (
-    <PayPalScriptProvider options={{ 
+    <PayPalScriptProvider deferLoading={true} options={{ 
       clientId: PAYPAL_CLIENT_ID,
       currency: "GBP",
       intent: "capture",
-      shippingPreference: "NO_SHIPPING"
+      disableFunding: "card"
     }}>
       <div className={styles.container}>
         <header className={styles.header}>
@@ -661,10 +661,23 @@ export default function PackagePayment({ handleNextStep, handlePreviousStep }: {
                               value: amount.toString(),
                               currency_code: "GBP"
                             },
-                            description: `Payment for shipment ${shipment?.trackingNumber}`
+                            description: `Payment for shipment ${shipment?.trackingNumber}`,
+                            shipping: {
+                              options: [
+                                {
+                                  id: "NO_SHIPPING",
+                                  label: "Digital Item",
+                                  type: "SHIPPING",
+                                  selected: true
+                                }
+                              ]
+                            }
                           }
                         ],
-                        intent: 'CAPTURE'
+                        intent: 'CAPTURE',
+                        application_context:{
+                          shipping_preference: "NO_SHIPPING"
+                        }
                       });
                     }}
                     onApprove={async (data, actions) => {
