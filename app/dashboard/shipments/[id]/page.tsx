@@ -278,7 +278,13 @@ export default function ShipmentDetailPage() {
   const handleContinueShipment = useCallback(() => {
     if (shipment) {
       localStorage.setItem('packageInfo', JSON.stringify(shipment))
-      router.push('/dashboard/shipments/create?current=3')
+      const currentStep = localStorage.getItem('currentStep');
+      if(currentStep){
+        router.push('/dashboard/shipments/create')
+      }else{
+        localStorage.setItem('currentStep', '3')
+        router.push('/dashboard/shipments/create')
+      }
     }
   }, [shipment, router])
 
@@ -330,11 +336,7 @@ export default function ShipmentDetailPage() {
           </div>
           <div className="flex items-center space-x-2">
             {showCancelConfirmation && (
-              <Button variant="outline" size="sm" onClick={()=>{
-                localStorage.setItem('packageInfo', JSON.stringify(shipment))
-                // localStorage.setItem('currentStep', '3')
-                router.push('/dashboard/shipments/create')
-              }}>
+              <Button variant="outline" size="sm" onClick={handleContinueShipment}>
                 <Download className="mr-2 h-4 w-4" />
                 Continue Shipment
               </Button>
@@ -488,11 +490,7 @@ export default function ShipmentDetailPage() {
                     </Alert>
                     <Button 
                       className="w-full mt-2"
-                      onClick={() => {
-                        localStorage.setItem('packageInfo', JSON.stringify(shipment))
-                        // localStorage.setItem('currentStep', '3')
-                        router.push('/dashboard/shipments/create')
-                      }}
+                      onClick={handleContinueShipment}
                     >
                       Continue Shipment
                     </Button>
