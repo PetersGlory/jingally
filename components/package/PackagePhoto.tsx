@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { Camera, Image, Info, X, ChevronRight } from 'lucide-react';
+import { Camera, Image, Info, X, ChevronRight, Loader2, ArrowLeft } from 'lucide-react';
 import styles from './PackagePhoto.module.css';
 import { updateShipmentPhotos } from '@/lib/shipment';
 
@@ -232,20 +232,32 @@ export default function PackagePhoto({ handleNextStep, handlePreviousStep }: { h
       </main>
       
       <footer className={styles.footer}>
-        <button
-          className={styles.continueButton}
-          onClick={handleSubmit}
-          disabled={photos.length === 0 || isUploading}
-        >
-          {isUploading ? (
-            <span>Uploading...</span>
-          ) : (
-            <>
-              Continue
-              {photos.length > 0 && <ChevronRight size={20} />}
-            </>
-          )}
-        </button>
+        <div className={styles.footerButtons}>
+          <button
+            className={styles.backButton}
+            onClick={handlePreviousStep}
+          >
+            <ArrowLeft size={20} />
+            <span>Back</span>
+          </button>
+          <button
+            className={styles.continueButton}
+            onClick={handleSubmit}
+            disabled={photos.length === 0 || isUploading}
+          >
+            {isUploading ? (
+              <div className={styles.loadingState}>
+                <Loader2 className={styles.spinner} size={20} />
+                <span>Uploading...</span>
+              </div>
+            ) : (
+              <div className={styles.buttonContent}>
+                <span>Continue</span>
+                {photos.length > 0 && <ChevronRight size={20} />}
+              </div>
+            )}
+          </button>
+        </div>
       </footer>
     </div>
   );

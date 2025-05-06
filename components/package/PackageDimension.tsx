@@ -174,7 +174,7 @@ export default function PackageDimension({ handleNextStep, handlePreviousStep }:
         <h1>Package Dimensions</h1>
         <button 
           className={styles.cancelButton}
-          onClick={() => router.back()}
+          onClick={handlePreviousStep}
         >
           Cancel
         </button>

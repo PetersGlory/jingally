@@ -353,7 +353,7 @@ export default function PackageDelivery({ handleNextStep, handlePreviousStep }: 
         <h1>Delivery Details</h1>
         <button 
           className={styles.cancelButton}
-          onClick={() => router.back()}
+          onClick={handlePreviousStep}
         >
           Cancel
         </button>

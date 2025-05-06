@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Package, Truck, Box, FileText, AlertCircle } from 'lucide-react';
+import { Package, Truck, Box, FileText, AlertCircle, ArrowLeft } from 'lucide-react';
 import styles from './PackageDetails.module.css';
 import { createShipment } from '@/lib/shipment';
 
@@ -137,9 +137,14 @@ export default function PackageDetails({ selectedType, serviceType, handleNextSt
 
   return (
     <div className='w-full h-full bg-white'>
-      <div className={styles.header}>
-        <h1>Package Information</h1>
-        <p>Select your package type and provide details</p>
+      <div className='flex items-center justify-start'>
+        <button onClick={handlePreviousStep}>
+          <ArrowLeft size={20} />
+        </button>
+        <div className={styles.header}>
+          <h1>Package Information</h1>
+          <p>Select your package type and provide details</p>
+        </div>
       </div>
 
       {errors.general && (

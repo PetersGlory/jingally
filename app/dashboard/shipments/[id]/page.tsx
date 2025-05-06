@@ -9,10 +9,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import { ArrowLeft, Package, Truck, MapPin, Calendar, Clock, FileText, Download, AlertCircle, X, Phone, Mail, HelpCircle, Check } from "lucide-react"
+import { ArrowLeft, Package, Truck, MapPin, Calendar, Clock, FileText, Download, AlertCircle, X, Phone, Mail, HelpCircle, Check, Share2 } from "lucide-react"
 import { getShipmentDetails, cancelShipment } from "@/lib/shipment"
 import PackagePayment from "@/components/package/PackagePayment"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { toast } from "sonner"
 
 interface Shipment {
   id: string;
@@ -88,6 +89,7 @@ export default function ShipmentDetailPage() {
   const [showCancelConfirmation, setShowCancelConfirmation] = useState(false)
   const [paymentModal, setPaymentModal] = useState(false)
   const [showContinueButton, setShowContinueButton] = useState(false)
+  const [isGeneratingPDF, setIsGeneratingPDF] = useState(false)
 
   const fetchShipmentDetails = useCallback(async () => {
     try {
@@ -288,6 +290,74 @@ export default function ShipmentDetailPage() {
     }
   }, [shipment, router])
 
+  const handleSharePDF = useCallback(async () => {
+    try {
+      setIsGeneratingPDF(true)
+      
+      // Dynamically import the required libraries
+      const { default: jsPDF } = await import('jspdf')
+      const { default: html2canvas } = await import('html2canvas')
+      
+      // Get the content to be converted to PDF
+      const content = document.getElementById('shipment-details')
+      if (!content) {
+        throw new Error('Content not found')
+      }
+
+      // Create canvas from the content
+      const canvas = await html2canvas(content, {
+        scale: 2,
+        useCORS: true,
+        logging: false
+      })
+
+      // Create PDF
+      const pdf = new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: 'a4'
+      })
+
+      // Calculate dimensions to fit the content
+      const imgWidth = 210 // A4 width in mm
+      const imgHeight = (canvas.height * imgWidth) / canvas.width
+      
+      // Add the image to the PDF
+      pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 0, 0, imgWidth, imgHeight)
+
+      // Generate PDF blob
+      const pdfBlob = pdf.output('blob')
+      
+      // Create a shareable file
+      const file = new File([pdfBlob], `shipment-${shipment?.trackingNumber}.pdf`, { type: 'application/pdf' })
+
+      // Check if Web Share API is available
+      if (navigator.share) {
+        await navigator.share({
+          title: `Shipment Details - ${shipment?.trackingNumber}`,
+          text: `Here are the details for shipment ${shipment?.trackingNumber}`,
+          files: [file]
+        })
+      } else {
+        // Fallback: Download the PDF
+        const url = URL.createObjectURL(pdfBlob)
+        const link = document.createElement('a')
+        link.href = url
+        link.download = `shipment-${shipment?.trackingNumber}.pdf`
+        document.body.appendChild(link)
+        link.click()
+        document.body.removeChild(link)
+        URL.revokeObjectURL(url)
+        toast.success('PDF downloaded successfully')
+      }
+    } catch (error) {
+      console.error('Error generating PDF:', error)
+      toast.error('Failed to generate PDF')
+    } finally {
+      setIsGeneratingPDF(false)
+    }
+  }, [shipment])
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-screen">
@@ -335,17 +405,26 @@ export default function ShipmentDetailPage() {
             </Link>
           </div>
           <div className="flex items-center space-x-2">
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={handleSharePDF}
+              disabled={isGeneratingPDF}
+            >
+              <Share2 className="mr-2 h-4 w-4" />
+              {isGeneratingPDF ? 'Generating...' : 'Share PDF'}
+            </Button>
             {showCancelConfirmation && (
               <Button variant="outline" size="sm" onClick={handleContinueShipment}>
                 <Download className="mr-2 h-4 w-4" />
                 Continue Shipment
               </Button>
             )}
-              <Button 
-                onClick={() => setShowCancelConfirmation(true)} 
-                variant="outline" 
-                size="sm"
-                disabled={shipment?.status === 'cancelled' || shipment?.status === 'delivered'}
+            <Button 
+              onClick={() => setShowCancelConfirmation(true)} 
+              variant="outline" 
+              size="sm"
+              disabled={shipment?.status === 'cancelled' || shipment?.status === 'delivered'}
             >
               <X className="mr-2 h-4 w-4" />
               Cancel
@@ -353,7 +432,7 @@ export default function ShipmentDetailPage() {
           </div>
         </div>
 
-        <div className="grid gap-4 md:grid-cols-[2fr_1fr]">
+        <div id="shipment-details" className="grid gap-4 md:grid-cols-[2fr_1fr]">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-xl font-bold">Shipment {shipment?.trackingNumber}</CardTitle>

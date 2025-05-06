@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { X, Check } from 'lucide-react';
+import { X, Check, ArrowLeft } from 'lucide-react';
 import styles from './PackagePickup.module.css';
 import { updatePickupDateTime } from '@/lib/shipment';
 
@@ -193,17 +193,26 @@ export default function PackagePickup({ handleNextStep, handlePreviousStep }: { 
       </main>
 
       <footer className={styles.footer}>
-        <button
-          className={`${styles.confirmButton} ${
-            selectedSlot !== null && selectedDate !== null
-              ? isLoading ? styles.loading : styles.active
-              : styles.disabled
-          }`}
-          disabled={selectedSlot === null || selectedDate === null || isLoading}
-          onClick={handleConfirmTimeSlot}
-        >
-          {isLoading ? 'Scheduling...' : selectedSlot !== null && selectedDate !== null ? 'Confirm Time Slot' : 'Select a Time Slot'}
-        </button>
+        <div className={styles.footerButtons}>
+          <button
+            className={styles.backButton}
+            onClick={handlePreviousStep}
+          >
+            <ArrowLeft size={20} />
+            <span>Back</span>
+          </button>
+          <button
+            className={`${styles.confirmButton} ${
+              selectedSlot !== null && selectedDate !== null
+                ? isLoading ? styles.loading : styles.active
+                : styles.disabled
+            }`}
+            disabled={selectedSlot === null || selectedDate === null || isLoading}
+            onClick={handleConfirmTimeSlot}
+          >
+            {isLoading ? 'Scheduling...' : selectedSlot !== null && selectedDate !== null ? 'Confirm Time Slot' : 'Select a Time Slot'}
+          </button>
+        </div>
       </footer>
     </div>
   );
