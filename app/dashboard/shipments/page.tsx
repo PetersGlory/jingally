@@ -259,7 +259,7 @@ export default function ShipmentsPage() {
                                   </span>
                                 </TableCell>
                                 <TableCell>
-                                  {shipment.paymentMethod}
+                                  {shipment.paymentMethod || 'N/A'}
                                 </TableCell>
                                 <TableCell className="text-right sticky right-0 bg-background z-10">
                                   <Link href={`/dashboard/shipments/${shipment.id}`}>
