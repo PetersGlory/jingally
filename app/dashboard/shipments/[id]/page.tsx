@@ -56,6 +56,7 @@ interface Shipment {
   receiverName: string;
   receiverPhoneNumber: string;
   receiverEmail: string;
+  paymentMethod: string;
   price: number | null;
   paymentStatus: 'pending' | 'paid' | 'failed';
   notes: string | null;
@@ -362,6 +363,7 @@ export default function ShipmentDetailPage() {
       pdf.setFontSize(12)
       pdf.setTextColor(100, 100, 100)
       pdf.text(`Status: ${shipment?.paymentStatus ? shipment.paymentStatus.charAt(0).toUpperCase() + shipment.paymentStatus.slice(1) : 'N/A'}`, 20, 210)
+      pdf.text(`Method: ${shipment?.paymentMethod || 'N/A'}`, 20, 215)
       if (shipment?.price) {
         pdf.text(`Amount: $${shipment.price}`, 20, 215)
       }
@@ -695,7 +697,7 @@ export default function ShipmentDetailPage() {
                   {shipment?.price && (
                     <p className="text-lg font-semibold">${shipment?.price}</p>
                   )}
-                  {shipment?.paymentStatus !== 'paid' && (
+                  {shipment?.paymentStatus !== 'paid' && shipment?.status !== "cancelled" && (
                     <Button 
                       className="w-full mt-2"
                       onClick={() => {

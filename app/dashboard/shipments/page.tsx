@@ -19,6 +19,7 @@ interface Shipment {
   packageType: string | null;
   serviceType: string | null;
   createdAt: string;
+  paymentMethod: string;
   paymentStatus: string;
   statusColor: string;
 }
@@ -233,6 +234,7 @@ export default function ShipmentsPage() {
                             <TableHead className="w-[120px]">Service Type</TableHead>
                             <TableHead className="w-[120px]">Status</TableHead>
                             <TableHead className="w-[120px]">Payment</TableHead>
+                            <TableHead className="w-[120px]">Payment Method</TableHead>
                             <TableHead className="w-[120px] text-right sticky right-0 bg-background z-20">Actions</TableHead>
                           </TableRow>
                         </TableHeader>
@@ -255,6 +257,9 @@ export default function ShipmentsPage() {
                                   <span className={`px-2 py-1 rounded-full text-xs font-medium ${getPaymentStatusColor(shipment.paymentStatus)}`}>
                                     {shipment.paymentStatus.charAt(0).toUpperCase() + shipment.paymentStatus.slice(1)}
                                   </span>
+                                </TableCell>
+                                <TableCell>
+                                  {shipment.paymentMethod}
                                 </TableCell>
                                 <TableCell className="text-right sticky right-0 bg-background z-10">
                                   <Link href={`/dashboard/shipments/${shipment.id}`}>
