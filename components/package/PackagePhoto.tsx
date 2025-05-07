@@ -138,7 +138,7 @@ export default function PackagePhoto({ handleNextStep, handlePreviousStep }: { h
   return (
     <div className={styles.container}>
       <header className={styles.header}>
-        <div className="flex items-center gap-4">
+        <div className="flex flex-row items-center gap-4">
           <button 
             className={styles.backButton}
             onClick={handlePreviousStep}
@@ -245,8 +245,10 @@ export default function PackagePhoto({ handleNextStep, handlePreviousStep }: { h
             className={styles.backButton}
             onClick={handlePreviousStep}
           >
-            <ArrowLeft size={20} />
-            <span>Back</span>
+            <div className='flex flex-row items-center gap-2'>
+              <ArrowLeft size={20} />
+              <span>Back</span>
+            </div>
           </button>
           <button
             className={styles.continueButton}
@@ -259,7 +261,7 @@ export default function PackagePhoto({ handleNextStep, handlePreviousStep }: { h
                 <span>Uploading...</span>
               </div>
             ) : (
-              <div className={styles.buttonContent}>
+              <div className='flex flex-row items-center gap-2'>
                 <span>Continue</span>
                 {photos.length > 0 && <ChevronRight size={20} />}
               </div>

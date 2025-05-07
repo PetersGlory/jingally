@@ -350,7 +350,7 @@ export default function PackageDelivery({ handleNextStep, handlePreviousStep }: 
   return (
     <div className={styles.container}>
       <header className={styles.header}>
-        <div className="flex items-center gap-4">
+        <div className="flex flex-row items-center gap-4">
           <button 
             className={styles.backButton}
             onClick={handlePreviousStep}
@@ -491,10 +491,10 @@ export default function PackageDelivery({ handleNextStep, handlePreviousStep }: 
               Saving...
             </>
           ) : (
-            <>
+            <div className="flex flex-row items-center gap-2">
               Continue
               <ArrowRight size={20} />
-            </>
+            </div>
           )}
         </button>
       </footer>

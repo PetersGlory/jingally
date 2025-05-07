@@ -131,7 +131,7 @@ export default function PackagePickup({ handleNextStep, handlePreviousStep }: { 
   return (
     <div className={styles.container}>
       <header className={styles.header}>
-        <div className="flex items-center gap-4">
+        <div className="flex flex-row items-center gap-4">
           <button 
             className={styles.backButton}
             onClick={handlePreviousStep}
@@ -206,8 +206,10 @@ export default function PackagePickup({ handleNextStep, handlePreviousStep }: { 
             className={styles.backButton}
             onClick={handlePreviousStep}
           >
-            <ArrowLeft size={20} />
-            <span>Back</span>
+            <div className='flex flex-row items-center gap-2'>
+              <ArrowLeft size={20} />
+              <span>Back</span>
+            </div>
           </button>
           <button
             className={`${styles.confirmButton} ${

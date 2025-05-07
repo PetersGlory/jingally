@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
-import { CreditCard, Shield, Check, X, Edit2, AlertCircle, Package, Truck, MapPin, Calendar, ArrowLeft } from 'lucide-react';
+import { CreditCard, Shield, Check, X, Edit2, AlertCircle, Package, Truck, MapPin, Calendar, ArrowLeft, Banknote } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import styles from './PackagePayment.module.css';
 import { updatePaymentStatus } from '@/lib/shipment';
@@ -10,7 +10,7 @@ import { PayPalScriptProvider, PayPalButtons } from "@paypal/react-paypal-js";
 
 // Types
 interface PaymentMethod {
-  id: 'card' | 'paypal';
+  id: 'card' | 'paypal' | 'bank_transfer';
   name: string;
   description: string;
   icon: React.ReactNode;
@@ -119,6 +119,7 @@ export default function PackagePayment({ handleNextStep, handlePreviousStep }: {
     cvv: '',
     cardHolderName: ''
   });
+  const [showBankModal, setShowBankModal] = useState(false);
 
   const fetchData = useCallback(async () => {
     try {
@@ -153,7 +154,14 @@ export default function PackagePayment({ handleNextStep, handlePreviousStep }: {
       description: 'Pay with your PayPal account',
       icon: <CreditCard size={20} />,
       isEnabled: true
-    }
+    },
+    {
+      id: 'bank_transfer',
+      name: 'Bank Transfer',
+      description: 'Pay via bank transfer',
+      icon: <Banknote size={20} />,
+      isEnabled: true
+    },
   ], []);
 
   const calculateVolumetricWeight = useCallback((dimensions: { length: number; width: number; height: number }) => {
@@ -273,6 +281,11 @@ export default function PackagePayment({ handleNextStep, handlePreviousStep }: {
         return;
       }
 
+      if (selectedMethod === 'bank_transfer') {
+        setShowBankModal(true);
+        return;
+      }
+
       if (!validateCard()) {
         return;
       }
@@ -351,6 +364,43 @@ export default function PackagePayment({ handleNextStep, handlePreviousStep }: {
     }
   }, [costs, shipment, token, router]);
 
+  const handleBankTransferConfirmation = useCallback(async () => {
+    try {
+      setIsLoading(true);
+      const amount = parseFloat(costs.find(c => c.type === 'total')?.amount.replace('£', '') || '0');
+      
+      const paymentDetails = {
+        method: 'bank_transfer',
+        amount,
+        paymentStatus: 'pending',
+        currency: 'GBP'
+      };
+
+      const paymentResponse = await updatePaymentStatus(
+        shipment?.id || '',
+        paymentDetails,
+        token
+      );
+
+      if (paymentResponse.success) {
+        localStorage.setItem('packageInfo', JSON.stringify(paymentResponse.data));
+        setShowSuccessModal(true);
+        
+        setTimeout(() => {
+          setShowSuccessModal(false);
+          router.replace("/dashboard/shipments");
+        }, 2000);
+      } else {
+        setError(paymentResponse.message || 'Payment failed');
+      }
+    } catch (error: any) {
+      setError(error.message || 'Payment failed. Please try again.');
+    } finally {
+      setIsLoading(false);
+      setShowBankModal(false);
+    }
+  }, [costs, shipment, token, router]);
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
@@ -400,7 +450,7 @@ export default function PackagePayment({ handleNextStep, handlePreviousStep }: {
     }}>
       <div className={styles.container}>
         <header className={styles.header}>
-          <div className="flex items-center gap-4">
+          <div className="flex flex-row items-center gap-4">
             <button 
               className={styles.backButton}
               onClick={handlePreviousStep}
@@ -513,6 +563,9 @@ export default function PackagePayment({ handleNextStep, handlePreviousStep }: {
                       } else if (method.id === 'paypal') {
                         setSelectedMethod(method.id as PaymentMethod['id']);
                         setShowPayPalModal(true);
+                      } else if (method.id === 'bank_transfer') {
+                        setSelectedMethod(method.id as PaymentMethod['id']);
+                        setShowBankModal(true);
                       } else {
                         setSelectedMethod(method.id as PaymentMethod['id']);
                       }
@@ -695,6 +748,56 @@ export default function PackagePayment({ handleNextStep, handlePreviousStep }: {
                       setShowPayPalModal(false);
                     }}
                   />
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Bank Transfer Modal */}
+        {showBankModal && (
+          <div className={styles.modalOverlay}>
+            <div className={styles.modal}>
+              <div className={styles.modalHeader}>
+                <h2>Bank Transfer Details</h2>
+                <button onClick={() => setShowBankModal(false)}>
+                  <X size={24} />
+                </button>
+              </div>
+
+              <div className={styles.modalContent}>
+                <div className="space-y-4">
+                  <div className="p-4 bg-gray-50 rounded-lg">
+                    <h3 className="font-semibold mb-2">Bank Account Details</h3>
+                    <div className="space-y-2">
+                      <p><span className="font-medium">Account Name:</span> Jingally logistics ltd</p>
+                      <p><span className="font-medium">Account Number:</span> 29944068</p>
+                      <p><span className="font-medium">Sort Code:</span> 305466</p>
+                      <p><span className="font-medium">Bank Name:</span> Llyods Bank</p>
+                    </div>
+                  </div>
+
+                  <div className="p-4 bg-orange-50 rounded-lg">
+                    <h3 className="font-semibold mb-2">Important Information</h3>
+                    <p className="text-sm text-orange-800">
+                      Please use your tracking number as the payment reference. Your shipment will be processed once the payment is confirmed.
+                    </p>
+                  </div>
+
+                  <div className="flex justify-end gap-2">
+                    <Button
+                      variant="outline"
+                      onClick={() => setShowBankModal(false)}
+                    >
+                      Close
+                    </Button>
+                    <Button
+                      onClick={handleBankTransferConfirmation}
+                      disabled={isLoading}
+                    >
+                      {isLoading ? 'Processing...' : 'I Have Made Payment'}
+                    </Button>
+                  </div>
                 </div>
               </div>
             </div>
