@@ -56,6 +56,7 @@ export default function ShipmentsPage() {
               day: 'numeric'
             }),
             paymentStatus: shipment.paymentStatus,
+            paymentMethod: shipment.paymentMethod,
             statusColor: getStatusColor(shipment.status)
           }))
           setShipments(transformedShipments)
@@ -258,7 +259,7 @@ export default function ShipmentsPage() {
                                     {shipment.paymentStatus.charAt(0).toUpperCase() + shipment.paymentStatus.slice(1)}
                                   </span>
                                 </TableCell>
-                                <TableCell>
+                                <TableCell className="text-center capitalize">
                                   {shipment.paymentMethod || 'N/A'}
                                 </TableCell>
                                 <TableCell className="text-right sticky right-0 bg-background z-10">
