@@ -137,7 +137,7 @@ export default function PackageDetails({ selectedType, serviceType, handleNextSt
 
   return (
     <div className='w-full h-full bg-white'>
-      <div className='flex items-center justify-start'>
+      <div className='flex items-center justify-start gap-4'>
         <button onClick={handlePreviousStep}>
           <ArrowLeft size={20} />
         </button>

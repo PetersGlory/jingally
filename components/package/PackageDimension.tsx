@@ -1,7 +1,7 @@
 "use client"
 
 import React, { useEffect, useState, useCallback } from 'react';
-import { Package, Maximize2, Box, AlertCircle, ArrowRight } from 'lucide-react';
+import { Package, Maximize2, Box, AlertCircle, ArrowRight, ArrowLeft } from 'lucide-react';
 import styles from './PackageDimension.module.css';
 import { useRouter } from 'next/navigation';
 import { updatePackageDimensions } from '@/lib/shipment';
@@ -171,7 +171,15 @@ export default function PackageDimension({ handleNextStep, handlePreviousStep }:
   return (
     <div className={styles.container}>
       <header className={styles.header}>
-        <h1>Package Dimensions</h1>
+        <div className="flex items-center gap-4">
+          <button 
+            className={styles.backButton}
+            onClick={handlePreviousStep}
+          >
+            <ArrowLeft size={20} />
+          </button>
+          <h1>Package Dimensions</h1>
+        </div>
         <button 
           className={styles.cancelButton}
           onClick={handlePreviousStep}

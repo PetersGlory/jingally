@@ -138,7 +138,15 @@ export default function PackagePhoto({ handleNextStep, handlePreviousStep }: { h
   return (
     <div className={styles.container}>
       <header className={styles.header}>
-        <h1>Package Photos</h1>
+        <div className="flex items-center gap-4">
+          <button 
+            className={styles.backButton}
+            onClick={handlePreviousStep}
+          >
+            <ArrowLeft className="h-4 w-4" />
+          </button>
+          <h1>Package Photos</h1>
+        </div>
         {photos.length > 0 && (
           <button 
             className={styles.clearButton}

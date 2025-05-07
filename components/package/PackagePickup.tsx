@@ -131,7 +131,15 @@ export default function PackagePickup({ handleNextStep, handlePreviousStep }: { 
   return (
     <div className={styles.container}>
       <header className={styles.header}>
-        <h1>Schedule Pickup</h1>
+        <div className="flex items-center gap-4">
+          <button 
+            className={styles.backButton}
+            onClick={handlePreviousStep}
+          >
+            <ArrowLeft size={20} />
+          </button>
+          <h1>Schedule Pickup</h1>
+        </div>
         <button 
           className={styles.closeButton}
           onClick={() => router.back()}

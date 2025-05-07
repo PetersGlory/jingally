@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { MapPin, Truck, Info, X, ChevronDown, ArrowRight, Loader, Check } from 'lucide-react';
+import { MapPin, Truck, Info, X, ChevronDown, ArrowRight, Loader, Check, ArrowLeft } from 'lucide-react';
 import { LoadScript, Autocomplete } from '@react-google-maps/api';
 import styles from './PackageDelivery.module.css';
 import { updateDeliveryAddress } from '@/lib/shipment';
@@ -350,7 +350,15 @@ export default function PackageDelivery({ handleNextStep, handlePreviousStep }: 
   return (
     <div className={styles.container}>
       <header className={styles.header}>
-        <h1>Delivery Details</h1>
+        <div className="flex items-center gap-4">
+          <button 
+            className={styles.backButton}
+            onClick={handlePreviousStep}
+          >
+            <ArrowLeft size={20} />
+          </button>
+          <h1>Delivery Details</h1>
+        </div>
         <button 
           className={styles.cancelButton}
           onClick={handlePreviousStep}

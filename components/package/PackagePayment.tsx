@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
-import { CreditCard, Shield, Check, X, Edit2, AlertCircle, Package, Truck, MapPin, Calendar } from 'lucide-react';
+import { CreditCard, Shield, Check, X, Edit2, AlertCircle, Package, Truck, MapPin, Calendar, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import styles from './PackagePayment.module.css';
 import { updatePaymentStatus } from '@/lib/shipment';
@@ -400,7 +400,15 @@ export default function PackagePayment({ handleNextStep, handlePreviousStep }: {
     }}>
       <div className={styles.container}>
         <header className={styles.header}>
-          <h1>Payment</h1>
+          <div className="flex items-center gap-4">
+            <button 
+              className={styles.backButton}
+              onClick={handlePreviousStep}
+            >
+              <ArrowLeft className="h-4 w-4" />
+            </button>
+            <h1>Payment</h1>
+          </div>
           <button 
             className={styles.cancelButton}
             onClick={handlePreviousStep}
