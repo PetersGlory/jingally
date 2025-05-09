@@ -17,6 +17,7 @@ import { toast } from "sonner"
 
 interface Shipment {
   id: string;
+  userId: string;
   trackingNumber: string;
   status: 'pending' | 'picked_up' | 'in_transit' | 'delivered' | 'cancelled';
   packageType: string | null;
@@ -57,13 +58,27 @@ interface Shipment {
   receiverPhoneNumber: string;
   receiverEmail: string;
   paymentMethod: string;
-  price: number | null;
+  price: string | null;
   paymentStatus: 'pending' | 'paid' | 'failed';
   notes: string | null;
   driverId: string | null;
+  containerID: string;
   images: string[];
   createdAt: string;
   updatedAt: string;
+  driver: {
+    id: string;
+    name: string;
+    phone: string;
+    email: string;
+  } | null;
+  container?: {
+    containerNumber: string;
+    type: string;
+    capacity: number;
+    location: string;
+    status: string;
+  } | null;
 }
 
 interface TrackingEvent {
@@ -182,9 +197,11 @@ export default function ShipmentDetailPage() {
       {
         id: 'payment',
         title: 'Payment Successful',
-        description: 'Your payment has been processed successfully',
+        description: shipment?.paymentStatus === 'paid' 
+          ? 'Your payment has been processed successfully'
+          : 'Payment is pending',
         icon: <Check className="h-5 w-5 text-green-500" />,
-        status: 'completed'
+        status: shipment?.paymentStatus === 'paid' ? 'completed' : 'pending'
       },
       {
         id: 'pickup',
@@ -211,25 +228,23 @@ export default function ShipmentDetailPage() {
 
     switch (status) {
       case 'pending':
-        steps[0].status = 'completed';
         steps[1].status = 'in-progress';
         break;
       case 'picked_up':
-        steps[0].status = 'completed';
         steps[1].status = 'completed';
         steps[2].status = 'in-progress';
         break;
       case 'in_transit':
-        steps[0].status = 'completed';
         steps[1].status = 'completed';
         steps[2].status = 'completed';
         steps[3].status = 'in-progress';
         break;
       case 'delivered':
-        steps.forEach(step => step.status = 'completed');
+        steps[1].status = 'completed';
+        steps[2].status = 'completed';
+        steps[3].status = 'completed';
         break;
       case 'cancelled':
-        steps[0].status = 'completed';
         steps[1].status = 'cancelled';
         steps[2].status = 'cancelled';
         steps[3].status = 'cancelled';
@@ -237,7 +252,7 @@ export default function ShipmentDetailPage() {
     }
 
     return steps;
-  }, []);
+  }, [shipment?.paymentStatus, shipment?.status]);
 
   const formatDate = useCallback((dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
@@ -252,8 +267,8 @@ export default function ShipmentDetailPage() {
 
   const handlePaymentSuccess = useCallback(() => {
     setPaymentModal(false);
-    router.refresh();
-  }, [router]);
+    fetchShipmentDetails();
+  }, [fetchShipmentDetails]);
 
   const handlePaymentClose = useCallback(() => {
     setPaymentModal(false);
@@ -306,71 +321,75 @@ export default function ShipmentDetailPage() {
         format: 'a4'
       })
 
-      // Add header
-      pdf.setFontSize(24)
+      // Add company header
+      pdf.setFontSize(28)
       pdf.setTextColor(0, 0, 0)
-      pdf.text('Shipment Details', 20, 20)
+      pdf.text('Jingally Logistics', 20, 20)
+      
+      // Add shipment header
+      pdf.setFontSize(24)
+      pdf.text('Shipment Details', 20, 35)
       
       // Add tracking info
       pdf.setFontSize(14)
       pdf.setTextColor(100, 100, 100)
-      pdf.text(`Tracking Number: ${shipment?.trackingNumber || 'N/A'}`, 20, 30)
-      pdf.text(`Status: ${shipment?.status ? shipment.status.charAt(0).toUpperCase() + shipment.status.slice(1) : 'N/A'}`, 20, 35)
+      pdf.text(`Tracking Number: ${shipment?.trackingNumber || 'N/A'}`, 20, 45)
+      pdf.text(`Status: ${shipment?.status ? shipment.status.charAt(0).toUpperCase() + shipment.status.slice(1) : 'N/A'}`, 20, 50)
       
+      // container Information
+      // Add container information
+      pdf.setFontSize(16)
+      pdf.setTextColor(0, 0, 0)
+      pdf.text('Container Information', 20, 55)
+      pdf.setFontSize(12)
+      pdf.setTextColor(100, 100, 100)
+      pdf.text(`Container Number: ${shipment?.container?.containerNumber || 'N/A'}`, 20, 65)
+      pdf.text(`Container Type: ${shipment?.container?.type || 'N/A'}`, 20, 70)
+      pdf.text(`Container Size: ${shipment?.container?.capacity || 'N/A'}`, 20, 75)
       // Add dates
-      pdf.text(`Pickup: ${formatDate(shipment?.scheduledPickupTime || '')}`, 20, 45)
-      pdf.text(`Delivery: ${formatDate(shipment?.estimatedDeliveryTime || '')}`, 20, 50)
+      pdf.text(`Pickup: ${formatDate(shipment?.scheduledPickupTime || '')}`, 20, 60)
+      pdf.text(`Delivery: ${formatDate(shipment?.estimatedDeliveryTime || '')}`, 20, 65)
       
       // Add sender info
       pdf.setFontSize(16)
       pdf.setTextColor(0, 0, 0)
-      pdf.text('Sender', 20, 65)
+      pdf.text('Sender Information', 20, 80)
       pdf.setFontSize(12)
       pdf.setTextColor(100, 100, 100)
-      pdf.text(`${shipment?.pickupAddress?.street}`, 20, 75)
-      pdf.text(`${shipment?.pickupAddress?.city}, ${shipment?.pickupAddress?.state}`, 20, 80)
-      pdf.text(`${shipment?.pickupAddress?.country} ${shipment?.pickupAddress?.postcode}`, 20, 85)
+      pdf.text(`${shipment?.pickupAddress?.street}`, 20, 90)
+      pdf.text(`${shipment?.pickupAddress?.city}, ${shipment?.pickupAddress?.state}`, 20, 95)
+      pdf.text(`${shipment?.pickupAddress?.country} ${shipment?.pickupAddress?.postcode}`, 20, 100)
       
       // Add recipient info
       pdf.setFontSize(16)
       pdf.setTextColor(0, 0, 0)
-      pdf.text('Recipient', 20, 100)
+      pdf.text('Recipient Information', 20, 115)
       pdf.setFontSize(12)
       pdf.setTextColor(100, 100, 100)
-      pdf.text(`Name: ${shipment?.receiverName}`, 20, 110)
-      pdf.text(`Phone: ${shipment?.receiverPhoneNumber}`, 20, 115)
-      pdf.text(`Email: ${shipment?.receiverEmail}`, 20, 120)
-      pdf.text(`${shipment?.deliveryAddress?.street}`, 20, 130)
-      pdf.text(`${shipment?.deliveryAddress?.city}, ${shipment?.deliveryAddress?.state}`, 20, 135)
-      pdf.text(`${shipment?.deliveryAddress?.country} ${shipment?.deliveryAddress?.postcode}`, 20, 140)
+      pdf.text(`Name: ${shipment?.receiverName}`, 20, 125)
+      pdf.text(`Phone: ${shipment?.receiverPhoneNumber}`, 20, 130)
+      pdf.text(`Email: ${shipment?.receiverEmail}`, 20, 135)
+      pdf.text(`${shipment?.deliveryAddress?.street}`, 20, 145)
+      pdf.text(`${shipment?.deliveryAddress?.city}, ${shipment?.deliveryAddress?.state}`, 20, 150)
+      pdf.text(`${shipment?.deliveryAddress?.country} ${shipment?.deliveryAddress?.postcode}`, 20, 155)
       
       // Add package details
       pdf.setFontSize(16)
       pdf.setTextColor(0, 0, 0)
-      pdf.text('Package Details', 20, 155)
+      pdf.text('Package Details', 20, 170)
       pdf.setFontSize(12)
       pdf.setTextColor(100, 100, 100)
-      pdf.text(`Weight: ${shipment?.weight} kg`, 20, 165)
-      pdf.text(`Dimensions: ${shipment?.dimensions?.length} × ${shipment?.dimensions?.width} × ${shipment?.dimensions?.height} cm`, 20, 170)
-      pdf.text(`Type: ${shipment?.packageType || 'Not specified'}`, 20, 175)
-      pdf.text(`Service: ${shipment?.serviceType || 'Not specified'}`, 20, 180)
-      pdf.text(`Fragile: ${shipment?.fragile ? 'Yes' : 'No'}`, 20, 185)
+      pdf.text(`Weight: ${shipment?.weight} kg`, 20, 180)
+      pdf.text(`Dimensions: ${shipment?.dimensions?.length} × ${shipment?.dimensions?.width} × ${shipment?.dimensions?.height} cm`, 20, 185)
+      pdf.text(`Type: ${shipment?.packageType || 'Not specified'}`, 20, 190)
+      pdf.text(`Service: ${shipment?.serviceType || 'Not specified'}`, 20, 195)
+      pdf.text(`Fragile: ${shipment?.fragile ? 'Yes' : 'No'}`, 20, 200)
       
-      // Add payment info
-      pdf.setFontSize(16)
-      pdf.setTextColor(0, 0, 0)
-      pdf.text('Payment Information', 20, 200)
-      pdf.setFontSize(12)
-      pdf.setTextColor(100, 100, 100)
-      pdf.text(`Status: ${shipment?.paymentStatus ? shipment.paymentStatus.charAt(0).toUpperCase() + shipment.paymentStatus.slice(1) : 'N/A'}`, 20, 210)
-      pdf.text(`Method: ${shipment?.paymentMethod || 'N/A'}`, 20, 215)
-      if (shipment?.price) {
-        pdf.text(`Amount: $${shipment.price}`, 20, 215)
-      }
       // Add footer
       pdf.setFontSize(10)
       pdf.setTextColor(150, 150, 150)
-      pdf.text('Generated by Jingally', 20, 280)
+      pdf.text('Generated on: ' + new Date().toLocaleDateString(), 20, 280)
+      pdf.text('© 2024 Jingally Logistics. All rights reserved.', 20, 285)
       pdf.text(new Date().toLocaleDateString(), 20, 285)
 
       // Generate PDF blob
@@ -551,6 +570,25 @@ export default function ShipmentDetailPage() {
                           </div>
                         </div>
                       </div>
+                      {shipment?.container && (
+                        <div>
+                          <h3 className="mb-2 font-medium">Container Information</h3>
+                          <div className="rounded-lg border p-3 text-sm">
+                            <div className="grid grid-cols-2 gap-2">
+                              <span className="text-muted-foreground">Container Number:</span>
+                              <span>{shipment.container.containerNumber}</span>
+                              <span className="text-muted-foreground">Type:</span>
+                              <span>{shipment.container.type}</span>
+                              <span className="text-muted-foreground">Capacity:</span>
+                              <span>{shipment.container.capacity} kg</span>
+                              <span className="text-muted-foreground">Location:</span>
+                              <span>{shipment.container.location}</span>
+                              <span className="text-muted-foreground">Status:</span>
+                              <span className="capitalize">{shipment.container.status}</span>
+                            </div>
+                          </div>
+                        </div>
+                      )}
                     </div>
                     <div className="space-y-4">
                       <div>
@@ -575,6 +613,14 @@ export default function ShipmentDetailPage() {
                           </div>
                         </div>
                       </div>
+                      {shipment?.packageDescription && (
+                        <div>
+                          <h3 className="mb-2 font-medium">Package Description</h3>
+                          <div className="rounded-lg border p-3">
+                            <p className="text-sm">{shipment.packageDescription}</p>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </TabsContent>
@@ -695,7 +741,7 @@ export default function ShipmentDetailPage() {
                     {shipment?.paymentStatus?.charAt(0).toUpperCase() + shipment?.paymentStatus?.slice(1)}
                   </Badge>
                   {shipment?.price && (
-                    <p className="text-lg font-semibold">${shipment?.price}</p>
+                    <p className="text-lg font-semibold">£{parseFloat(shipment.price).toFixed(2)}</p>
                   )}
                   {shipment?.paymentStatus !== 'paid' && shipment?.status !== "cancelled" && (
                     <Button 
