@@ -321,76 +321,121 @@ export default function ShipmentDetailPage() {
         format: 'a4'
       })
 
-      // Add company header
-      pdf.setFontSize(28)
-      pdf.setTextColor(0, 0, 0)
+      // Add company header with logo placeholder
+      pdf.setFillColor(255, 140, 0) // Orange color
+      pdf.rect(0, 0, 210, 30, 'F')
+      pdf.setFontSize(32)
+      pdf.setTextColor(255, 255, 255)
       pdf.text('Jingally Logistics', 20, 20)
       
-      // Add shipment header
+      // Add shipment header with background
+      pdf.setFillColor(245, 245, 245)
+      pdf.rect(0, 30, 210, 20, 'F')
       pdf.setFontSize(24)
-      pdf.text('Shipment Details', 20, 35)
+      pdf.setTextColor(0, 0, 0)
+      pdf.text('Shipment Details', 20, 45)
       
-      // Add tracking info
+      // Add tracking info in a styled box
+      pdf.setFillColor(255, 255, 255)
+      pdf.setDrawColor(200, 200, 200)
+      pdf.roundedRect(15, 55, 180, 25, 3, 3, 'FD')
       pdf.setFontSize(14)
       pdf.setTextColor(100, 100, 100)
-      pdf.text(`Tracking Number: ${shipment?.trackingNumber || 'N/A'}`, 20, 45)
-      pdf.text(`Status: ${shipment?.status ? shipment.status.charAt(0).toUpperCase() + shipment.status.slice(1) : 'N/A'}`, 20, 50)
+      pdf.text(`Tracking Number: ${shipment?.trackingNumber || 'N/A'}`, 20, 65)
+      pdf.text(`Status: ${shipment?.status ? shipment.status.charAt(0).toUpperCase() + shipment.status.slice(1) : 'N/A'}`, 20, 72)
       
-      // container Information
-      // Add container information
+      // Add container information with styled header
+      pdf.setFillColor(245, 245, 245)
+      pdf.rect(15, 85, 180, 10, 'F')
       pdf.setFontSize(16)
       pdf.setTextColor(0, 0, 0)
-      pdf.text('Container Information', 20, 55)
+      pdf.text('Container Information', 20, 92)
+      
+      // Container details in a styled box
+      pdf.setFillColor(255, 255, 255)
+      pdf.setDrawColor(200, 200, 200)
+      pdf.roundedRect(15, 95, 180, 35, 3, 3, 'FD')
       pdf.setFontSize(12)
       pdf.setTextColor(100, 100, 100)
-      pdf.text(`Container Number: ${shipment?.container?.containerNumber || 'N/A'}`, 20, 65)
-      pdf.text(`Container Type: ${shipment?.container?.type || 'N/A'}`, 20, 70)
-      pdf.text(`Container Size: ${shipment?.container?.capacity || 'N/A'}`, 20, 75)
-      // Add dates
-      pdf.text(`Pickup: ${formatDate(shipment?.scheduledPickupTime || '')}`, 20, 60)
-      pdf.text(`Delivery: ${formatDate(shipment?.estimatedDeliveryTime || '')}`, 20, 65)
+      pdf.text(`Container Number: ${shipment?.container?.containerNumber || 'N/A'}`, 20, 105)
+      pdf.text(`Container Type: ${shipment?.container?.type || 'N/A'}`, 20, 112)
+      pdf.text(`Container Size: ${shipment?.container?.capacity || 'N/A'} kg`, 20, 119)
+      pdf.text(`Location: ${shipment?.container?.location || 'N/A'}`, 20, 126)
       
-      // Add sender info
+      // Add dates in a styled box
+      pdf.setFillColor(255, 255, 255)
+      pdf.setDrawColor(200, 200, 200)
+      pdf.roundedRect(15, 135, 180, 25, 3, 3, 'FD')
+      pdf.setFontSize(12)
+      pdf.setTextColor(100, 100, 100)
+      pdf.text(`Scheduled Pickup: ${formatDate(shipment?.scheduledPickupTime || '')}`, 20, 145)
+      pdf.text(`Estimated Delivery: ${formatDate(shipment?.estimatedDeliveryTime || '')}`, 20, 152)
+      
+      // Add sender info with styled header
+      pdf.setFillColor(245, 245, 245)
+      pdf.rect(15, 165, 180, 10, 'F')
       pdf.setFontSize(16)
       pdf.setTextColor(0, 0, 0)
-      pdf.text('Sender Information', 20, 80)
+      pdf.text('Sender Information', 20, 172)
+      
+      // Sender details in a styled box
+      pdf.setFillColor(255, 255, 255)
+      pdf.setDrawColor(200, 200, 200)
+      pdf.roundedRect(15, 175, 180, 35, 3, 3, 'FD')
       pdf.setFontSize(12)
       pdf.setTextColor(100, 100, 100)
-      pdf.text(`${shipment?.pickupAddress?.street}`, 20, 90)
-      pdf.text(`${shipment?.pickupAddress?.city}, ${shipment?.pickupAddress?.state}`, 20, 95)
-      pdf.text(`${shipment?.pickupAddress?.country} ${shipment?.pickupAddress?.postcode}`, 20, 100)
+      pdf.text(`${shipment?.pickupAddress?.street}`, 20, 185)
+      pdf.text(`${shipment?.pickupAddress?.city}, ${shipment?.pickupAddress?.state}`, 20, 192)
+      pdf.text(`${shipment?.pickupAddress?.country} ${shipment?.pickupAddress?.postcode}`, 20, 199)
+      // pdf.text(`Type: ${shipment?.pickupAddress?.type?.charAt(0).toUpperCase() + shipment?.pickupAddress?.type?.slice(1) || 'N/A'}`, 20, 206)
       
-      // Add recipient info
+      // Add recipient info with styled header
+      pdf.setFillColor(245, 245, 245)
+      pdf.rect(15, 215, 180, 10, 'F')
       pdf.setFontSize(16)
       pdf.setTextColor(0, 0, 0)
-      pdf.text('Recipient Information', 20, 115)
+      pdf.text('Recipient Information', 20, 222)
+      
+      // Recipient details in a styled box
+      pdf.setFillColor(255, 255, 255)
+      pdf.setDrawColor(200, 200, 200)
+      pdf.roundedRect(15, 225, 180, 45, 3, 3, 'FD')
       pdf.setFontSize(12)
       pdf.setTextColor(100, 100, 100)
-      pdf.text(`Name: ${shipment?.receiverName}`, 20, 125)
-      pdf.text(`Phone: ${shipment?.receiverPhoneNumber}`, 20, 130)
-      pdf.text(`Email: ${shipment?.receiverEmail}`, 20, 135)
-      pdf.text(`${shipment?.deliveryAddress?.street}`, 20, 145)
-      pdf.text(`${shipment?.deliveryAddress?.city}, ${shipment?.deliveryAddress?.state}`, 20, 150)
-      pdf.text(`${shipment?.deliveryAddress?.country} ${shipment?.deliveryAddress?.postcode}`, 20, 155)
+      pdf.text(`Name: ${shipment?.receiverName}`, 20, 235)
+      pdf.text(`Phone: ${shipment?.receiverPhoneNumber}`, 20, 242)
+      pdf.text(`Email: ${shipment?.receiverEmail}`, 20, 249)
+      pdf.text(`${shipment?.deliveryAddress?.street}`, 20, 256)
+      pdf.text(`${shipment?.deliveryAddress?.city}, ${shipment?.deliveryAddress?.state}`, 20, 263)
+      pdf.text(`${shipment?.deliveryAddress?.country} ${shipment?.deliveryAddress?.postcode}`, 20, 270)
+      // pdf.text(`Type: ${shipment?.serviceType || 'N/A'}`, 20, 277)
       
-      // Add package details
+      // Add package details with styled header
+      pdf.setFillColor(245, 245, 245)
+      pdf.rect(15, 275, 180, 10, 'F')
       pdf.setFontSize(16)
       pdf.setTextColor(0, 0, 0)
-      pdf.text('Package Details', 20, 170)
+      pdf.text('Package Details', 20, 282)
+      
+      // Package details in a styled box
+      pdf.setFillColor(255, 255, 255)
+      pdf.setDrawColor(200, 200, 200)
+      pdf.roundedRect(15, 285, 180, 35, 3, 3, 'FD')
       pdf.setFontSize(12)
       pdf.setTextColor(100, 100, 100)
-      pdf.text(`Weight: ${shipment?.weight} kg`, 20, 180)
-      pdf.text(`Dimensions: ${shipment?.dimensions?.length} × ${shipment?.dimensions?.width} × ${shipment?.dimensions?.height} cm`, 20, 185)
-      pdf.text(`Type: ${shipment?.packageType || 'Not specified'}`, 20, 190)
-      pdf.text(`Service: ${shipment?.serviceType || 'Not specified'}`, 20, 195)
-      pdf.text(`Fragile: ${shipment?.fragile ? 'Yes' : 'No'}`, 20, 200)
+      pdf.text(`Weight: ${shipment?.weight} kg`, 20, 295)
+      pdf.text(`Dimensions: ${shipment?.dimensions?.length} × ${shipment?.dimensions?.width} × ${shipment?.dimensions?.height} cm`, 20, 302)
+      pdf.text(`Type: ${shipment?.packageType || 'Not specified'}`, 20, 309)
+      pdf.text(`Service: ${shipment?.serviceType || 'Not specified'}`, 20, 316)
+      pdf.text(`Fragile: ${shipment?.fragile ? 'Yes' : 'No'}`, 20, 323)
       
-      // Add footer
+      // Add footer with gradient background
+      pdf.setFillColor(245, 245, 245)
+      pdf.rect(0, 277, 210, 20, 'F')
       pdf.setFontSize(10)
       pdf.setTextColor(150, 150, 150)
-      pdf.text('Generated on: ' + new Date().toLocaleDateString(), 20, 280)
-      pdf.text('© 2024 Jingally Logistics. All rights reserved.', 20, 285)
-      pdf.text(new Date().toLocaleDateString(), 20, 285)
+      pdf.text('Generated on: ' + new Date().toLocaleDateString(), 20, 287)
+      pdf.text('© 2024 Jingally Logistics. All rights reserved.', 20, 292)
 
       // Generate PDF blob
       const pdfBlob = pdf.output('blob')

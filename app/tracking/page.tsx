@@ -10,6 +10,8 @@ import { MainNav } from "@/components/main-nav"
 import { MobileNav } from "@/components/mobile-nav"
 import { Footer } from "@/components/footer"
 import { Search, Package, CheckCircle, Truck, Clock, AlertCircle } from "lucide-react"
+import { trackingShipment } from "@/lib/shipment"
+import { toast } from "sonner"
 
 export default function TrackingPage() {
   const [trackingNumber, setTrackingNumber] = useState("")
@@ -28,48 +30,57 @@ export default function TrackingPage() {
     }>
   }>(null)
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (trackingNumber) {
-      setIsSearching(true)
-      // Simulate API call
-      setTimeout(() => {
+      try {
+        setIsSearching(true)
+        const token = localStorage.getItem('accessToken')
+        if (!token) {
+          toast.error('Please log in to track shipments')
+          return
+        }
+
+        const response = await trackingShipment(trackingNumber, JSON.parse(token))
+        if (response.success) {
+          const shipment = response.data
+          setTrackingResult({
+            id: shipment.trackingNumber,
+            status: shipment.status,
+            origin: `${shipment.pickupAddress.city}, ${shipment.pickupAddress.country}`,
+            destination: `${shipment.deliveryAddress.city}, ${shipment.deliveryAddress.country}`,
+            estimatedDelivery: new Date(shipment.estimatedDeliveryTime).toLocaleDateString('en-US', {
+              year: 'numeric',
+              month: 'long',
+              day: 'numeric'
+            }),
+            updates: [
+              {
+                date: new Date(shipment.updatedAt).toLocaleDateString('en-US', {
+                  year: 'numeric',
+                  month: 'long',
+                  day: 'numeric'
+                }),
+                time: new Date(shipment.updatedAt).toLocaleTimeString('en-US', {
+                  hour: '2-digit',
+                  minute: '2-digit'
+                }),
+                location: shipment.status === 'delivered' ? shipment.deliveryAddress.city : 
+                         shipment.status === 'in_transit' ? 'In Transit' :
+                         shipment.status === 'picked_up' ? shipment.pickupAddress.city :
+                         'Processing',
+                status: shipment.status.charAt(0).toUpperCase() + shipment.status.slice(1)
+              }
+            ]
+          })
+        } else {
+          toast.error(response.message || 'Failed to fetch tracking information')
+        }
+      } catch (error: any) {
+        toast.error(error.message || 'An error occurred while tracking the shipment')
+      } finally {
         setIsSearching(false)
-        // Mock data
-        setTrackingResult({
-          id: trackingNumber,
-          status: "in_transit",
-          origin: "New York, NY",
-          destination: "Los Angeles, CA",
-          estimatedDelivery: "May 5, 2025",
-          updates: [
-            {
-              date: "Apr 30, 2025",
-              time: "10:24 AM",
-              location: "Chicago, IL",
-              status: "In transit to next facility",
-            },
-            {
-              date: "Apr 29, 2025",
-              time: "8:15 PM",
-              location: "Columbus, OH",
-              status: "Departed sorting facility",
-            },
-            {
-              date: "Apr 29, 2025",
-              time: "2:30 PM",
-              location: "Columbus, OH",
-              status: "Arrived at sorting facility",
-            },
-            {
-              date: "Apr 28, 2025",
-              time: "9:45 AM",
-              location: "New York, NY",
-              status: "Shipment picked up",
-            },
-          ],
-        })
-      }, 1500)
+      }
     }
   }
 
