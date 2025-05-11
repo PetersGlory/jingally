@@ -96,7 +96,7 @@ export default function RegisterPage() {
       newErrors.email = "Please enter a valid email address";
     }
 
-    if (phone && !phone.match(/^\d{1,14}$/)) {
+    if (!phone) {
       newErrors.phone = "Please enter a valid phone number";
     }
 
