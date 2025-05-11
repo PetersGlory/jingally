@@ -322,7 +322,7 @@ export default function RegisterPage() {
                                         : 'hover:bg-accent'
                                     }`}
                                     onClick={() => {
-                                      setSelectedCountry(country);
+                          setSelectedCountry(country);
                                       setIsCountryDialogOpen(false);
                                     }}
                                   >

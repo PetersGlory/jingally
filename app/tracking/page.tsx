@@ -34,7 +34,7 @@ export default function TrackingPage() {
     e.preventDefault()
     if (trackingNumber) {
       try {
-        setIsSearching(true)
+      setIsSearching(true)
         const token = localStorage.getItem('accessToken')
         if (!token) {
           toast.error('Please log in to track shipments')
@@ -44,7 +44,7 @@ export default function TrackingPage() {
         const response = await trackingShipment(trackingNumber, JSON.parse(token))
         if (response.success) {
           const shipment = response.data
-          setTrackingResult({
+        setTrackingResult({
             id: shipment.trackingNumber,
             status: shipment.status,
             origin: `${shipment.pickupAddress.city}, ${shipment.pickupAddress.country}`,
@@ -54,8 +54,8 @@ export default function TrackingPage() {
               month: 'long',
               day: 'numeric'
             }),
-            updates: [
-              {
+          updates: [
+            {
                 date: new Date(shipment.updatedAt).toLocaleDateString('en-US', {
                   year: 'numeric',
                   month: 'long',

@@ -100,7 +100,7 @@ const JINGSLY_PRICES = {
 const FROZEN_PRICE_PER_KG = 1100;
 
 // Sea freight constants
-const SEA_FREIGHT_PRICE_PER_CUBIC_METER = 300;
+const SEA_FREIGHT_PRICE_PER_CUBIC_METER = 300; // £300 per cubic meter
 const SEA_MAX_WEIGHT_PER_ITEM = 40; // kg
 
 export default function PackagePayment({ handleNextStep, handlePreviousStep }: { handleNextStep: () => void, handlePreviousStep: () => void }) {
@@ -185,7 +185,17 @@ export default function PackagePayment({ handleNextStep, handlePreviousStep }: {
   }, []);
 
   const calculateSeaFreightPrice = useCallback((dimensions: { length: number; width: number; height: number }) => {
-    return (dimensions.length * dimensions.width * dimensions.height) * SEA_FREIGHT_PRICE_PER_CUBIC_METER;
+    // Convert dimensions from cm to meters
+    const lengthInMeters = dimensions.length / 100;
+    const widthInMeters = dimensions.width / 100;
+    const heightInMeters = dimensions.height / 100;
+    
+    // Calculate cubic meters and price
+    const cubicMeters = lengthInMeters * widthInMeters * heightInMeters;
+    const price = cubicMeters * 300; // £300 per cubic meter
+    
+    // Round to 2 decimal places
+    return Math.round(price * 100) / 100;
   }, []);
 
   const calculateCosts = useCallback((): CostItem[] => {
@@ -448,8 +458,8 @@ export default function PackagePayment({ handleNextStep, handlePreviousStep }: {
       currency: "GBP",
       intent: "capture",
     }}>
-      <div className={styles.container}>
-        <header className={styles.header}>
+    <div className={styles.container}>
+      <header className={styles.header}>
           <div className="flex flex-row items-center gap-4">
             <button 
               className={styles.backButton}
@@ -457,254 +467,254 @@ export default function PackagePayment({ handleNextStep, handlePreviousStep }: {
             >
               <ArrowLeft className="h-4 w-4" />
             </button>
-            <h1>Payment</h1>
+        <h1>Payment</h1>
           </div>
-          <button 
-            className={styles.cancelButton}
-            onClick={handlePreviousStep}
-          >
-            Cancel
-          </button>
-        </header>
+        <button 
+          className={styles.cancelButton}
+          onClick={handlePreviousStep}
+        >
+          Cancel
+        </button>
+      </header>
 
-        <main className={styles.main}>
-          {/* Package Summary */}
-          <div className={styles.summarySection}>
-            <h2 className={styles.sectionTitle}>Package Summary</h2>
-            <div className={styles.summaryGrid}>
-              <div className={styles.summaryItem}>
-                <div className="flex items-center gap-2">
-                  <Package className="h-4 w-4" />
-                  <span>Tracking Number</span>
-                </div>
-                <span>{shipment.trackingNumber}</span>
+      <main className={styles.main}>
+        {/* Package Summary */}
+        <div className={styles.summarySection}>
+          <h2 className={styles.sectionTitle}>Package Summary</h2>
+          <div className={styles.summaryGrid}>
+            <div className={styles.summaryItem}>
+              <div className="flex items-center gap-2">
+                <Package className="h-4 w-4" />
+                <span>Tracking Number</span>
               </div>
-              <div className={styles.summaryItem}>
-                <div className="flex items-center gap-2">
-                  <Package className="h-4 w-4" />
-                  <span>Weight</span>
-                </div>
-                <span>{shipment.weight}kg</span>
+              <span>{shipment.trackingNumber}</span>
+            </div>
+            <div className={styles.summaryItem}>
+              <div className="flex items-center gap-2">
+                <Package className="h-4 w-4" />
+                <span>Weight</span>
               </div>
-              <div className={styles.summaryItem}>
-                <div className="flex items-center gap-2">
-                  <Package className="h-4 w-4" />
-                  <span>Dimensions</span>
-                </div>
-                <span>
-                  {shipment.dimensions.length}x{shipment.dimensions.width}x{shipment.dimensions.height}cm
-                </span>
+              <span>{shipment.weight}kg</span>
+            </div>
+            <div className={styles.summaryItem}>
+              <div className="flex items-center gap-2">
+                <Package className="h-4 w-4" />
+                <span>Dimensions</span>
               </div>
-              <div className={styles.summaryItem}>
-                <div className="flex items-center gap-2">
-                  <Truck className="h-4 w-4" />
-                  <span>Service Type</span>
-                </div>
-                <span>{shipment.serviceType}</span>
+              <span>
+                {shipment.dimensions.length}x{shipment.dimensions.width}x{shipment.dimensions.height}cm
+              </span>
+            </div>
+            <div className={styles.summaryItem}>
+              <div className="flex items-center gap-2">
+                <Truck className="h-4 w-4" />
+                <span>Service Type</span>
               </div>
-              <div className={styles.summaryItem}>
-                <div className="flex items-center gap-2">
-                  <Calendar className="h-4 w-4" />
-                  <span>Pickup Date</span>
-                </div>
-                <span>
-                  {new Date(shipment.scheduledPickupTime).toLocaleDateString('en-GB', {
-                    day: 'numeric',
-                    month: 'short',
-                    year: 'numeric'
-                  })}
-                </span>
+              <span>{shipment.serviceType}</span>
+            </div>
+            <div className={styles.summaryItem}>
+              <div className="flex items-center gap-2">
+                <Calendar className="h-4 w-4" />
+                <span>Pickup Date</span>
               </div>
-              <div className={styles.summaryItem}>
-                <div className="flex items-center gap-2">
-                  <MapPin className="h-4 w-4" />
-                  <span>Delivery Address</span>
-                </div>
-                <span>
-                  {shipment.deliveryAddress.street}, {shipment.deliveryAddress.city}
-                </span>
+              <span>
+                {new Date(shipment.scheduledPickupTime).toLocaleDateString('en-GB', {
+                  day: 'numeric',
+                  month: 'short',
+                  year: 'numeric'
+                })}
+              </span>
+            </div>
+            <div className={styles.summaryItem}>
+              <div className="flex items-center gap-2">
+                <MapPin className="h-4 w-4" />
+                <span>Delivery Address</span>
               </div>
+              <span>
+                {shipment.deliveryAddress.street}, {shipment.deliveryAddress.city}
+              </span>
             </div>
           </div>
+        </div>
 
-          {/* Cost Breakdown */}
-          <div className={styles.costSection}>
-            <h2 className={styles.sectionTitle}>Cost Breakdown</h2>
-            <div className={styles.costList}>
-              {costs.map((item) => (
-                <div 
-                  key={item.label}
-                  className={`${styles.costItem} ${item.type === 'total' ? styles.totalItem : ''}`}
-                >
-                  <span className={item.type === 'total' ? styles.totalLabel : ''}>
-                    {item.label}
-                  </span>
-                  <span className={item.type === 'total' ? styles.totalAmount : ''}>
-                    {item.amount}
-                  </span>
-                </div>
-              ))}
-            </div>
+        {/* Cost Breakdown */}
+        <div className={styles.costSection}>
+          <h2 className={styles.sectionTitle}>Cost Breakdown</h2>
+          <div className={styles.costList}>
+            {costs.map((item) => (
+              <div 
+                key={item.label}
+                className={`${styles.costItem} ${item.type === 'total' ? styles.totalItem : ''}`}
+              >
+                <span className={item.type === 'total' ? styles.totalLabel : ''}>
+                  {item.label}
+                </span>
+                <span className={item.type === 'total' ? styles.totalAmount : ''}>
+                  {item.amount}
+                </span>
+              </div>
+            ))}
           </div>
+        </div>
 
-          {/* Payment Methods */}
-          <div className={styles.paymentSection}>
-            <h2 className={styles.sectionTitle}>Select Payment Method</h2>
-            <div className={styles.paymentMethods}>
-              {paymentMethods.map((method) => {
-                const isSelected = selectedMethod === method.id;
-                return (
-                  <button
-                    key={method.id}
-                    className={`${styles.paymentMethod} ${isSelected ? styles.selected : ''}`}
-                    onClick={() => {
-                      if (method.id === 'card') {
-                        setShowCardModal(true);
+        {/* Payment Methods */}
+        <div className={styles.paymentSection}>
+          <h2 className={styles.sectionTitle}>Select Payment Method</h2>
+          <div className={styles.paymentMethods}>
+            {paymentMethods.map((method) => {
+              const isSelected = selectedMethod === method.id;
+              return (
+                <button
+                  key={method.id}
+                  className={`${styles.paymentMethod} ${isSelected ? styles.selected : ''}`}
+                  onClick={() => {
+                    if (method.id === 'card') {
+                      setShowCardModal(true);
                       } else if (method.id === 'paypal') {
                         setSelectedMethod(method.id as PaymentMethod['id']);
                         setShowPayPalModal(true);
                       } else if (method.id === 'bank_transfer') {
                         setSelectedMethod(method.id as PaymentMethod['id']);
                         setShowBankModal(true);
-                      } else {
-                        setSelectedMethod(method.id as PaymentMethod['id']);
-                      }
-                    }}
-                    disabled={!method.isEnabled}
-                  >
-                    <div className={styles.methodContent}>
-                      <div className={`${styles.methodIcon} ${isSelected ? styles.selectedIcon : ''}`}>
-                        {method.icon}
-                      </div>
-                      <div className={styles.methodInfo}>
-                        <h3>{method.name}</h3>
-                        <p>{method.description}</p>
-                      </div>
-                      {isSelected && <Check size={20} className={styles.checkIcon} />}
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Security Note */}
-          <div className={styles.securityNote}>
-            <Shield size={20} />
-            <div>
-              <h3>Secure Payment</h3>
-              <p>
-                Your payment information is encrypted and securely processed. We never store your complete card details.
-              </p>
-            </div>
-          </div>
-        </main>
-
-        <footer className={styles.footer}>
-          <button
-            className={`${styles.payButton} ${selectedMethod && !isLoading ? styles.active : ''}`}
-            disabled={!selectedMethod || isLoading}
-            onClick={handlePayment}
-          >
-            {isLoading ? (
-              'Processing...'
-            ) : (
-              selectedMethod === 'paypal' ? 'Pay with PayPal' : 
-              selectedMethod ? `Pay ${costs.find(c => c.type === 'total')?.amount}` : 
-              'Select Payment Method'
-            )}
-          </button>
-        </footer>
-
-        {/* Card Modal */}
-        {showCardModal && (
-          <div className={styles.modalOverlay}>
-            <div className={styles.modal}>
-              <div className={styles.modalHeader}>
-                <h2>Add Card Details</h2>
-                <button onClick={() => setShowCardModal(false)}>
-                  <X size={24} />
-                </button>
-              </div>
-
-              <div className={styles.modalContent}>
-                <div className={styles.formGroup}>
-                  <label>Card Number</label>
-                  <input
-                    type="text"
-                    placeholder="1234 5678 9012 3456"
-                    value={cardDetails.cardNumber}
-                    onChange={handleCardNumberChange}
-                    maxLength={19}
-                  />
-                </div>
-
-                <div className={styles.formRow}>
-                  <div className={styles.formGroup}>
-                    <label>Expiry Date</label>
-                    <input
-                      type="text"
-                      placeholder="MM/YY"
-                      value={cardDetails.expiryDate}
-                      onChange={handleExpiryDateChange}
-                      maxLength={5}
-                    />
-                  </div>
-                  <div className={styles.formGroup}>
-                    <label>CVV</label>
-                    <input
-                      type="password"
-                      placeholder="123"
-                      value={cardDetails.cvv}
-                      onChange={(e) => setCardDetails(prev => ({ ...prev, cvv: e.target.value }))}
-                      maxLength={3}
-                    />
-                  </div>
-                </div>
-
-                <div className={styles.formGroup}>
-                  <label>Cardholder Name</label>
-                  <input
-                    type="text"
-                    placeholder="JOHN SMITH"
-                    value={cardDetails.cardHolderName}
-                    onChange={(e) => setCardDetails(prev => ({ ...prev, cardHolderName: e.target.value }))}
-                  />
-                </div>
-
-                <button
-                  className={styles.saveButton}
-                  onClick={() => {
-                    if (validateCard()) {
-                      setSelectedMethod('card');
-                      setShowCardModal(false);
+                    } else {
+                      setSelectedMethod(method.id as PaymentMethod['id']);
                     }
                   }}
+                  disabled={!method.isEnabled}
                 >
-                  Save Card
+                  <div className={styles.methodContent}>
+                    <div className={`${styles.methodIcon} ${isSelected ? styles.selectedIcon : ''}`}>
+                      {method.icon}
+                    </div>
+                    <div className={styles.methodInfo}>
+                      <h3>{method.name}</h3>
+                      <p>{method.description}</p>
+                    </div>
+                    {isSelected && <Check size={20} className={styles.checkIcon} />}
+                  </div>
                 </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Security Note */}
+        <div className={styles.securityNote}>
+          <Shield size={20} />
+          <div>
+            <h3>Secure Payment</h3>
+            <p>
+              Your payment information is encrypted and securely processed. We never store your complete card details.
+            </p>
+          </div>
+        </div>
+      </main>
+
+      <footer className={styles.footer}>
+        <button
+          className={`${styles.payButton} ${selectedMethod && !isLoading ? styles.active : ''}`}
+          disabled={!selectedMethod || isLoading}
+          onClick={handlePayment}
+        >
+          {isLoading ? (
+            'Processing...'
+          ) : (
+            selectedMethod === 'paypal' ? 'Pay with PayPal' : 
+            selectedMethod ? `Pay ${costs.find(c => c.type === 'total')?.amount}` : 
+            'Select Payment Method'
+          )}
+        </button>
+      </footer>
+
+      {/* Card Modal */}
+      {showCardModal && (
+        <div className={styles.modalOverlay}>
+          <div className={styles.modal}>
+            <div className={styles.modalHeader}>
+              <h2>Add Card Details</h2>
+              <button onClick={() => setShowCardModal(false)}>
+                <X size={24} />
+              </button>
+            </div>
+
+            <div className={styles.modalContent}>
+              <div className={styles.formGroup}>
+                <label>Card Number</label>
+                <input
+                  type="text"
+                  placeholder="1234 5678 9012 3456"
+                  value={cardDetails.cardNumber}
+                  onChange={handleCardNumberChange}
+                  maxLength={19}
+                />
               </div>
+
+              <div className={styles.formRow}>
+                <div className={styles.formGroup}>
+                  <label>Expiry Date</label>
+                  <input
+                    type="text"
+                    placeholder="MM/YY"
+                    value={cardDetails.expiryDate}
+                    onChange={handleExpiryDateChange}
+                    maxLength={5}
+                  />
+                </div>
+                <div className={styles.formGroup}>
+                  <label>CVV</label>
+                  <input
+                    type="password"
+                    placeholder="123"
+                    value={cardDetails.cvv}
+                    onChange={(e) => setCardDetails(prev => ({ ...prev, cvv: e.target.value }))}
+                    maxLength={3}
+                  />
+                </div>
+              </div>
+
+              <div className={styles.formGroup}>
+                <label>Cardholder Name</label>
+                <input
+                  type="text"
+                  placeholder="JOHN SMITH"
+                  value={cardDetails.cardHolderName}
+                  onChange={(e) => setCardDetails(prev => ({ ...prev, cardHolderName: e.target.value }))}
+                />
+              </div>
+
+              <button
+                className={styles.saveButton}
+                onClick={() => {
+                  if (validateCard()) {
+                    setSelectedMethod('card');
+                    setShowCardModal(false);
+                  }
+                }}
+              >
+                Save Card
+              </button>
             </div>
           </div>
-        )}
+        </div>
+      )}
 
-        {/* PayPal Modal */}
-        {showPayPalModal && (
-          <div className={styles.modalOverlay}>
-            <div className={styles.modal}>
-              <div className={styles.modalHeader}>
-                <h2>Pay with PayPal</h2>
-                <button onClick={() => setShowPayPalModal(false)}>
-                  <X size={24} />
-                </button>
-              </div>
+      {/* PayPal Modal */}
+      {showPayPalModal && (
+        <div className={styles.modalOverlay}>
+          <div className={styles.modal}>
+            <div className={styles.modalHeader}>
+              <h2>Pay with PayPal</h2>
+              <button onClick={() => setShowPayPalModal(false)}>
+                <X size={24} />
+              </button>
+            </div>
 
-              <div className={styles.modalContent}>
-                <div className="flex flex-col items-center justify-center p-6">
-                  <p className="text-center mb-4">You will be redirected to PayPal to complete your payment.</p>
-                  <p className="text-center mb-6 font-semibold">
-                    Total Amount: {costs.find(c => c.type === 'total')?.amount}
-                  </p>
+            <div className={styles.modalContent}>
+              <div className="flex flex-col items-center justify-center p-6">
+                <p className="text-center mb-4">You will be redirected to PayPal to complete your payment.</p>
+                <p className="text-center mb-6 font-semibold">
+                  Total Amount: {costs.find(c => c.type === 'total')?.amount}
+                </p>
                   <PayPalButtons
                     style={{
                       layout: "vertical",
@@ -798,30 +808,30 @@ export default function PackagePayment({ handleNextStep, handlePreviousStep }: {
                       {isLoading ? 'Processing...' : 'I Have Made Payment'}
                     </Button>
                   </div>
-                </div>
               </div>
             </div>
           </div>
-        )}
+        </div>
+      )}
 
-        {/* Success Modal */}
-        {showSuccessModal && (
-          <div className={styles.modalOverlay}>
-            <div className={styles.successModal}>
-              <div className={styles.successIcon}>
-                <Check size={32} />
-              </div>
-              <h2>Payment Successful!</h2>
-              <p>
-                Your payment has been processed successfully. You will be redirected to tracking shortly.
-              </p>
-              <div className={styles.progressBar}>
-                <div className={styles.progress} />
-              </div>
+      {/* Success Modal */}
+      {showSuccessModal && (
+        <div className={styles.modalOverlay}>
+          <div className={styles.successModal}>
+            <div className={styles.successIcon}>
+              <Check size={32} />
+            </div>
+            <h2>Payment Successful!</h2>
+            <p>
+              Your payment has been processed successfully. You will be redirected to tracking shortly.
+            </p>
+            <div className={styles.progressBar}>
+              <div className={styles.progress} />
             </div>
           </div>
-        )}
-      </div>
+        </div>
+      )}
+    </div>
     </PayPalScriptProvider>
   );
 }
