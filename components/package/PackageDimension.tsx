@@ -133,6 +133,10 @@ export default function PackageDimension({ handleNextStep, handlePreviousStep }:
   const handleSubmit = async () => {
     if (!validateForm()) return;
 
+    if(parseFloat(formData.weight) > 40) {
+      alert('Weight cannot exceed 40kg');
+      return;
+    }
     try {
       setIsLoading(true);
 
