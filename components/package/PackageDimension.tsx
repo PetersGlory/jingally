@@ -40,13 +40,13 @@ const DimensionInput: React.FC<{
     
     const numericValue = e.target.value.replace(/[^0-9.]/g, '');
     const finalValue = numericValue.replace(/(\..*)\./g, '$1');
-    if(label === "Weight"){
-    if (parseFloat(numericValue) > 40) {
-      alert('Weight cannot exceed 40kg');
-      return;
-    }
+    // if(label === "Weight"){
+    // if (parseFloat(numericValue) > 40) {
+    //   alert('Weight cannot exceed 40kg');
+    //   return;
+    // }
 
-    }
+    // }
     onChange(finalValue);
   };
 
@@ -133,10 +133,10 @@ export default function PackageDimension({ handleNextStep, handlePreviousStep }:
   const handleSubmit = async () => {
     if (!validateForm()) return;
 
-    if(parseFloat(formData.weight) > 40) {
-      alert('Weight cannot exceed 40kg');
-      return;
-    }
+    // if(parseFloat(formData.weight) > 40) {
+    //   alert('Weight cannot exceed 40kg');
+    //   return;
+    // }
     try {
       setIsLoading(true);
 
