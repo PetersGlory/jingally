@@ -233,12 +233,12 @@ export default function PackagePayment({ handleNextStep, handlePreviousStep }: {
 
     const serviceFee = Math.round(baseFee * 0.2 * 100) / 100;
     const vat = Math.round((baseFee + serviceFee) * 0.2 * 100) / 100;
-    const total = Math.round((baseFee + serviceFee + vat) * 100) / 100;
+    const total = Math.round((baseFee + serviceFee) * 100) / 100;
 
     return [
       { label: `${methodName} Fee`, amount: `£${baseFee.toFixed(2)}`, type: 'regular' },
       { label: 'Service Fee', amount: `£${serviceFee.toFixed(2)}`, type: 'regular' },
-      { label: 'VAT (20%)', amount: `£${vat.toFixed(2)}`, type: 'regular' },
+      // { label: 'VAT (20%)', amount: `£${vat.toFixed(2)}`, type: 'regular' },
       { label: 'Total', amount: `£${total.toFixed(2)}`, type: 'total' }
     ];
   }, [shipment, calculateAirFreightPrice, calculateJingsllyPrice, calculateSeaFreightPrice]);
