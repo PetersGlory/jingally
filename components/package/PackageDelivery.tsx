@@ -413,7 +413,10 @@ export default function PackageDelivery({ handleNextStep, handlePreviousStep }: 
             <button
               type='button'
               className={`${styles.modeButton} ${deliveryMode === 'park' ? styles.active : ''}`}
-              onClick={() => {handleDeliveryModeChange('park'); setDisabled(true)}}
+              onClick={() => {
+                alert('Drop Off not available at the moment.');
+                handleDeliveryModeChange('home')
+              }}
             >
               Drop Off
             </button>
