@@ -330,7 +330,8 @@ export default function PackagePayment({ handleNextStep, handlePreviousStep }: {
 
       if (paymentResponse.success) {
         localStorage.setItem('packageInfo', JSON.stringify(paymentResponse.data));
-        localStorage.removeItem('currentStep')
+        localStorage.removeItem('currentStep');
+        
         setShowSuccessModal(true);
         
         setTimeout(() => {
@@ -368,6 +369,7 @@ export default function PackagePayment({ handleNextStep, handlePreviousStep }: {
       if (paymentResponse.success) {
         localStorage.setItem('packageInfo', JSON.stringify(paymentResponse.data));
         setShowSuccessModal(true);
+        localStorage.removeItem('currentStep');
         
         setTimeout(() => {
           setShowSuccessModal(false);
@@ -405,6 +407,7 @@ export default function PackagePayment({ handleNextStep, handlePreviousStep }: {
       if (paymentResponse.success) {
         localStorage.setItem('packageInfo', JSON.stringify(paymentResponse.data));
         setShowSuccessModal(true);
+        localStorage.removeItem('currentStep');
         
         setTimeout(() => {
           setShowSuccessModal(false);

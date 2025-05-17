@@ -55,6 +55,7 @@ export default function PackageDelivery({ handleNextStep, handlePreviousStep }: 
   const [deliveryMode, setDeliveryMode] = useState<'home' | 'park'>('home');
   const [showCountryModal, setShowCountryModal] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [disabled, setDisabled] = useState(false);
   const [formErrors, setFormErrors] = useState<Partial<DeliveryForm>>({});
 
   const [form, setForm] = useState<DeliveryForm>({
@@ -91,14 +92,14 @@ export default function PackageDelivery({ handleNextStep, handlePreviousStep }: 
 
   // Default park address
   const defaultParkAddress: Address = {
-    street: 'Park Delivery Point',
-    city: 'London',
-    state: 'Greater London',
+    street: '1072 Tyburn Road',
+    city: 'Birmingham',
+    state: 'West Midlands',
     country: 'United Kingdom',
-    postcode: 'SW1A 1AA',
-    latitude: 51.5074,
-    longitude: -0.1278,
-    placeId: 'park_delivery_point',
+    postcode: 'B24 0SY',
+    latitude: 52.5200,
+    longitude: -1.8904,
+    placeId: 'uk_office_address',
     type: 'business'
   };
 
@@ -402,16 +403,19 @@ export default function PackageDelivery({ handleNextStep, handlePreviousStep }: 
           </div>
           <div className={styles.deliveryModeButtons}>
             <button
+              disabled={disabled}
+              type='button'
               className={`${styles.modeButton} ${deliveryMode === 'home' ? styles.active : ''}`}
               onClick={() => handleDeliveryModeChange('home')}
             >
-              Home
+              Pick-up
             </button>
             <button
+              type='button'
               className={`${styles.modeButton} ${deliveryMode === 'park' ? styles.active : ''}`}
-              onClick={() => handleDeliveryModeChange('park')}
+              onClick={() => {handleDeliveryModeChange('park'); setDisabled(true)}}
             >
-              Park
+              Drop Off
             </button>
           </div>
         </div>
