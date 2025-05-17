@@ -89,6 +89,31 @@ export default function PackageDelivery({ handleNextStep, handlePreviousStep }: 
     deliveryMode: 'home'
   });
 
+  // Default park address
+  const defaultParkAddress: Address = {
+    street: 'Park Delivery Point',
+    city: 'London',
+    state: 'Greater London',
+    country: 'United Kingdom',
+    postcode: 'SW1A 1AA',
+    latitude: 51.5074,
+    longitude: -0.1278,
+    placeId: 'park_delivery_point',
+    type: 'business'
+  };
+
+  const handleDeliveryModeChange = (mode: 'home' | 'park') => {
+    setDeliveryMode(mode);
+    if (mode === 'park') {
+      // Set default park address when park mode is selected
+      setForm(prev => ({
+        ...prev,
+        deliveryAddress: defaultParkAddress,
+        deliveryMode: 'park'
+      }));
+    }
+  };
+
   const handlePlaceSelect = (type: 'pickup' | 'delivery') => {
     const autocomplete = type === 'pickup' ? pickupAutocomplete : deliveryAutocomplete;
     if (autocomplete) {
@@ -198,7 +223,8 @@ export default function PackageDelivery({ handleNextStep, handlePreviousStep }: 
         receiverName: form.receiver.name,
         receiverEmail: form.receiver.email,
         receiverPhoneNumber: form.receiver.phone,
-        deliveryMode: form.deliveryMode
+        deliveryMode: form.deliveryMode,
+        deliveryType: deliveryMode === 'park' ? 'park' : 'home'
       }, JSON.parse(token as string));
 
       if (response.success) {
@@ -377,16 +403,13 @@ export default function PackageDelivery({ handleNextStep, handlePreviousStep }: 
           <div className={styles.deliveryModeButtons}>
             <button
               className={`${styles.modeButton} ${deliveryMode === 'home' ? styles.active : ''}`}
-              onClick={() => setDeliveryMode('home')}
+              onClick={() => handleDeliveryModeChange('home')}
             >
               Home
             </button>
             <button
               className={`${styles.modeButton} ${deliveryMode === 'park' ? styles.active : ''}`}
-              onClick={() => {
-                alert('Park delivery is not available yet');
-                setDeliveryMode('home');
-              }}
+              onClick={() => handleDeliveryModeChange('park')}
             >
               Park
             </button>
@@ -402,13 +425,32 @@ export default function PackageDelivery({ handleNextStep, handlePreviousStep }: 
           'pickup'
         )}
 
-        {/* Delivery Address Form */}
-        {renderAddressForm(
+        {/* Delivery Address Form - Only show for home delivery */}
+        {deliveryMode === 'home' && renderAddressForm(
           'Delivery Address',
           <MapPin size={20} />,
           form.deliveryAddress,
           (address) => setForm({ ...form, deliveryAddress: address }),
           'delivery'
+        )}
+
+        {/* Park Delivery Info - Show only for park delivery */}
+        {deliveryMode === 'park' && (
+          <div className={styles.section}>
+            <div className={styles.sectionHeader}>
+              <MapPin size={20} />
+              <h2 className={styles.sectionTitle}>Park Delivery Point</h2>
+            </div>
+            <div className={styles.infoBox}>
+              <p>Your package will be delivered to our designated park delivery point:</p>
+              <div className={styles.parkAddress}>
+                <p><strong>Address:</strong> {defaultParkAddress.street}</p>
+                <p><strong>City:</strong> {defaultParkAddress.city}</p>
+                <p><strong>Postcode:</strong> {defaultParkAddress.postcode}</p>
+              </div>
+              <p className={styles.note}>You will be notified when your package arrives at the park delivery point.</p>
+            </div>
+          </div>
         )}
 
         {/* Receiver Details */}
