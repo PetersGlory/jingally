@@ -414,7 +414,7 @@ export default function PackageDelivery({ handleNextStep, handlePreviousStep }: 
               type='button'
               className={`${styles.modeButton} ${deliveryMode === 'park' ? styles.active : ''}`}
               onClick={() => {
-                alert('Drop Off not available at the moment.');
+                alert('Drop-off address is currently unavailable.');
                 handleDeliveryModeChange('home')
               }}
             >
