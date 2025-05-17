@@ -154,7 +154,7 @@ export default function PackageDelivery({ handleNextStep, handlePreviousStep }: 
   };
 
   const isValidForm = () => {
-    const phoneRegex = /^[0-9]{10,15}$/;
+    const phoneRegex = /^[0-9]{4,15}$/;
     return (
       form.pickupAddress.street.trim() !== '' &&
       form.pickupAddress.city.trim() !== '' &&
