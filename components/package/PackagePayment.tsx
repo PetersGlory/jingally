@@ -86,8 +86,8 @@ const SHIPPING_METHODS = {
   PARCEL: 'parcel'
 } as const;
 
-// Air freight price per kg
-const AIR_PRICE_PER_KG = 10; // £10 per kg
+// Air freight price per cubic meter
+const AIR_PRICE_PER_CUBIC_METER = 300; // £300 per cubic meter
 
 // Jingslly price tiers
 const JINGSLY_PRICES = {
@@ -169,10 +169,20 @@ export default function PackagePayment({ handleNextStep, handlePreviousStep }: {
   }, []);
 
   const calculateAirFreightPrice = useCallback((weight: number, dimensions: { length: number; width: number; height: number }) => {
-    const volumetricWeight = calculateVolumetricWeight(dimensions);
-    const chargeableWeight = Math.max(weight, volumetricWeight);
-    return chargeableWeight * AIR_PRICE_PER_KG;
-  }, [calculateVolumetricWeight]);
+    // Convert dimensions from cm to meters
+    const lengthInMeters = dimensions.length / 100;
+    const widthInMeters = dimensions.width / 100;
+    const heightInMeters = dimensions.height / 100;
+    
+    // Calculate cubic meters
+    const cubicMeters = lengthInMeters * widthInMeters * heightInMeters;
+    
+    // Calculate price based on cubic meters
+    const price = cubicMeters * AIR_PRICE_PER_CUBIC_METER;
+    
+    // Round to 2 decimal places
+    return Math.round(price * 100) / 100;
+  }, []);
 
   const calculateJingsllyPrice = useCallback((weight: number) => {
     if (weight <= JINGSLY_PRICES.TIER_1.maxWeight) {

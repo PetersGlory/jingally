@@ -117,7 +117,15 @@ export default function PackageDimension({ handleNextStep, handlePreviousStep }:
   }, [formData]);
 
   const handleInputChange = (field: keyof PackageDimensions, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+    if(field === "weight"){
+      setFormData({
+        ...formData,
+        [field]: value,
+        width: value
+      });
+    }else{
+      setFormData(prev => ({ ...prev, [field]: value }));
+    }
     setErrors(prev => ({ ...prev, [field]: undefined, general: undefined }));
   };
 
@@ -236,14 +244,14 @@ export default function PackageDimension({ handleNextStep, handlePreviousStep }:
                 placeholder="Enter length"
               />
 
-              <DimensionInput
+              {/* <DimensionInput
                 label="Width"
                 value={formData.width}
                 onChange={(value) => handleInputChange('width', value)}
                 error={errors.width}
                 icon={<Maximize2 size={20} />}
                 placeholder="Enter width"
-              />
+              /> */}
 
               <DimensionInput
                 label="Height"
