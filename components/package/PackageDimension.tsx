@@ -156,16 +156,19 @@ export default function PackageDimension({ handleNextStep, handlePreviousStep }:
   const handleSubmit = async () => {
     if (!validateForm()) return;
 
-    if(parseFloat(formData.weight) > 40) {
+    
+    const packageInfo = localStorage.getItem('packageInfo');
+    const packageRoot = JSON.parse(packageInfo || '{}');
+
+    if(parseFloat(formData.weight) > 40 && packageRoot.serviceType === "airfreight") {
       alert('Weight cannot exceed 40kg');
       return;
     }
     try {
       setIsLoading(true);
 
-      const packageInfo = localStorage.getItem('packageInfo');
-      const packageId = JSON.parse(packageInfo || '{}').id;
       
+      const packageId = JSON.parse(packageInfo || '{}').id;
       // Update dimensions in the backend
       const response = await updatePackageDimensions(
         packageId,
