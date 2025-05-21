@@ -168,7 +168,7 @@ export default function PackagePayment({ handleNextStep, handlePreviousStep }: {
     return (dimensions.length * dimensions.width * dimensions.height) / 6000;
   }, []);
 
-  const calculateAirFreightPrice2 = useCallback((weight: number, dimensions: { length: number; width: number; height: number }) => {
+  const calculateAirFreightPrice2 = useCallback((weight: number) => {
     const mainWeight = weight;
     const actualPrice = mainWeight * 10;
     return actualPrice;
@@ -176,7 +176,7 @@ export default function PackagePayment({ handleNextStep, handlePreviousStep }: {
 
   const calculateAirFreightPrice = useCallback((weight: number, dimensions: { length: number; width: number; height: number }) => {
     if(weight > 40) {
-      return calculateAirFreightPrice2(weight, dimensions);
+      return calculateAirFreightPrice2(weight);
     }
     
     // Convert dimensions from cm to meters
