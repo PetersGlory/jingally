@@ -58,18 +58,6 @@ const DimensionInput: React.FC<{
         <div className={styles.iconContainer}>
           {icon}
         </div>
-        {label === "Weight" ? (
-          <input
-          type="number"
-          className={styles.input}
-          placeholder={placeholder}
-          value={value}
-          onChange={handleChange}
-          onFocus={() => setIsFocused(true)}
-          max={max}
-          onBlur={() => setIsFocused(false)}
-        />
-        ) :(
           <input
           type="number"
           className={styles.input}
@@ -79,7 +67,6 @@ const DimensionInput: React.FC<{
           onFocus={() => setIsFocused(true)}
           onBlur={() => setIsFocused(false)}
         />
-        )}
         
       </div>
       {error && (
@@ -158,12 +145,6 @@ export default function PackageDimension({ handleNextStep, handlePreviousStep }:
 
     
     const packageInfo = localStorage.getItem('packageInfo');
-    const packageRoot = JSON.parse(packageInfo || '{}');
-
-    if(parseFloat(formData.weight) > 40 && packageRoot.serviceType === "airfreight") {
-      alert('Weight cannot exceed 40kg');
-      return;
-    }
     try {
       setIsLoading(true);
 

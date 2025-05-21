@@ -175,9 +175,7 @@ export default function PackagePayment({ handleNextStep, handlePreviousStep }: {
   }, []);
 
   const calculateAirFreightPrice = useCallback((weight: number, dimensions: { length: number; width: number; height: number }) => {
-    if(weight > 40) {
-      return calculateAirFreightPrice2(weight);
-    }
+    const weightForAirFreight = calculateAirFreightPrice2(weight);
     
     // Convert dimensions from cm to meters
     const lengthInMeters = dimensions.length;
@@ -189,9 +187,10 @@ export default function PackagePayment({ handleNextStep, handlePreviousStep }: {
     
     // Calculate price based on cubic meters
     const price = cubicMeters / 6000;
+    const newPrice = Math.round(price * AIR_PRICE_PER_CUBIC_METER);
     
-    // Round to 2 decimal places
-    return Math.round(price * AIR_PRICE_PER_CUBIC_METER);
+    // Compare and return the greater value
+    return Math.max(weightForAirFreight, newPrice);
   }, []);
 
 
