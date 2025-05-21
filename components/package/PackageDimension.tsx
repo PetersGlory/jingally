@@ -31,9 +31,10 @@ const DimensionInput: React.FC<{
   value: string;
   onChange: (value: string) => void;
   error?: string;
+  max?: number;
   icon: React.ReactNode;
   placeholder: string;
-}> = ({ label, value, onChange, error, icon, placeholder }) => {
+}> = ({ label, value, onChange, error, icon, placeholder, max }) => {
   const [isFocused, setIsFocused] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -57,7 +58,19 @@ const DimensionInput: React.FC<{
         <div className={styles.iconContainer}>
           {icon}
         </div>
-        <input
+        {label === "Weight" ? (
+          <input
+          type="number"
+          className={styles.input}
+          placeholder={placeholder}
+          value={value}
+          onChange={handleChange}
+          onFocus={() => setIsFocused(true)}
+          max={max}
+          onBlur={() => setIsFocused(false)}
+        />
+        ) :(
+          <input
           type="number"
           className={styles.input}
           placeholder={placeholder}
@@ -66,6 +79,8 @@ const DimensionInput: React.FC<{
           onFocus={() => setIsFocused(true)}
           onBlur={() => setIsFocused(false)}
         />
+        )}
+        
       </div>
       {error && (
         <div className={styles.errorMessage}>
@@ -141,10 +156,10 @@ export default function PackageDimension({ handleNextStep, handlePreviousStep }:
   const handleSubmit = async () => {
     if (!validateForm()) return;
 
-    // if(parseFloat(formData.weight) > 40) {
-    //   alert('Weight cannot exceed 40kg');
-    //   return;
-    // }
+    if(parseFloat(formData.weight) > 40) {
+      alert('Weight cannot exceed 40kg');
+      return;
+    }
     try {
       setIsLoading(true);
 
@@ -227,6 +242,7 @@ export default function PackageDimension({ handleNextStep, handlePreviousStep }:
               onChange={(value) => handleInputChange('weight', value)}
               error={errors.weight}
               icon={<Package size={20} />}
+              max={40}
               placeholder="Enter weight in kilograms"
             />
           </div>
@@ -244,14 +260,14 @@ export default function PackageDimension({ handleNextStep, handlePreviousStep }:
                 placeholder="Enter length"
               />
 
-              {/* <DimensionInput
+              <DimensionInput
                 label="Width"
                 value={formData.width}
                 onChange={(value) => handleInputChange('width', value)}
                 error={errors.width}
                 icon={<Maximize2 size={20} />}
                 placeholder="Enter width"
-              /> */}
+              />
 
               <DimensionInput
                 label="Height"
