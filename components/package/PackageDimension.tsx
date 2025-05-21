@@ -145,6 +145,12 @@ export default function PackageDimension({ handleNextStep, handlePreviousStep }:
 
     
     const packageInfo = localStorage.getItem('packageInfo');
+    const shipment = JSON.parse(packageInfo || '{}');
+    if(parseFloat(formData.weight) > 40 && shipment.serviceType !== 'airfreight '){
+      setErrors(prev => ({ ...prev, weight: 'Weight cannot exceed 40kg' }));
+      return;
+    }
+
     try {
       setIsLoading(true);
 

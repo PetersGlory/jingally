@@ -130,8 +130,15 @@ export default function PackagePayment({ handleNextStep, handlePreviousStep }: {
       ]);
 
       if (shipmentStr && accessToken) {
-        setShipment(JSON.parse(shipmentStr));
+        const lated = JSON.parse(shipmentStr)
+        setShipment(lated);
         setToken(JSON.parse(accessToken));
+        setShipment({
+          ...lated,
+          dimensions: JSON.parse(lated.dimensions),
+          deliveryAddress: JSON.parse(lated.deliveryAddress),
+          pickupAddress: JSON.parse(lated.pickupAddress)
+        });
       } else {
         setError('No shipment information found');
       }
@@ -146,6 +153,7 @@ export default function PackagePayment({ handleNextStep, handlePreviousStep }: {
   useEffect(() => {
     fetchData();
   }, [fetchData]);
+  
 
   const paymentMethods = useMemo(() => [
     {
@@ -164,18 +172,14 @@ export default function PackagePayment({ handleNextStep, handlePreviousStep }: {
     },
   ], []);
 
+
   const calculateVolumetricWeight = useCallback((dimensions: { length: number; width: number; height: number }) => {
     return (dimensions.length * dimensions.width * dimensions.height) / 6000;
   }, []);
 
-  const calculateAirFreightPrice2 = useCallback((weight: number) => {
-    const mainWeight = weight;
-    const actualPrice = mainWeight * 10;
-    return actualPrice;
-  }, []);
-
   const calculateAirFreightPrice = useCallback((weight: number, dimensions: { length: number; width: number; height: number }) => {
-    const weightForAirFreight = calculateAirFreightPrice2(weight);
+    // Calculate weight-based price
+    const weightForAirFreight = weight * 10; // £10 per kg
     
     // Convert dimensions from cm to meters
     const lengthInMeters = dimensions.length;
@@ -192,7 +196,6 @@ export default function PackagePayment({ handleNextStep, handlePreviousStep }: {
     // Compare and return the greater value
     return Math.max(weightForAirFreight, newPrice);
   }, []);
-
 
   const calculateJingsllyPrice = useCallback((weight: number) => {
     if (weight <= JINGSLY_PRICES.TIER_1.maxWeight) {
@@ -225,9 +228,12 @@ export default function PackagePayment({ handleNextStep, handlePreviousStep }: {
     let baseFee = 0;
     let methodName = '';
 
+    // Parse dimensions if they are stored as a string
+    const parsedDimensions = typeof dimensions === 'string' ? JSON.parse(dimensions) : dimensions;
+
     switch (serviceType) {
       case SHIPPING_METHODS.AIR:
-        baseFee = calculateAirFreightPrice(weight, dimensions);
+        baseFee = calculateAirFreightPrice(weight, parsedDimensions);
         methodName = 'Air Freight';
         break;
       case SHIPPING_METHODS.JINGSLY:
@@ -243,7 +249,7 @@ export default function PackagePayment({ handleNextStep, handlePreviousStep }: {
           setError(`Sea freight items cannot exceed ${SEA_MAX_WEIGHT_PER_ITEM}kg per item`);
           return [];
         }
-        baseFee = calculateSeaFreightPrice(dimensions);
+        baseFee = calculateSeaFreightPrice(parsedDimensions);
         methodName = 'Sea Freight';
         break;
       default:
@@ -251,14 +257,12 @@ export default function PackagePayment({ handleNextStep, handlePreviousStep }: {
         return [];
     }
 
-    const serviceFee = Math.round(baseFee * 0.2 * 100) / 100;
-    const vat = Math.round((baseFee + serviceFee) * 0.2 * 100) / 100;
-    const total = Math.round((baseFee + serviceFee) * 100) / 100;
+    const serviceFee = Math.round(baseFee * 0.2);
+    const total = baseFee + serviceFee;
 
     return [
       { label: `${methodName} Fee`, amount: `£${baseFee.toFixed(2)}`, type: 'regular' },
       { label: 'Service Fee', amount: `£${serviceFee.toFixed(2)}`, type: 'regular' },
-      // { label: 'VAT (20%)', amount: `£${vat.toFixed(2)}`, type: 'regular' },
       { label: 'Total', amount: `£${total.toFixed(2)}`, type: 'total' }
     ];
   }, [shipment, calculateAirFreightPrice, calculateJingsllyPrice, calculateSeaFreightPrice]);

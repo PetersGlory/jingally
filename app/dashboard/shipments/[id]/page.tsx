@@ -118,14 +118,24 @@ export default function ShipmentDetailPage() {
 
       const response = await getShipmentDetails(id as string, JSON.parse(token))
       if (response.success) {
-        setShipment(response.data)
+        // Parse the JSON strings in the response data
+        const parsedData = {
+          ...response.data,
+          dimensions: JSON.parse(response.data.dimensions),
+          pickupAddress: JSON.parse(response.data.pickupAddress),
+          deliveryAddress: JSON.parse(response.data.deliveryAddress),
+          images: JSON.parse(response.data.images).filter((item: string) => item !== '[' && item !== ']')
+        }
+        
+        setShipment(parsedData)
+        
         // Check if any required fields are missing
-        const hasMissingInfo = !response.data.receiverName || 
-                             !response.data.receiverEmail || 
-                             !response.data.deliveryAddress || 
-                             !response.data.pickupAddress ||
-                             !response.data.receiverPhoneNumber ||
-                             !response.data.receiverEmail
+        const hasMissingInfo = !parsedData.receiverName || 
+                             !parsedData.receiverEmail || 
+                             !parsedData.deliveryAddress || 
+                             !parsedData.pickupAddress ||
+                             !parsedData.receiverPhoneNumber ||
+                             !parsedData.receiverEmail
         setShowContinueButton(hasMissingInfo)
       } else {
         setError(response.message || 'Failed to fetch shipment details')

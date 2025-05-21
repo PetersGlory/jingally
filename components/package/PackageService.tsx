@@ -17,14 +17,14 @@ interface Service {
 
 // Services Data
 const SERVICES: Service[] = [
-  {
-    id: 'parcel',
-    title: 'Parcel',
-    description: 'Send packages up to 30kg',
-    icon: <Package />,
-    color: '#FFB156',
-    image: '/images/shipping-icons/parcel.png',
-  },
+  // {
+  //   id: 'parcel',
+  //   title: 'Parcel',
+  //   description: 'Send packages up to 30kg',
+  //   icon: <Package />,
+  //   color: '#FFB156',
+  //   image: '/images/shipping-icons/parcel.png',
+  // },
   {
     id: 'airfreight',
     title: 'Air Freight',
