@@ -123,7 +123,7 @@ export default function PackageDimension({ handleNextStep, handlePreviousStep }:
       setFormData({
         ...formData,
         [field]: value,
-        width: value
+        // width: value
       });
     }else{
       setFormData(prev => ({ ...prev, [field]: value }));
