@@ -28,6 +28,8 @@ import {
 } from "@/components/ui/dialog"
 import { useAuth } from "@/components/auth-provider"
 import { countries } from "@/lib/countries"
+import TermsAndConditions from "@/app/terms-and-condition/page"
+import PrivacyPolicy from "@/app/privacy-policy/page"
 
 interface FormErrors {
   firstName?: string;
@@ -454,13 +456,13 @@ export default function RegisterPage() {
                         <DialogTrigger className="text-primary hover:underline">
                           Terms of Service
                         </DialogTrigger>
-                        <DialogContent>
+                        <DialogContent className="max-h-[80vh] overflow-y-auto">
                           <DialogHeader>
-                            <DialogTitle>Terms of Service</DialogTitle>
+                            <DialogTitle>Terms and Conditions</DialogTitle>
                           </DialogHeader>
                           <div className="mt-4">
                             {/* Add your terms of service content here */}
-                            <p>Terms of service content goes here...</p>
+                            <TermsAndConditions />
                           </div>
                         </DialogContent>
                       </Dialog>{" "}
@@ -469,13 +471,13 @@ export default function RegisterPage() {
                         <DialogTrigger className="text-primary hover:underline">
                           Privacy Policy
                         </DialogTrigger>
-                        <DialogContent>
+                        <DialogContent className="max-h-[80vh] overflow-y-auto">
                           <DialogHeader>
                             <DialogTitle>Privacy Policy</DialogTitle>
                           </DialogHeader>
                           <div className="mt-4">
                             {/* Add your privacy policy content here */}
-                            <p>Privacy policy content goes here...</p>
+                            <PrivacyPolicy />
                           </div>
                         </DialogContent>
                       </Dialog>
