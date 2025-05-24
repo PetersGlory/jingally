@@ -119,6 +119,7 @@ export default function PackageDelivery({ handleNextStep, handlePreviousStep }: 
     const autocomplete = type === 'pickup' ? pickupAutocomplete : deliveryAutocomplete;
     if (autocomplete) {
       const place = autocomplete.getPlace();
+      console.log(place)
       if (place.geometry) {
         const addressComponents = place.address_components || [];
         
@@ -396,7 +397,7 @@ export default function PackageDelivery({ handleNextStep, handlePreviousStep }: 
 
       <main className={styles.main}>
         {/* Delivery Mode */}
-        <div className={styles.section}>
+        {/* <div className={styles.section}>
           <div className={styles.sectionHeader}>
             <MapPin size={20} />
             <h2 className={styles.sectionTitle}>Delivery Mode</h2>
@@ -421,7 +422,7 @@ export default function PackageDelivery({ handleNextStep, handlePreviousStep }: 
               Drop Off
             </button>
           </div>
-        </div>
+        </div> */}
 
         {/* Pickup Address Form */}
         {renderAddressForm(

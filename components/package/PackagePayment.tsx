@@ -38,27 +38,26 @@ interface Shipment {
   serviceType: string;
   packageDescription: string;
   fragile: boolean;
-  weight: number;
+  weight: number | null;
   dimensions: {
     width: number;
     height: number;
     length: number;
-  };
-  pickupAddress: {
-    city: string;
-    type: string;
-    state: string;
+  } | null;
+  priceGuides: string;
+  pickupAddress: string | {
     street: string;
-    country: string;
-    postcode: string;
-  };
-  deliveryAddress: {
     city: string;
-    type: string;
     state: string;
-    street: string;
     country: string;
-    postcode: string;
+    postCode: string
+  };
+  deliveryAddress: string | {
+    street: string;
+    city: string;
+    state: string;
+    country: string;
+    postCode: string
   };
   scheduledPickupTime: string;
   estimatedDeliveryTime: string;
@@ -72,6 +71,13 @@ interface Shipment {
   images: string[];
   createdAt: string;
   updatedAt: string;
+}
+
+interface PriceGuide {
+  id: string;
+  guideName: string;
+  price: number;
+  guideNumber: string;
 }
 
 // Constants
@@ -130,15 +136,9 @@ export default function PackagePayment({ handleNextStep, handlePreviousStep }: {
       ]);
 
       if (shipmentStr && accessToken) {
-        const lated = JSON.parse(shipmentStr)
-        setShipment(lated);
+        const parsedShipment = JSON.parse(shipmentStr);
+        setShipment(parsedShipment);
         setToken(JSON.parse(accessToken));
-        setShipment({
-          ...lated,
-          dimensions: JSON.parse(lated.dimensions),
-          deliveryAddress: JSON.parse(lated.deliveryAddress),
-          pickupAddress: JSON.parse(lated.pickupAddress)
-        });
       } else {
         setError('No shipment information found');
       }
@@ -224,33 +224,58 @@ export default function PackagePayment({ handleNextStep, handlePreviousStep }: {
   const calculateCosts = useCallback((): CostItem[] => {
     if (!shipment) return [];
     
-    const { weight, dimensions, serviceType } = shipment;
+    const { serviceType, priceGuides } = shipment;
     let baseFee = 0;
     let methodName = '';
 
-    // Parse dimensions if they are stored as a string
-    const parsedDimensions = typeof dimensions === 'string' ? JSON.parse(dimensions) : dimensions;
+    // Parse priceGuides if it exists
+    let parsedPriceGuides: PriceGuide[] = [];
+    try {
+      if (priceGuides) {
+        parsedPriceGuides = JSON.parse(priceGuides);
+      }
+    } catch (error) {
+      console.error('Error parsing price guides:', error);
+    }
 
     switch (serviceType) {
+      case SHIPPING_METHODS.SEA:
+        if (parsedPriceGuides.length > 0) {
+          // Sum up all price guide prices
+          baseFee = parsedPriceGuides.reduce((sum, guide) => sum + guide.price, 0);
+          methodName = 'Sea Freight (Price Guide)';
+        } else {
+          // Fallback to volumetric calculation if no price guides
+          const parsedDimensions = typeof shipment.dimensions === 'string' 
+            ? JSON.parse(shipment.dimensions) 
+            : shipment.dimensions;
+          
+          if (parsedDimensions) {
+            baseFee = calculateSeaFreightPrice(parsedDimensions);
+            methodName = 'Sea Freight (Volumetric)';
+          }
+        }
+        break;
       case SHIPPING_METHODS.AIR:
-        baseFee = calculateAirFreightPrice(weight, parsedDimensions);
-        methodName = 'Air Freight';
+        if (shipment.weight && shipment.dimensions) {
+          const parsedDimensions = typeof shipment.dimensions === 'string' 
+            ? JSON.parse(shipment.dimensions) 
+            : shipment.dimensions;
+          baseFee = calculateAirFreightPrice(shipment.weight, parsedDimensions);
+          methodName = 'Air Freight';
+        }
         break;
       case SHIPPING_METHODS.JINGSLY:
-        baseFee = calculateJingsllyPrice(weight);
-        methodName = 'Jingslly Logistics';
+        if (shipment.weight) {
+          baseFee = calculateJingsllyPrice(shipment.weight);
+          methodName = 'Jingslly Logistics';
+        }
         break;
       case SHIPPING_METHODS.FROZEN:
-        baseFee = weight * FROZEN_PRICE_PER_KG;
-        methodName = 'Frozen Food Shipping';
-        break;
-      case SHIPPING_METHODS.SEA:
-        if (weight > SEA_MAX_WEIGHT_PER_ITEM) {
-          setError(`Sea freight items cannot exceed ${SEA_MAX_WEIGHT_PER_ITEM}kg per item`);
-          return [];
+        if (shipment.weight) {
+          baseFee = shipment.weight * FROZEN_PRICE_PER_KG;
+          methodName = 'Frozen Food Shipping';
         }
-        baseFee = calculateSeaFreightPrice(parsedDimensions);
-        methodName = 'Sea Freight';
         break;
       default:
         setError('Invalid shipping method');
@@ -516,22 +541,34 @@ export default function PackagePayment({ handleNextStep, handlePreviousStep }: {
               </div>
               <span>{shipment.trackingNumber}</span>
             </div>
-            <div className={styles.summaryItem}>
-              <div className="flex items-center gap-2">
-                <Package className="h-4 w-4" />
-                <span>Weight</span>
+            {shipment.weight && (
+              <div className={styles.summaryItem}>
+                <div className="flex items-center gap-2">
+                  <Package className="h-4 w-4" />
+                  <span>Weight</span>
+                </div>
+                <span>{shipment.weight}kg</span>
               </div>
-              <span>{shipment.weight}kg</span>
-            </div>
-            <div className={styles.summaryItem}>
-              <div className="flex items-center gap-2">
-                <Package className="h-4 w-4" />
-                <span>Dimensions</span>
+            )}
+            {shipment.dimensions && (
+              <div className={styles.summaryItem}>
+                <div className="flex items-center gap-2">
+                  <Package className="h-4 w-4" />
+                  <span>Dimensions</span>
+                </div>
+                <span>
+                  {typeof shipment.dimensions === 'string' 
+                    ? JSON.parse(shipment.dimensions).length
+                    : shipment.dimensions.length}x
+                  {typeof shipment.dimensions === 'string'
+                    ? JSON.parse(shipment.dimensions).width
+                    : shipment.dimensions.width}x
+                  {typeof shipment.dimensions === 'string'
+                    ? JSON.parse(shipment.dimensions).height
+                    : shipment.dimensions.height}cm
+                </span>
               </div>
-              <span>
-                {shipment.dimensions.length}x{shipment.dimensions.width}x{shipment.dimensions.height}cm
-              </span>
-            </div>
+            )}
             <div className={styles.summaryItem}>
               <div className="flex items-center gap-2">
                 <Truck className="h-4 w-4" />
@@ -558,7 +595,12 @@ export default function PackagePayment({ handleNextStep, handlePreviousStep }: {
                 <span>Delivery Address</span>
               </div>
               <span>
-                {shipment.deliveryAddress.street}, {shipment.deliveryAddress.city}
+                {typeof shipment.deliveryAddress === 'string'
+                  ? JSON.parse(shipment.deliveryAddress).street
+                  : shipment.deliveryAddress.street}, 
+                {typeof shipment.deliveryAddress === 'string'
+                  ? JSON.parse(shipment.deliveryAddress).city
+                  : shipment.deliveryAddress.city}
               </span>
             </div>
           </div>

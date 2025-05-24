@@ -4,10 +4,11 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { Package, Maximize2, Box, AlertCircle, ArrowRight, ArrowLeft } from 'lucide-react';
 import styles from './PackageDimension.module.css';
 import { useRouter } from 'next/navigation';
-import { updatePackageDimensions } from '@/lib/shipment';
+import { getPriceGuides, updatePackageDimensions } from '@/lib/shipment';
 
 // Constants
 const MAX_DIMENSION = 1000;
+const MAX_WEIGHT = 40;
 
 // Types
 interface PackageDimensions {
@@ -25,6 +26,57 @@ interface FormErrors {
   general?: string;
 }
 
+interface Shipment {
+  id: string;
+  trackingNumber: string;
+  status: string;
+  packageType: string;
+  serviceType: string;
+  packageDescription: string;
+  fragile: boolean;
+  weight: number;
+  dimensions: {
+    width: number;
+    height: number;
+    length: number;
+  };
+  pickupAddress: {
+    city: string;
+    type: string;
+    state: string;
+    street: string;
+    country: string;
+    postcode: string;
+  };
+  deliveryAddress: {
+    city: string;
+    type: string;
+    state: string;
+    street: string;
+    country: string;
+    postcode: string;
+  };
+  scheduledPickupTime: string;
+  estimatedDeliveryTime: string;
+  receiverName: string;
+  receiverPhoneNumber: string;
+  receiverEmail: string;
+  price: number | null;
+  paymentStatus: string;
+  notes: string | null;
+  driverId: string | null;
+  images: string[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+interface PriceGuide {
+  id: string;
+  guideName: string;
+  guideNumber: string;
+  price: number;
+}
+
 // Component: DimensionInput
 const DimensionInput: React.FC<{
   label: string;
@@ -38,16 +90,13 @@ const DimensionInput: React.FC<{
   const [isFocused, setIsFocused] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    
     const numericValue = e.target.value.replace(/[^0-9.]/g, '');
     const finalValue = numericValue.replace(/(\..*)\./g, '$1');
-    // if(label === "Weight"){
-    // if (parseFloat(numericValue) > 40) {
-    //   alert('Weight cannot exceed 40kg');
-    //   return;
-    // }
-
-    // }
+    
+    if (max && parseFloat(finalValue) > max) {
+      return;
+    }
+    
     onChange(finalValue);
   };
 
@@ -58,7 +107,7 @@ const DimensionInput: React.FC<{
         <div className={styles.iconContainer}>
           {icon}
         </div>
-          <input
+        <input
           type="number"
           className={styles.input}
           placeholder={placeholder}
@@ -67,7 +116,6 @@ const DimensionInput: React.FC<{
           onFocus={() => setIsFocused(true)}
           onBlur={() => setIsFocused(false)}
         />
-        
       </div>
       {error && (
         <div className={styles.errorMessage}>
@@ -80,7 +128,13 @@ const DimensionInput: React.FC<{
 };
 
 // Main Component
-export default function PackageDimension({ handleNextStep, handlePreviousStep }: { handleNextStep: () => void, handlePreviousStep: () => void }) {
+export default function PackageDimension({ 
+  handleNextStep, 
+  handlePreviousStep 
+}: { 
+  handleNextStep: () => void, 
+  handlePreviousStep: () => void 
+}) {
   const router = useRouter();
   const [token, setToken] = useState<string>("");
   const [formData, setFormData] = useState<PackageDimensions>({
@@ -91,17 +145,48 @@ export default function PackageDimension({ handleNextStep, handlePreviousStep }:
   });
   const [errors, setErrors] = useState<FormErrors>({});
   const [isLoading, setIsLoading] = useState(false);
+  const [guides, setGuides] = useState<PriceGuide[]>([]);
+  const [shipInfo, setShipInfo] = useState<Shipment>();
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedGuides, setSelectedGuides] = useState<string[]>([]);
 
   useEffect(() => {
     const accessToken = localStorage.getItem('accessToken');
+    const packageInfo = localStorage.getItem('packageInfo');
+    
     if (accessToken) {
       setToken(JSON.parse(accessToken));
+      getPricings(JSON.parse(accessToken));
+      setShipInfo(JSON.parse(packageInfo || '{}'));
     }
   }, []);
+
+  const toggleGuideSelection = (guideId: string) => {
+    setSelectedGuides(prev => 
+      prev.includes(guideId) 
+        ? prev.filter(id => id !== guideId)
+        : [...prev, guideId]
+    );
+  };
+
+  const getPricings = async (token: string) => {
+    try {
+      setIsLoading(true);
+      const response = await getPriceGuides(token);
+      if (response) {
+        setGuides(response);
+      }
+    } catch (err) {
+      console.error('Error fetching price guides:', err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const validateForm = useCallback((): boolean => {
     const newErrors: FormErrors = {};
     const numericFields = ['weight', 'length', 'width', 'height'] as const;
+    if(selectedGuides.length == 0){
     
     numericFields.forEach(field => {
       const value = formData[field];
@@ -115,19 +200,12 @@ export default function PackageDimension({ handleNextStep, handlePreviousStep }:
     });
 
     setErrors(newErrors);
+    }
     return Object.keys(newErrors).length === 0;
   }, [formData]);
 
   const handleInputChange = (field: keyof PackageDimensions, value: string) => {
-    if(field === "weight"){
-      setFormData({
-        ...formData,
-        [field]: value,
-        // width: value
-      });
-    }else{
-      setFormData(prev => ({ ...prev, [field]: value }));
-    }
+    setFormData(prev => ({ ...prev, [field]: value }));
     setErrors(prev => ({ ...prev, [field]: undefined, general: undefined }));
   };
 
@@ -141,38 +219,59 @@ export default function PackageDimension({ handleNextStep, handlePreviousStep }:
   }, [formData]);
 
   const handleSubmit = async () => {
-    if (!validateForm()) return;
 
-    
+    if (!validateForm() && selectedGuides.length==0) return;
+
     const packageInfo = localStorage.getItem('packageInfo');
     const shipment = JSON.parse(packageInfo || '{}');
-    if(parseFloat(formData.weight) > 40 && shipment.serviceType !== 'airfreight '){
-      setErrors(prev => ({ ...prev, weight: 'Weight cannot exceed 40kg' }));
+    
+    if (parseFloat(formData.weight) > MAX_WEIGHT && shipment.serviceType !== 'airfreight') {
+      setErrors(prev => ({ ...prev, weight: `Weight cannot exceed ${MAX_WEIGHT}kg` }));
       return;
     }
 
     try {
       setIsLoading(true);
+      const packageId = shipment.id;
+      
+      let response;
 
+      if(selectedGuides){
+        const selectedPriceGuides = guides.filter(guide => 
+          selectedGuides.includes(guide.id)
+        ).map(guide => ({
+          id: guide.id,
+          guideName: guide.guideName,
+          price: guide.price,
+          guideNumber: guide.guideNumber
+        }));
+
+        response = await updatePackageDimensions(
+          packageId,
+          {
+            priceGuides: selectedPriceGuides,
+          },
+          token
+        );
+        console.log(selectedGuides)
+      }else{
+        response = await updatePackageDimensions(
+          packageId,
+          {
+            weight: parseFloat(formData.weight),
+            dimensions: {
+              length: parseFloat(formData.length),
+              width: parseFloat(formData.width),
+              height: parseFloat(formData.height),
+            }
+          },
+          token
+        );
+      }
       
-      const packageId = JSON.parse(packageInfo || '{}').id;
-      // Update dimensions in the backend
-      const response = await updatePackageDimensions(
-        packageId,
-        {
-        weight: parseFloat(formData.weight.toString()),
-        dimensions: {
-          length: parseFloat(formData.length.toString()),
-          width: parseFloat(formData.width.toString()),
-          height: parseFloat(formData.height.toString()),
-        }
-        },
-        token
-      );
-      
-      if(response.success) {
+      if (response.success) {
         localStorage.setItem('packageInfo', JSON.stringify(response.data));
-        localStorage.setItem('currentStep', '4')
+        localStorage.setItem('currentStep', '4');
         handleNextStep();
       } else {
         throw new Error(response.message || 'Failed to update package dimensions');
@@ -207,7 +306,6 @@ export default function PackageDimension({ handleNextStep, handlePreviousStep }:
 
       <main className={styles.main}>
         <div className={styles.content}>
-          {/* Header Section */}
           <div className={styles.headerSection}>
             <h2 className={styles.title}>Package Dimensions</h2>
             <p className={styles.subtitle}>
@@ -215,7 +313,6 @@ export default function PackageDimension({ handleNextStep, handlePreviousStep }:
             </p>
           </div>
           
-          {/* Error Message */}
           {errors.general && (
             <div className={styles.errorContainer}>
               <AlertCircle size={20} />
@@ -223,7 +320,49 @@ export default function PackageDimension({ handleNextStep, handlePreviousStep }:
             </div>
           )}
 
-          {/* Weight Section */}
+          {shipInfo?.serviceType === "seafreight" && (
+            <div className={styles.priceGuideSection}>
+              <h3 className={styles.sectionTitle}>Price Guide Selection (Optional)</h3>
+              <div className={styles.filterSection}>
+                <div className={styles.searchBox}>
+                  <input
+                    type="text"
+                    placeholder="Search price guides..."
+                    className={styles.searchInput}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                  />
+                </div>
+              </div>
+              
+              <div className={styles.priceGuideList}>
+                {guides
+                  .filter(guide => 
+                    guide.guideName.toLowerCase().includes(searchTerm.toLowerCase())
+                  )
+                  .map((guide) => (
+                    <div 
+                      key={guide.id} 
+                      className={`${styles.priceGuideItem} ${selectedGuides.includes(guide.id) ? styles.selected : ''}`}
+                      onClick={() => toggleGuideSelection(guide.id)}
+                    >
+                      <div className={styles.guideInfo}>
+                        <h4>{guide.guideName}</h4>
+                        <p>{guide.guideNumber}</p>
+                        <span className={styles.price}>${guide.price}</span>
+                      </div>
+                      <div className={styles.checkbox}>
+                        <input
+                          type="checkbox"
+                          checked={selectedGuides.includes(guide.id)}
+                          onChange={() => {}}
+                        />
+                      </div>
+                    </div>
+                  ))}
+              </div>
+            </div>
+          )}
+
           <div className={styles.section}>
             <h3 className={styles.sectionTitle}>Weight</h3>
             <DimensionInput
@@ -232,12 +371,11 @@ export default function PackageDimension({ handleNextStep, handlePreviousStep }:
               onChange={(value) => handleInputChange('weight', value)}
               error={errors.weight}
               icon={<Package size={20} />}
-              max={40}
+              max={MAX_WEIGHT}
               placeholder="Enter weight in kilograms"
             />
           </div>
 
-          {/* Dimensions Section */}
           <div className={styles.section}>
             <h3 className={styles.sectionTitle}>Dimensions (cm)</h3>
             <div className={styles.dimensionsGrid}>
@@ -270,7 +408,6 @@ export default function PackageDimension({ handleNextStep, handlePreviousStep }:
             </div>
           </div>
 
-          {/* Volume Calculation Section */}
           <div className={styles.volumeSection}>
             <div className={styles.volumeHeader}>
               <div className={styles.volumeIcon}>
@@ -286,7 +423,6 @@ export default function PackageDimension({ handleNextStep, handlePreviousStep }:
             </p>
           </div>
 
-          {/* Submit Button */}
           <button
             className={`${styles.submitButton} ${isLoading ? styles.loading : ''}`}
             onClick={handleSubmit}

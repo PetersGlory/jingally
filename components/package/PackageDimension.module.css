@@ -230,6 +230,104 @@
   background-color: #93c5fd;
 }
 
+.priceGuideSection {
+  margin-bottom: 2rem;
+  padding: 1.5rem;
+  background-color: #f9fafb;
+  border-radius: 0.75rem;
+}
+
+.filterSection {
+  margin-bottom: 1rem;
+}
+
+.searchBox {
+  position: relative;
+}
+
+.searchInput {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  padding-left: 2.5rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  background-color: white;
+}
+
+.searchInput:focus {
+  outline: none;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.1);
+}
+
+.priceGuideList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.priceGuideItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  background-color: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.priceGuideItem:hover {
+  border-color: #2563eb;
+  background-color: #f8fafc;
+}
+
+.priceGuideItem.selected {
+  border-color: #2563eb;
+  background-color: #eff6ff;
+}
+
+.guideInfo {
+  flex: 1;
+}
+
+.guideInfo h4 {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #111827;
+  margin-bottom: 0.25rem;
+}
+
+.guideInfo p {
+  font-size: 0.875rem;
+  color: #6b7280;
+}
+
+.price {
+  font-weight: 600;
+  color: #2563eb;
+}
+
+.checkbox {
+  margin-left: 1rem;
+}
+
+.checkbox input[type="checkbox"] {
+  width: 1.25rem;
+  height: 1.25rem;
+  border: 2px solid #e5e7eb;
+  border-radius: 0.25rem;
+  cursor: pointer;
+}
+
+.checkbox input[type="checkbox"]:checked {
+  background-color: #2563eb;
+  border-color: #2563eb;
+}
+
+
 @media (max-width: 640px) {
   .header {
     padding: 1rem;

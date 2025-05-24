@@ -19,6 +19,15 @@ export const getShipments = async (token: string) => {
   return response.data;
 };
 
+export const getPriceGuides = async (token: string) => {
+  const response = await api.get('/price-guide', {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+  return response.data;
+};
+
 // Package Photo Upload Section
 export const uploadPackagePhotos = async (photos: any, token: string) => {
   const response = await api.post('/shipping/upload-photos', photos, {

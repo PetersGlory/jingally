@@ -9,9 +9,63 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { MainNav } from "@/components/main-nav"
 import { MobileNav } from "@/components/mobile-nav"
 import { Footer } from "@/components/footer"
-import { Search, Package, CheckCircle, Truck, Clock, AlertCircle } from "lucide-react"
+import { Search, Package, CheckCircle, Truck, Clock, AlertCircle, User, Mail, Phone } from "lucide-react"
 import { trackingShipment } from "@/lib/shipment"
 import { toast } from "sonner"
+
+interface Address {
+  street: string;
+  city: string;
+  state: string;
+  country: string;
+  postcode: string;
+  latitude: number;
+  longitude: number;
+  placeId: string;
+  type: string;
+}
+
+interface Shipment {
+  id: string;
+  trackingNumber: string;
+  status: string;
+  packageType: string;
+  serviceType: string;
+  packageDescription: string;
+  fragile: boolean;
+  weight: number | null;
+  dimensions: {
+    width: number;
+    height: number;
+    length: number;
+  } | null;
+  priceGuides: string;
+  pickupAddress: string;
+  deliveryAddress: string;
+  deliveryType: string;
+  scheduledPickupTime: string;
+  estimatedDeliveryTime: string;
+  receiverName: string;
+  receiverPhoneNumber: string;
+  receiverEmail: string;
+  price: string | null;
+  paymentStatus: string;
+  paymentMethod: string;
+  notes: string | null;
+  driverId: string | null;
+  containerID: string | null;
+  images: string[];
+  createdAt: string;
+  updatedAt: string;
+  user: {
+    id: string;
+    firstName: string;
+    lastName: string;
+    email: string;
+  };
+  driver: any | null;
+  container: any | null;
+}
 
 export default function TrackingPage() {
   const [trackingNumber, setTrackingNumber] = useState("")
@@ -22,6 +76,18 @@ export default function TrackingPage() {
     origin: string
     destination: string
     estimatedDelivery: string
+    packageType: string
+    serviceType: string
+    receiver: {
+      name: string
+      email: string
+      phone: string
+    }
+    payment: {
+      status: string
+      method: string
+      amount: string | null
+    }
     updates: Array<{
       date: string
       time: string
@@ -29,6 +95,25 @@ export default function TrackingPage() {
       status: string
     }>
   }>(null)
+
+  const parseAddress = (addressString: string): Address => {
+    try {
+      return JSON.parse(addressString);
+    } catch (error) {
+      console.error('Error parsing address:', error);
+      return {
+        street: '',
+        city: '',
+        state: '',
+        country: '',
+        postcode: '',
+        latitude: 0,
+        longitude: 0,
+        placeId: '',
+        type: ''
+      };
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -43,7 +128,9 @@ export default function TrackingPage() {
 
         const response = await trackingShipment(trackingNumber, JSON.parse(token))
         if (response.success) {
-          const shipment = response.data
+          const shipment: Shipment = response.data
+          const pickupAddress = parseAddress(shipment.pickupAddress)
+          const deliveryAddress = parseAddress(shipment.deliveryAddress)
           
           // Create updates array based on shipment status
           const updates = []
@@ -59,9 +146,9 @@ export default function TrackingPage() {
               hour: '2-digit',
               minute: '2-digit'
             }),
-            location: shipment.status === 'delivered' ? shipment.deliveryAddress.city : 
+            location: shipment.status === 'delivered' ? deliveryAddress.city : 
                      shipment.status === 'in_transit' ? 'In Transit' :
-                     shipment.status === 'picked_up' ? shipment.pickupAddress.city :
+                     shipment.status === 'picked_up' ? pickupAddress.city :
                      'Processing',
             status: shipment.status.charAt(0).toUpperCase() + shipment.status.slice(1)
           })
@@ -78,7 +165,7 @@ export default function TrackingPage() {
                 hour: '2-digit',
                 minute: '2-digit'
               }),
-              location: shipment.pickupAddress.city,
+              location: pickupAddress.city,
               status: 'Package picked up'
             })
           }
@@ -95,21 +182,33 @@ export default function TrackingPage() {
                 hour: '2-digit',
                 minute: '2-digit'
               }),
-              location: shipment.deliveryAddress.city,
+              location: deliveryAddress.city,
               status: 'Package delivered'
             })
           }
 
           setTrackingResult({
             id: shipment.trackingNumber,
-            status: shipment.status,
-            origin: `${shipment.pickupAddress.city}, ${shipment.pickupAddress.country}`,
-            destination: `${shipment.deliveryAddress.city}, ${shipment.deliveryAddress.country}`,
+            status: shipment.status as any,
+            origin: `${pickupAddress.city}, ${pickupAddress.country}`,
+            destination: `${deliveryAddress.city}, ${deliveryAddress.country}`,
             estimatedDelivery: new Date(shipment.estimatedDeliveryTime).toLocaleDateString('en-US', {
               year: 'numeric',
               month: 'long',
               day: 'numeric'
             }),
+            packageType: shipment.packageType,
+            serviceType: shipment.serviceType,
+            receiver: {
+              name: shipment.receiverName,
+              email: shipment.receiverEmail,
+              phone: shipment.receiverPhoneNumber
+            },
+            payment: {
+              status: shipment.paymentStatus,
+              method: shipment.paymentMethod,
+              amount: shipment.price
+            },
             updates: updates
           })
         } else {
@@ -229,6 +328,39 @@ export default function TrackingPage() {
                       <div className="bg-gray-50 p-4 rounded-lg">
                         <p className="text-sm font-medium text-muted-foreground mb-1">To</p>
                         <p className="text-lg font-semibold">{trackingResult.destination}</p>
+                      </div>
+                    </div>
+
+                    <div className="mb-8 grid grid-cols-1 gap-6 md:grid-cols-3">
+                      <div className="bg-gray-50 p-4 rounded-lg">
+                        <p className="text-sm font-medium text-muted-foreground mb-1">Package Type</p>
+                        <p className="text-lg font-semibold capitalize">{trackingResult.packageType}</p>
+                      </div>
+                      <div className="bg-gray-50 p-4 rounded-lg">
+                        <p className="text-sm font-medium text-muted-foreground mb-1">Service Type</p>
+                        <p className="text-lg font-semibold capitalize">{trackingResult.serviceType}</p>
+                      </div>
+                      <div className="bg-gray-50 p-4 rounded-lg">
+                        <p className="text-sm font-medium text-muted-foreground mb-1">Payment Status</p>
+                        <p className="text-lg font-semibold capitalize">{trackingResult.payment.status}</p>
+                      </div>
+                    </div>
+
+                    <div className="mb-8">
+                      <h3 className="mb-4 text-xl font-bold text-gray-900">Receiver Information</h3>
+                      <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+                        <div className="flex items-center space-x-2">
+                          <User className="h-5 w-5 text-orange-500" />
+                          <span>{trackingResult.receiver.name}</span>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <Mail className="h-5 w-5 text-orange-500" />
+                          <span>{trackingResult.receiver.email}</span>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <Phone className="h-5 w-5 text-orange-500" />
+                          <span>{trackingResult.receiver.phone}</span>
+                        </div>
                       </div>
                     </div>
 
