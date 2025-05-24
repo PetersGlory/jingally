@@ -236,7 +236,20 @@ export default function PackageDimension({
       
       let response;
 
-      if(selectedGuides){
+      if(formData.weight !== "" && formData.length !== ""){
+        response = await updatePackageDimensions(
+          packageId,
+          {
+            weight: parseFloat(formData.weight),
+            dimensions: {
+              length: parseFloat(formData.length),
+              width: parseFloat(formData.width),
+              height: parseFloat(formData.height),
+            }
+          },
+          token
+        );
+      }else{
         const selectedPriceGuides = guides.filter(guide => 
           selectedGuides.includes(guide.id)
         ).map(guide => ({
@@ -254,19 +267,6 @@ export default function PackageDimension({
           token
         );
         console.log(selectedGuides)
-      }else{
-        response = await updatePackageDimensions(
-          packageId,
-          {
-            weight: parseFloat(formData.weight),
-            dimensions: {
-              length: parseFloat(formData.length),
-              width: parseFloat(formData.width),
-              height: parseFloat(formData.height),
-            }
-          },
-          token
-        );
       }
       
       if (response.success) {
@@ -320,9 +320,9 @@ export default function PackageDimension({
             </div>
           )}
 
-          {shipInfo?.serviceType === "seafreight" && (
+          {shipInfo?.serviceType === "seafreight" && shipInfo.packageType == "items" ? (
             <div className={styles.priceGuideSection}>
-              <h3 className={styles.sectionTitle}>Price Guide Selection (Optional)</h3>
+              <h3 className={styles.sectionTitle}>Item Selection</h3>
               <div className={styles.filterSection}>
                 <div className={styles.searchBox}>
                   <input
@@ -361,9 +361,9 @@ export default function PackageDimension({
                   ))}
               </div>
             </div>
-          )}
-
-          <div className={styles.section}>
+          ):(
+            <>
+              <div className={styles.section}>
             <h3 className={styles.sectionTitle}>Weight</h3>
             <DimensionInput
               label="Weight (kg)"
@@ -422,6 +422,10 @@ export default function PackageDimension({
               Calculated based on length × width × height
             </p>
           </div>
+            </>
+          )}
+
+          
 
           <button
             className={`${styles.submitButton} ${isLoading ? styles.loading : ''}`}

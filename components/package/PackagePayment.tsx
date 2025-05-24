@@ -10,7 +10,7 @@ import { PayPalScriptProvider, PayPalButtons } from "@paypal/react-paypal-js";
 
 // Types
 interface PaymentMethod {
-  id: 'card' | 'paypal' | 'bank_transfer';
+  id: 'card' | 'paypal' | 'bank_transfer' | 'part_payment';
   name: string;
   description: string;
   icon: React.ReactNode;
@@ -30,6 +30,25 @@ interface CostItem {
   type: 'regular' | 'total';
 }
 
+interface Address {
+  street: string;
+  city: string;
+  state: string;
+  country: string;
+  postcode: string;
+  latitude: number;
+  longitude: number;
+  placeId: string;
+  type: string;
+}
+
+interface PriceGuide {
+  id: string;
+  guideName: string;
+  price: number;
+  guideNumber: string;
+}
+
 interface Shipment {
   id: string;
   trackingNumber: string;
@@ -45,39 +64,23 @@ interface Shipment {
     length: number;
   } | null;
   priceGuides: string;
-  pickupAddress: string | {
-    street: string;
-    city: string;
-    state: string;
-    country: string;
-    postCode: string
-  };
-  deliveryAddress: string | {
-    street: string;
-    city: string;
-    state: string;
-    country: string;
-    postCode: string
-  };
+  pickupAddress: string;
+  deliveryAddress: string;
+  deliveryType: string;
   scheduledPickupTime: string;
   estimatedDeliveryTime: string;
   receiverName: string;
   receiverPhoneNumber: string;
   receiverEmail: string;
-  price: number | null;
+  price: string | null;
   paymentStatus: string;
+  paymentMethod: string;
   notes: string | null;
   driverId: string | null;
+  containerID: string | null;
   images: string[];
   createdAt: string;
   updatedAt: string;
-}
-
-interface PriceGuide {
-  id: string;
-  guideName: string;
-  price: number;
-  guideNumber: string;
 }
 
 // Constants
@@ -92,8 +95,11 @@ const SHIPPING_METHODS = {
   PARCEL: 'parcel'
 } as const;
 
-// Air freight price per cubic meter
-const AIR_PRICE_PER_CUBIC_METER = 10; // £300 per cubic meter
+// Price constants
+const AIR_PRICE_PER_CUBIC_METER = 300; // £300 per cubic meter
+const SEA_FREIGHT_PRICE_PER_CUBIC_METER = 300; // £300 per cubic meter
+const FROZEN_PRICE_PER_KG = 1100; // £1100 per kg
+const SEA_MAX_WEIGHT_PER_ITEM = 40; // kg
 
 // Jingslly price tiers
 const JINGSLY_PRICES = {
@@ -102,12 +108,47 @@ const JINGSLY_PRICES = {
   TIER_3: { minWeight: 101, pricePerKg: 500 }
 };
 
-// Frozen food price
-const FROZEN_PRICE_PER_KG = 1100;
+const calculateVolumetricWeight = (dimensions: { length: number; width: number; height: number }): number => {
+  // Convert dimensions from cm to meters
+  const lengthInMeters = dimensions.length / 100;
+  const widthInMeters = dimensions.width / 100;
+  const heightInMeters = dimensions.height / 100;
+  
+  // Calculate cubic meters
+  return lengthInMeters * widthInMeters * heightInMeters;
+};
 
-// Sea freight constants
-const SEA_FREIGHT_PRICE_PER_CUBIC_METER = 300; // £300 per cubic meter
-const SEA_MAX_WEIGHT_PER_ITEM = 40; // kg
+const calculateAirFreightPrice = (weight: number, dimensions: { length: number; width: number; height: number }): number => {
+  // Calculate volumetric weight
+  const volumetricWeight = calculateVolumetricWeight(dimensions);
+  
+  // Calculate weight-based price
+  const weightPrice = weight * 10; // £10 per kg
+  
+  // Calculate volumetric price
+  const volumetricPrice = volumetricWeight * AIR_PRICE_PER_CUBIC_METER;
+  
+  // Return the greater of the two prices
+  return Math.max(weightPrice, volumetricPrice);
+};
+
+const calculateJingsllyPrice = (weight: number): number => {
+  if (weight <= JINGSLY_PRICES.TIER_1.maxWeight) {
+    return weight * JINGSLY_PRICES.TIER_1.pricePerKg;
+  } else if (weight <= JINGSLY_PRICES.TIER_2.maxWeight) {
+    return weight * JINGSLY_PRICES.TIER_2.pricePerKg;
+  } else {
+    return weight * JINGSLY_PRICES.TIER_3.pricePerKg;
+  }
+};
+
+const calculateSeaFreightPrice = (dimensions: { length: number; width: number; height: number }): number => {
+  // Calculate volumetric weight
+  const volumetricWeight = calculateVolumetricWeight(dimensions);
+  
+  // Calculate price based on cubic meters
+  return volumetricWeight * SEA_FREIGHT_PRICE_PER_CUBIC_METER;
+};
 
 export default function PackagePayment({ handleNextStep, handlePreviousStep }: { handleNextStep: () => void, handlePreviousStep: () => void }) {
   const router = useRouter();
@@ -127,6 +168,34 @@ export default function PackagePayment({ handleNextStep, handlePreviousStep }: {
   });
   const [showBankModal, setShowBankModal] = useState(false);
 
+  const parseAddress = (addressString: string): Address => {
+    try {
+      return JSON.parse(addressString);
+    } catch (error) {
+      console.error('Error parsing address:', error);
+      return {
+        street: '',
+        city: '',
+        state: '',
+        country: '',
+        postcode: '',
+        latitude: 0,
+        longitude: 0,
+        placeId: '',
+        type: ''
+      };
+    }
+  };
+
+  const parsePriceGuides = (priceGuidesString: string): PriceGuide[] => {
+    try {
+      return JSON.parse(priceGuidesString);
+    } catch (error) {
+      console.error('Error parsing price guides:', error);
+      return [];
+    }
+  };
+
   const fetchData = useCallback(async () => {
     try {
       setIsLoading(true);
@@ -136,7 +205,7 @@ export default function PackagePayment({ handleNextStep, handlePreviousStep }: {
       ]);
 
       if (shipmentStr && accessToken) {
-        const parsedShipment = JSON.parse(shipmentStr);
+        const parsedShipment: Shipment = JSON.parse(shipmentStr);
         setShipment(parsedShipment);
         setToken(JSON.parse(accessToken));
       } else {
@@ -170,73 +239,30 @@ export default function PackagePayment({ handleNextStep, handlePreviousStep }: {
       icon: <Banknote size={20} />,
       isEnabled: true
     },
+    {
+      id: 'part_payment',
+      name: 'Part Payment',
+      description: 'Pay via bank transfer',
+      icon: <Banknote size={20} />,
+      isEnabled: true
+    },
   ], []);
 
-
-  const calculateVolumetricWeight = useCallback((dimensions: { length: number; width: number; height: number }) => {
-    return (dimensions.length * dimensions.width * dimensions.height) / 6000;
-  }, []);
-
-  const calculateAirFreightPrice = useCallback((weight: number, dimensions: { length: number; width: number; height: number }) => {
-    // Calculate weight-based price
-    const weightForAirFreight = weight * 10; // £10 per kg
-    
-    // Convert dimensions from cm to meters
-    const lengthInMeters = dimensions.length;
-    const widthInMeters = dimensions.width;
-    const heightInMeters = dimensions.height;
-    
-    // Calculate cubic meters
-    const cubicMeters = lengthInMeters * widthInMeters * heightInMeters;
-    
-    // Calculate price based on cubic meters
-    const price = cubicMeters / 6000;
-    const newPrice = Math.round(price * AIR_PRICE_PER_CUBIC_METER);
-    
-    // Compare and return the greater value
-    return Math.max(weightForAirFreight, newPrice);
-  }, []);
-
-  const calculateJingsllyPrice = useCallback((weight: number) => {
-    if (weight <= JINGSLY_PRICES.TIER_1.maxWeight) {
-      return weight * JINGSLY_PRICES.TIER_1.pricePerKg;
-    } else if (weight <= JINGSLY_PRICES.TIER_2.maxWeight) {
-      return weight * JINGSLY_PRICES.TIER_2.pricePerKg;
-    } else {
-      return weight * JINGSLY_PRICES.TIER_3.pricePerKg;
-    }
-  }, []);
-
-  const calculateSeaFreightPrice = useCallback((dimensions: { length: number; width: number; height: number }) => {
-    // Convert dimensions from cm to meters
-    const lengthInMeters = dimensions.length / 100;
-    const widthInMeters = dimensions.width / 100;
-    const heightInMeters = dimensions.height / 100;
-    
-    // Calculate cubic meters and price
-    const cubicMeters = lengthInMeters * widthInMeters * heightInMeters;
-    const price = cubicMeters * 300; // £300 per cubic meter
-    
-    // Round to 2 decimal places
-    return Math.round(price * 100) / 100;
-  }, []);
 
   const calculateCosts = useCallback((): CostItem[] => {
     if (!shipment) return [];
     
-    const { serviceType, priceGuides } = shipment;
+    const { serviceType, priceGuides, weight, dimensions } = shipment;
     let baseFee = 0;
     let methodName = '';
 
-    // Parse priceGuides if it exists
-    let parsedPriceGuides: PriceGuide[] = [];
-    try {
-      if (priceGuides) {
-        parsedPriceGuides = JSON.parse(priceGuides);
-      }
-    } catch (error) {
-      console.error('Error parsing price guides:', error);
-    }
+    // Parse price guides
+    const parsedPriceGuides = parsePriceGuides(priceGuides);
+
+    // Parse dimensions if they exist
+    const parsedDimensions = dimensions ? 
+      (typeof dimensions === 'string' ? JSON.parse(dimensions) : dimensions) : 
+      null;
 
     switch (serviceType) {
       case SHIPPING_METHODS.SEA:
@@ -244,36 +270,27 @@ export default function PackagePayment({ handleNextStep, handlePreviousStep }: {
           // Sum up all price guide prices
           baseFee = parsedPriceGuides.reduce((sum, guide) => sum + guide.price, 0);
           methodName = 'Sea Freight (Price Guide)';
-        } else {
+        } else if (parsedDimensions) {
           // Fallback to volumetric calculation if no price guides
-          const parsedDimensions = typeof shipment.dimensions === 'string' 
-            ? JSON.parse(shipment.dimensions) 
-            : shipment.dimensions;
-          
-          if (parsedDimensions) {
-            baseFee = calculateSeaFreightPrice(parsedDimensions);
-            methodName = 'Sea Freight (Volumetric)';
-          }
+          baseFee = calculateSeaFreightPrice(parsedDimensions);
+          methodName = 'Sea Freight (Volumetric)';
         }
         break;
       case SHIPPING_METHODS.AIR:
-        if (shipment.weight && shipment.dimensions) {
-          const parsedDimensions = typeof shipment.dimensions === 'string' 
-            ? JSON.parse(shipment.dimensions) 
-            : shipment.dimensions;
-          baseFee = calculateAirFreightPrice(shipment.weight, parsedDimensions);
+        if (weight && parsedDimensions) {
+          baseFee = calculateAirFreightPrice(weight, parsedDimensions);
           methodName = 'Air Freight';
         }
         break;
       case SHIPPING_METHODS.JINGSLY:
-        if (shipment.weight) {
-          baseFee = calculateJingsllyPrice(shipment.weight);
+        if (weight) {
+          baseFee = calculateJingsllyPrice(weight);
           methodName = 'Jingslly Logistics';
         }
         break;
       case SHIPPING_METHODS.FROZEN:
-        if (shipment.weight) {
-          baseFee = shipment.weight * FROZEN_PRICE_PER_KG;
+        if (weight) {
+          baseFee = weight * FROZEN_PRICE_PER_KG;
           methodName = 'Frozen Food Shipping';
         }
         break;
@@ -290,7 +307,7 @@ export default function PackagePayment({ handleNextStep, handlePreviousStep }: {
       { label: 'Service Fee', amount: `£${serviceFee.toFixed(2)}`, type: 'regular' },
       { label: 'Total', amount: `£${total.toFixed(2)}`, type: 'total' }
     ];
-  }, [shipment, calculateAirFreightPrice, calculateJingsllyPrice, calculateSeaFreightPrice]);
+  }, [shipment]);
 
   const costs = useMemo(() => calculateCosts(), [calculateCosts]);
 
@@ -431,7 +448,7 @@ export default function PackagePayment({ handleNextStep, handlePreviousStep }: {
       const amount = parseFloat(costs.find(c => c.type === 'total')?.amount.replace('£', '') || '0');
       
       const paymentDetails = {
-        method: 'bank_transfer',
+        method: selectedMethod || 'bank_transfer',
         amount,
         paymentStatus: 'pending',
         currency: 'GBP'
@@ -539,9 +556,9 @@ export default function PackagePayment({ handleNextStep, handlePreviousStep }: {
                 <Package className="h-4 w-4" />
                 <span>Tracking Number</span>
               </div>
-              <span>{shipment.trackingNumber}</span>
+              <span>{shipment?.trackingNumber}</span>
             </div>
-            {shipment.weight && (
+            {shipment?.weight && (
               <div className={styles.summaryItem}>
                 <div className="flex items-center gap-2">
                   <Package className="h-4 w-4" />
@@ -550,22 +567,19 @@ export default function PackagePayment({ handleNextStep, handlePreviousStep }: {
                 <span>{shipment.weight}kg</span>
               </div>
             )}
-            {shipment.dimensions && (
+            {shipment?.dimensions && (
               <div className={styles.summaryItem}>
                 <div className="flex items-center gap-2">
                   <Package className="h-4 w-4" />
                   <span>Dimensions</span>
                 </div>
                 <span>
-                  {typeof shipment.dimensions === 'string' 
-                    ? JSON.parse(shipment.dimensions).length
-                    : shipment.dimensions.length}x
-                  {typeof shipment.dimensions === 'string'
-                    ? JSON.parse(shipment.dimensions).width
-                    : shipment.dimensions.width}x
-                  {typeof shipment.dimensions === 'string'
-                    ? JSON.parse(shipment.dimensions).height
-                    : shipment.dimensions.height}cm
+                  {(() => {
+                    const dims = typeof shipment.dimensions === 'string' 
+                      ? JSON.parse(shipment.dimensions) 
+                      : shipment.dimensions;
+                    return `${dims.length}x${dims.width}x${dims.height}cm`;
+                  })()}
                 </span>
               </div>
             )}
@@ -574,7 +588,7 @@ export default function PackagePayment({ handleNextStep, handlePreviousStep }: {
                 <Truck className="h-4 w-4" />
                 <span>Service Type</span>
               </div>
-              <span>{shipment.serviceType}</span>
+              <span className="capitalize">{shipment?.serviceType}</span>
             </div>
             <div className={styles.summaryItem}>
               <div className="flex items-center gap-2">
@@ -582,7 +596,7 @@ export default function PackagePayment({ handleNextStep, handlePreviousStep }: {
                 <span>Pickup Date</span>
               </div>
               <span>
-                {new Date(shipment.scheduledPickupTime).toLocaleDateString('en-GB', {
+                {shipment?.scheduledPickupTime && new Date(shipment.scheduledPickupTime).toLocaleDateString('en-GB', {
                   day: 'numeric',
                   month: 'short',
                   year: 'numeric'
@@ -595,12 +609,8 @@ export default function PackagePayment({ handleNextStep, handlePreviousStep }: {
                 <span>Delivery Address</span>
               </div>
               <span>
-                {typeof shipment.deliveryAddress === 'string'
-                  ? JSON.parse(shipment.deliveryAddress).street
-                  : shipment.deliveryAddress.street}, 
-                {typeof shipment.deliveryAddress === 'string'
-                  ? JSON.parse(shipment.deliveryAddress).city
-                  : shipment.deliveryAddress.city}
+                {shipment?.deliveryAddress && parseAddress(shipment.deliveryAddress).street}, 
+                {shipment?.deliveryAddress && parseAddress(shipment.deliveryAddress).city}
               </span>
             </div>
           </div>
@@ -639,12 +649,15 @@ export default function PackagePayment({ handleNextStep, handlePreviousStep }: {
                   onClick={() => {
                     if (method.id === 'card') {
                       setShowCardModal(true);
-                      } else if (method.id === 'paypal') {
-                        setSelectedMethod(method.id as PaymentMethod['id']);
-                        setShowPayPalModal(true);
-                      } else if (method.id === 'bank_transfer') {
-                        setSelectedMethod(method.id as PaymentMethod['id']);
-                        setShowBankModal(true);
+                    } else if (method.id === 'paypal') {
+                      setSelectedMethod(method.id as PaymentMethod['id']);
+                      setShowPayPalModal(true);
+                    } else if (method.id === 'bank_transfer') {
+                      setSelectedMethod(method.id as PaymentMethod['id']);
+                      setShowBankModal(true);
+                    }else if(method.id === 'part_payment'){
+                      setSelectedMethod(method.id as PaymentMethod['id']);
+                      setShowBankModal(true);
                     } else {
                       setSelectedMethod(method.id as PaymentMethod['id']);
                     }
@@ -859,7 +872,7 @@ export default function PackagePayment({ handleNextStep, handlePreviousStep }: {
                   <div className="p-4 bg-orange-50 rounded-lg">
                     <h3 className="font-semibold mb-2">Important Information</h3>
                     <p className="text-sm text-orange-800">
-                      Please use your tracking number as the payment reference. Your shipment will be processed once the payment is confirmed.
+                      Please use your tracking number as the payment reference. Your shipment will be processed once the payment is confirmed. For part payments, please Note that it's (70%/30%) and also indicate the amount paid in the reference.
                     </p>
                   </div>
 

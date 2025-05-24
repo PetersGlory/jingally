@@ -20,10 +20,10 @@ interface FormErrors {
 
 const PACKAGE_TYPES = [
   { 
-    id: 'document', 
-    label: 'Document', 
+    id: 'items', 
+    label: 'Item', 
     icon: FileText,
-    description: 'Letters, papers, contracts',
+    description: 'Jingally Price guides',
     color: '#FFB156'
   },
   { 
