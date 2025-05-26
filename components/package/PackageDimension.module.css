@@ -43,6 +43,8 @@
 .content {
   max-width: 600px;
   margin: 0 auto;
+  width: 100%;
+  padding: 0 1rem;
 }
 
 .headerSection {
@@ -87,6 +89,7 @@
 .dimensionsGrid {
   display: grid;
   gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
 }
 
 .inputContainer {
@@ -139,6 +142,7 @@
   outline: none;
   font-size: 1rem;
   color: #111827;
+  width: 100%;
 }
 
 .input::placeholder {
@@ -170,6 +174,7 @@
   align-items: center;
   gap: 0.75rem;
   margin-bottom: 1rem;
+  flex-wrap: wrap;
 }
 
 .volumeIcon {
@@ -277,6 +282,8 @@
   border-radius: 0.5rem;
   cursor: pointer;
   transition: all 0.2s;
+  flex-wrap: wrap;
+  gap: 0.5rem;
 }
 
 .priceGuideItem:hover {
@@ -291,6 +298,7 @@
 
 .guideInfo {
   flex: 1;
+  min-width: 200px;
 }
 
 .guideInfo h4 {
@@ -327,8 +335,45 @@
   border-color: #2563eb;
 }
 
+.quantityControls {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-left: auto;
+}
 
-@media (max-width: 640px) {
+.quantityButton {
+  width: 2rem;
+  height: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.25rem;
+  background-color: white;
+  color: #374151;
+  font-size: 1.25rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.quantityButton:hover {
+  background-color: #f3f4f6;
+  border-color: #d1d5db;
+}
+
+.quantityButton:active {
+  background-color: #e5e7eb;
+}
+
+.quantity {
+  min-width: 2rem;
+  text-align: center;
+  font-weight: 500;
+  color: #374151;
+}
+
+@media (max-width: 768px) {
   .header {
     padding: 1rem;
   }

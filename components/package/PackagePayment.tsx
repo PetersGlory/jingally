@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
-import { CreditCard, Shield, Check, X, Edit2, AlertCircle, Package, Truck, MapPin, Calendar, ArrowLeft, Banknote } from 'lucide-react';
+import { CreditCard, Shield, Check, X, Edit2, AlertCircle, Package, Truck, MapPin, Calendar, ArrowLeft, Banknote, List } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import styles from './PackagePayment.module.css';
 import { updatePaymentStatus } from '@/lib/shipment';
@@ -299,13 +299,15 @@ export default function PackagePayment({ handleNextStep, handlePreviousStep }: {
         return [];
     }
 
-    const serviceFee = Math.round(baseFee * 0.2);
+    const serviceFee = serviceType === SHIPPING_METHODS.SEA ? 0 : Math.round(baseFee * 0.2);
     const total = baseFee + serviceFee;
 
     return [
-      { label: `${methodName} Fee`, amount: `£${baseFee.toFixed(2)}`, type: 'regular' },
-      { label: 'Service Fee', amount: `£${serviceFee.toFixed(2)}`, type: 'regular' },
-      { label: 'Total', amount: `£${total.toFixed(2)}`, type: 'total' }
+      { label: `${methodName} Fee`, amount: `£${baseFee.toFixed(2)}`, type: 'regular' as const },
+      ...(serviceType !== SHIPPING_METHODS.SEA ? [
+        { label: 'Service Fee', amount: `£${serviceFee.toFixed(2)}`, type: 'regular' as const }
+      ] : []),
+      { label: 'Total', amount: `£${total.toFixed(2)}`, type: 'total' as const }
     ];
   }, [shipment]);
 
@@ -615,6 +617,28 @@ export default function PackagePayment({ handleNextStep, handlePreviousStep }: {
             </div>
           </div>
         </div>
+
+        {shipment?.priceGuides && (
+          <div className="flex flex-col p-4 border border-gray-200 rounded-lg bg-white">
+            <div className="flex items-center gap-2 mb-2">
+              <List className="h-4 w-4 text-gray-600" />
+              <span className="font-medium text-gray-900">Price Guides</span>
+            </div>
+            <div className="flex flex-col gap-2">
+              {(() => {
+                const guides = typeof shipment.priceGuides === 'string' 
+                  ? JSON.parse(shipment.priceGuides) 
+                  : shipment.priceGuides;
+                return guides.map((guide: PriceGuide) => (
+                  <div key={guide.id} className="flex justify-between items-center text-sm text-gray-700 py-1 px-2 bg-gray-50 rounded">
+                    <span>{guide.guideName}</span>
+                    <span className="font-medium text-blue-600">${guide.price}</span>
+                  </div>
+                ));
+              })()}
+            </div>
+          </div>
+        )}
 
         {/* Cost Breakdown */}
         <div className={styles.costSection}>

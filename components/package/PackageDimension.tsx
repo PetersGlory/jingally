@@ -250,14 +250,17 @@ export default function PackageDimension({
           token
         );
       }else{
-        const selectedPriceGuides = guides.filter(guide => 
-          selectedGuides.includes(guide.id)
-        ).map(guide => ({
-          id: guide.id,
-          guideName: guide.guideName,
-          price: guide.price,
-          guideNumber: guide.guideNumber
-        }));
+        console.log(guides)
+        const selectedPriceGuides = selectedGuides.map(guideId => {
+          const guide = guides.find(g => g.id === guideId);
+          if (!guide) return null;
+          return {
+            id: guide.id,
+            guideName: guide.guideName,
+            price: guide.price,
+            guideNumber: guide.guideNumber
+          };
+        }).filter(Boolean);
 
         response = await updatePackageDimensions(
           packageId,
@@ -342,20 +345,49 @@ export default function PackageDimension({
                   .map((guide) => (
                     <div 
                       key={guide.id} 
-                      className={`${styles.priceGuideItem} ${selectedGuides.includes(guide.id) ? styles.selected : ''}`}
+                      className={`${styles.priceGuideItem} ${selectedGuides.includes(guide.id) ? styles.selected : ''} gap-3`}
                       onClick={() => toggleGuideSelection(guide.id)}
                     >
-                      <div className={styles.guideInfo}>
-                        <h4>{guide.guideName}</h4>
-                        <p>{guide.guideNumber}</p>
-                        <span className={styles.price}>${guide.price}</span>
-                      </div>
                       <div className={styles.checkbox}>
                         <input
                           type="checkbox"
                           checked={selectedGuides.includes(guide.id)}
                           onChange={() => {}}
                         />
+                      </div>
+                      <div className={styles.guideInfo}>
+                        <h4>{guide.guideName}</h4>
+                        <p>{guide.guideNumber}</p>
+                        <span className={styles.price}>${guide.price}</span>
+                      </div>
+                      <div className={styles.quantityControls}>
+                        <button 
+                          className={styles.quantityButton}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            const currentCount = selectedGuides.filter(id => id === guide.id).length;
+                            if (currentCount > 0) {
+                              const index = selectedGuides.indexOf(guide.id);
+                              const newSelectedGuides = [...selectedGuides];
+                              newSelectedGuides.splice(index, 1);
+                              setSelectedGuides(newSelectedGuides);
+                            }
+                          }}
+                        >
+                          -
+                        </button>
+                        <span className={styles.quantity}>
+                          {selectedGuides.filter(id => id === guide.id).length}
+                        </span>
+                        <button 
+                          className={styles.quantityButton}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSelectedGuides([...selectedGuides, guide.id]);
+                          }}
+                        >
+                          +
+                        </button>
                       </div>
                     </div>
                   ))}

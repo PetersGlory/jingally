@@ -137,7 +137,7 @@ export default function PackageDetails({ selectedType, serviceType, handleNextSt
 
   return (
     <div className='w-full h-full bg-white'>
-      <div className='flex flex-row items-center justify-start gap-4'>
+      <div className='flex flex-row items-center justify-start gap-4 px-4'>
         <button onClick={handlePreviousStep}>
           <ArrowLeft size={20} />
         </button>
@@ -158,6 +158,11 @@ export default function PackageDetails({ selectedType, serviceType, handleNextSt
         <h2>Package Type</h2>
         <div className={styles.typeGrid}>
           {PACKAGE_TYPES.map((type) => {
+            // Skip items package type if service type is airfreight
+            if (serviceType === 'airfreight' && type.id === 'items') {
+              return null;
+            }
+            
             const Icon = type.icon;
             return (
               <button
