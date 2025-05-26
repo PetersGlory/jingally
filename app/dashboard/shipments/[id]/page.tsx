@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useCallback, useMemo } from "react"
+import React, { useState, useEffect, useCallback, useMemo } from "react"
 import Link from "next/link"
 import { useParams, useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
@@ -23,6 +23,7 @@ interface Shipment {
   packageType: string | null;
   serviceType: string | null;
   packageDescription: string | null;
+  priceGuides:string;
   fragile: boolean | null;
   weight: number;
   dimensions: {
@@ -625,6 +626,28 @@ export default function ShipmentDetailPage() {
                           </div>
                         </div>
                       </div>
+
+                      {shipment?.priceGuides && (
+                        <div>
+                          <h3 className="mb-2 font-medium">Price Guides</h3>
+                          <div className="rounded-lg border p-3 text-sm">
+                            <div className="grid grid-cols-2 gap-2">
+                              {(() => {
+                                const guides = typeof shipment.priceGuides === 'string' 
+                                  ? JSON.parse(shipment.priceGuides) 
+                                  : shipment.priceGuides;
+                                return guides.map((guide: any) => (
+                                  <React.Fragment key={guide.id}>
+                                    <span className="text-muted-foreground">{guide.guideName}:</span>
+                                    <span>${guide.price}</span>
+                                  </React.Fragment>
+                                ));
+                              })()}
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
                       {shipment?.container && (
                         <div>
                           <h3 className="mb-2 font-medium">Container Information</h3>

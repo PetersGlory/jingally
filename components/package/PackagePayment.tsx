@@ -167,6 +167,7 @@ export default function PackagePayment({ handleNextStep, handlePreviousStep }: {
     cardHolderName: ''
   });
   const [showBankModal, setShowBankModal] = useState(false);
+  const [selectedPaymentAmount,setSelectedPaymentAmount] = useState('0')
 
   const parseAddress = (addressString: string): Address => {
     try {
@@ -299,7 +300,7 @@ export default function PackagePayment({ handleNextStep, handlePreviousStep }: {
         return [];
     }
 
-    const serviceFee = serviceType === SHIPPING_METHODS.SEA ? 0 : Math.round(baseFee * 0.2);
+    const serviceFee = serviceType === SHIPPING_METHODS.SEA ? 0 : 20;
     const total = baseFee + serviceFee;
 
     return [
@@ -657,6 +658,47 @@ export default function PackagePayment({ handleNextStep, handlePreviousStep }: {
                 </span>
               </div>
             ))}
+
+            <div className="mt-4 space-y-3">
+              <div className="flex items-center space-x-2">
+                <input
+                  type="checkbox"
+                  id="pay70"
+                  className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                  onChange={(e) => {
+                    if (e.target.checked) {
+                      const total = parseFloat(costs.find(c => c.type === 'total')?.amount.replace('£', '') || '0');
+                      const seventyPercent = (total * 0.7).toFixed(2);
+                      setSelectedPaymentAmount(seventyPercent);
+                    } else {
+                      setSelectedPaymentAmount('0');
+                    }
+                  }}
+                />
+                <label htmlFor="pay70" className="text-sm font-medium text-gray-700">
+                  Pay 70% (£{(parseFloat(costs.find(c => c.type === 'total')?.amount.replace('£', '') || '0') * 0.7).toFixed(2)})
+                </label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <input
+                  type="checkbox"
+                  id="pay50"
+                  className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                  onChange={(e) => {
+                    if (e.target.checked) {
+                      const total = parseFloat(costs.find(c => c.type === 'total')?.amount.replace('£', '') || '0');
+                      const fiftyPercent = (total * 0.5).toFixed(2);
+                      setSelectedPaymentAmount(fiftyPercent);
+                    } else {
+                      setSelectedPaymentAmount('0');
+                    }
+                  }}
+                />
+                <label htmlFor="pay50" className="text-sm font-medium text-gray-700">
+                  Pay 50% (£{(parseFloat(costs.find(c => c.type === 'total')?.amount.replace('£', '') || '0') * 0.5).toFixed(2)})
+                </label>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -666,6 +708,10 @@ export default function PackagePayment({ handleNextStep, handlePreviousStep }: {
           <div className={styles.paymentMethods}>
             {paymentMethods.map((method) => {
               const isSelected = selectedMethod === method.id;
+              // Only show bank transfer if partial payment is selected
+              if (selectedPaymentAmount !== '0' && method.id !== 'bank_transfer') {
+                return null;
+              }
               return (
                 <button
                   key={method.id}
@@ -679,9 +725,8 @@ export default function PackagePayment({ handleNextStep, handlePreviousStep }: {
                     } else if (method.id === 'bank_transfer') {
                       setSelectedMethod(method.id as PaymentMethod['id']);
                       setShowBankModal(true);
-                    }else if(method.id === 'part_payment'){
+                    } else if(method.id === 'part_payment'){
                       setSelectedMethod(method.id as PaymentMethod['id']);
-                      setShowBankModal(true);
                     } else {
                       setSelectedMethod(method.id as PaymentMethod['id']);
                     }
@@ -726,7 +771,7 @@ export default function PackagePayment({ handleNextStep, handlePreviousStep }: {
             'Processing...'
           ) : (
             selectedMethod === 'paypal' ? 'Pay with PayPal' : 
-            selectedMethod ? `Pay ${costs.find(c => c.type === 'total')?.amount}` : 
+            selectedMethod ? `Pay ${'£'+selectedPaymentAmount || costs.find(c => c.type === 'total')?.amount}` : 
             'Select Payment Method'
           )}
         </button>
