@@ -1,7 +1,9 @@
 
-import { api } from './api';
+import axios from 'axios';
 
-const generalApi = api
+const generalApi = axios.create({
+    baseURL: "https://jingally-server.onrender.com/api",
+  });
 
 export const createShipment = async (shippingData: any, token: string) => {
   const response = await generalApi.post('/guest-shipments', shippingData);

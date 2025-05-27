@@ -153,46 +153,50 @@ export default function CreateShipmentPage() {
   const CurrentStepComponent = STEPS[currentStep].component;
 
   return (
-    <div className={styles.container}>
-      <div className={styles.progressBar}>
-        {STEPS.map((step, index) => (
-          <React.Fragment key={step.id}>
-            <div
-              className={`${styles.step} ${
-                index === currentStep
-                  ? styles.active
-                  : index < currentStep
-                  ? styles.completed
-                  : ''
-              }`}
-            >
-              <div className={styles.stepNumber}>
-                {index < currentStep ? '✓' : index + 1}
-              </div>
-              <span className={styles.stepTitle}>{step.title}</span>
-            </div>
-            {index < STEPS.length - 1 && (
-              <div
-                className={`${styles.stepLine} ${
-                  index < currentStep ? styles.completed : ''
-                }`}
-              />
-            )}
-          </React.Fragment>
-        ))}
-      </div>
+    <>
+      <div className='w-full px-4'>
+        <div className={styles.container}>
+          <div className={styles.progressBar}>
+            {STEPS.map((step, index) => (
+              <React.Fragment key={step.id}>
+                <div
+                  className={`${styles.step} ${
+                    index === currentStep
+                      ? styles.active
+                      : index < currentStep
+                      ? styles.completed
+                      : ''
+                  }`}
+                >
+                  <div className={styles.stepNumber}>
+                    {index < currentStep ? '✓' : index + 1}
+                  </div>
+                  <span className={styles.stepTitle}>{step.title}</span>
+                </div>
+                {index < STEPS.length - 1 && (
+                  <div
+                    className={`${styles.stepLine} ${
+                      index < currentStep ? styles.completed : ''
+                    }`}
+                  />
+                )}
+              </React.Fragment>
+            ))}
+          </div>
 
-      <CurrentStepComponent
-        onNext={handleNextStep}
-        onBack={handlePreviousStep}
-        onUpdate={handleUpdateData}
-        initialData={formData} onSelectType={function (type: string): void {
-          console.log('Function not implemented.');
-        } } handleNextStep={function (): void {
-          console.log('Function not implemented.');
-        } } serviceType={''} handlePreviousStep={function (): void {
-          throw new Error('Function not implemented.');
-        } }      />
-    </div>
+          <CurrentStepComponent
+            onNext={handleNextStep}
+            onBack={handlePreviousStep}
+            onUpdate={handleUpdateData}
+            initialData={formData} onSelectType={function (type: string): void {
+              console.log('Function not implemented.');
+            } } handleNextStep={function (): void {
+              console.log('Function not implemented.');
+            } } serviceType={''} handlePreviousStep={function (): void {
+              throw new Error('Function not implemented.');
+            } }      />
+        </div>
+      </div>
+    </>
   );
 }
