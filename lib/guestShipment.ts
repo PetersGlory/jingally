@@ -95,3 +95,9 @@ export const updateBookingUser = async (shipmentData: any, token: string) => {
   });
   return response.data;
 };
+
+export const getPriceGuides = async () => {
+  const response = await generalApi.get('/guest-shipments/price-guides');
+  return response.data;
+};
+

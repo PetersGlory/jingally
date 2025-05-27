@@ -10,6 +10,7 @@ interface PackageDetails {
   type: string;
   description: string;
   isFragile: boolean;
+  serviceType?: string;
 }
 
 interface FormErrors {
@@ -52,19 +53,30 @@ const PACKAGE_TYPES = [
 interface PackageDetailsProps {
   selectedType?: string;
   serviceType: string;
-  handleNextStep: () => void;
-  handlePreviousStep: () => void;
+  onNext: () => void;
+  onBack: () => void;
 }
 
-export default function PackageDetails({ selectedType, serviceType, handleNextStep, handlePreviousStep }: PackageDetailsProps) {
+export default function PackageDetails({ selectedType, serviceType, onNext, onBack }: PackageDetailsProps) {
   const router = useRouter();
   const [formData, setFormData] = useState<PackageDetails>({
     type: selectedType || '',
     description: '',
     isFragile: false,
+    serviceType: ''
   });
   const [errors, setErrors] = useState<FormErrors>({});
   const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(()=>{
+    const selectedService = localStorage.getItem('selectedService')
+    if(selectedService){
+      setFormData({
+        ...formData,
+        serviceType: selectedService
+      })
+    }
+  },[])
 
   const validateForm = (): boolean => {
     const newErrors: FormErrors = {};
@@ -110,18 +122,12 @@ export default function PackageDetails({ selectedType, serviceType, handleNextSt
         fragile: formData.isFragile.toString()
       }
 
-      const token = localStorage.getItem('accessToken');
-      if (!token) {
-        router.replace('/');
-        return;
-      }
-
-      const response = await createShipment(dataBody, JSON.parse(token));
+      const response = await createShipment(dataBody, '');
 
       if (response.success) {
         localStorage.setItem('packageInfo', JSON.stringify(response.data));
         localStorage.setItem('currentStep', '3')
-        handleNextStep();
+        onNext();
       } else {
         throw new Error(response.message || 'Failed to create shipment');
       }
@@ -138,7 +144,7 @@ export default function PackageDetails({ selectedType, serviceType, handleNextSt
   return (
     <div className='w-full h-full bg-white'>
       <div className='flex flex-row items-center justify-start gap-4 px-4'>
-        <button onClick={handlePreviousStep}>
+        <button onClick={onBack}>
           <ArrowLeft size={20} />
         </button>
         <div className={styles.header}>
@@ -159,7 +165,7 @@ export default function PackageDetails({ selectedType, serviceType, handleNextSt
         <div className={styles.typeGrid}>
           {PACKAGE_TYPES.map((type) => {
             // Skip items package type if service type is airfreight
-            if (serviceType === 'airfreight' && type.id === 'items') {
+            if (formData.serviceType === 'airfreight' && type.id === 'items') {
               return null;
             }
             
@@ -221,6 +227,7 @@ export default function PackageDetails({ selectedType, serviceType, handleNextSt
       <button
         className={styles.submitButton}
         onClick={handleSubmit}
+        type='button'
         disabled={isLoading}
       >
         {isLoading ? (

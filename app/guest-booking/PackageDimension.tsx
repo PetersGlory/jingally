@@ -5,7 +5,7 @@ import { Package, Maximize2, Box, AlertCircle, ArrowRight, ArrowLeft } from 'luc
 import styles from './PackageDimension.module.css';
 import { useRouter } from 'next/navigation';
 import { updatePackageDimensions } from '@/lib/guestShipment';
-import { getPriceGuides } from '@/lib/shipment';
+import { getPriceGuides } from '@/lib/guestShipment';
 
 // Constants
 const MAX_DIMENSION = 1000;
@@ -130,11 +130,11 @@ const DimensionInput: React.FC<{
 
 // Main Component
 export default function PackageDimension({ 
-  handleNextStep, 
-  handlePreviousStep 
+  onNext, 
+  onBack 
 }: { 
-  handleNextStep: () => void, 
-  handlePreviousStep: () => void 
+  onNext: () => void, 
+  onBack: () => void 
 }) {
   const router = useRouter();
   const [token, setToken] = useState<string>("");
@@ -155,11 +155,9 @@ export default function PackageDimension({
     const accessToken = localStorage.getItem('accessToken');
     const packageInfo = localStorage.getItem('packageInfo');
     
-    if (accessToken) {
-      setToken(JSON.parse(accessToken));
-      getPricings(JSON.parse(accessToken));
-      setShipInfo(JSON.parse(packageInfo || '{}'));
-    }
+    setToken('');
+    getPricings('');
+    setShipInfo(JSON.parse(packageInfo || '{}'));
   }, []);
 
   const toggleGuideSelection = (guideId: string) => {
@@ -173,7 +171,7 @@ export default function PackageDimension({
   const getPricings = async (token: string) => {
     try {
       setIsLoading(true);
-      const response = await getPriceGuides(token);
+      const response = await getPriceGuides();
       if (response) {
         setGuides(response);
       }
@@ -276,7 +274,7 @@ export default function PackageDimension({
       if (response.success) {
         localStorage.setItem('packageInfo', JSON.stringify(response.data));
         localStorage.setItem('currentStep', '4');
-        handleNextStep();
+        onNext();
       } else {
         throw new Error(response.message || 'Failed to update package dimensions');
       }
@@ -294,7 +292,7 @@ export default function PackageDimension({
         <div className="flex flex-row items-center gap-4">
           <button 
             className={styles.backButton}
-            onClick={handlePreviousStep}
+            onClick={onBack}
           >
             <ArrowLeft size={20} />
           </button>
@@ -302,7 +300,7 @@ export default function PackageDimension({
         </div>
         <button 
           className={styles.cancelButton}
-          onClick={handlePreviousStep}
+          onClick={onBack}
         >
           Cancel
         </button>
@@ -463,6 +461,7 @@ export default function PackageDimension({
           <button
             className={`${styles.submitButton} ${isLoading ? styles.loading : ''}`}
             onClick={handleSubmit}
+            type='button'
             disabled={isLoading}
           >
             {isLoading ? (

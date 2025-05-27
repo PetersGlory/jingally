@@ -150,7 +150,7 @@ const calculateSeaFreightPrice = (dimensions: { length: number; width: number; h
   return volumetricWeight * SEA_FREIGHT_PRICE_PER_CUBIC_METER;
 };
 
-export default function PackagePayment({ handleNextStep, handlePreviousStep }: { handleNextStep: () => void, handlePreviousStep: () => void }) {
+export default function PackagePayment({ handleNextStep, onBack }: { handleNextStep: () => void, onBack: () => void }) {
   const router = useRouter();
   const [selectedMethod, setSelectedMethod] = useState<PaymentMethod['id'] | null>(null);
   const [showCardModal, setShowCardModal] = useState(false);
@@ -393,7 +393,7 @@ export default function PackagePayment({ handleNextStep, handlePreviousStep }: {
         
         setTimeout(() => {
           setShowSuccessModal(false);
-          router.replace("/dashboard/shipments");
+          router.replace("/");
         }, 2000);
       } else {
         setError(paymentResponse.message || 'Payment failed');
@@ -534,7 +534,7 @@ export default function PackagePayment({ handleNextStep, handlePreviousStep }: {
           <div className="flex flex-row items-center gap-4">
             <button 
               className={styles.backButton}
-              onClick={handlePreviousStep}
+              onClick={onBack}
             >
               <ArrowLeft className="h-4 w-4" />
             </button>
@@ -542,7 +542,7 @@ export default function PackagePayment({ handleNextStep, handlePreviousStep }: {
           </div>
           <button 
             className={styles.cancelButton}
-            onClick={handlePreviousStep}
+            onClick={onBack}
           >
             Cancel
           </button>
@@ -764,6 +764,7 @@ export default function PackagePayment({ handleNextStep, handlePreviousStep }: {
           <button
             className={`${styles.payButton} ${selectedMethod && !isLoading ? styles.active : ''}`}
             disabled={!selectedMethod || isLoading}
+            type='button'
             onClick={handlePayment}
           >
             {isLoading ? (

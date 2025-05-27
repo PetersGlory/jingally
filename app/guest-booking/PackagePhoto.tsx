@@ -116,14 +116,14 @@ export default function PackagePhoto({ onNext, onBack, onUpdate, initialData }: 
         }
       });
 
-      const token = localStorage.getItem('token');
-      if (!token) {
-        router.replace('/');
-        return;
-      }
+      // const token = localStorage.getItem('token');
+      // if (!token) {
+      //   router.replace('/');
+      //   return;
+      // }
       
       // Upload photos using the API
-      const response = await updateShipmentPhotos(packageInfoData.id, formData, token);
+      const response = await updateShipmentPhotos(packageInfoData.id, formData, '');
 
       if (response.success) {
         localStorage.setItem('packageInfo', JSON.stringify(response.data));
@@ -192,18 +192,6 @@ export default function PackagePhoto({ onNext, onBack, onUpdate, initialData }: 
                 </div>
               ))}
               
-              {/* {photos.length < 4 && (
-                <button
-                  type="button"
-                  className={styles.addPhotoButton}
-                  onClick={handleTakePhoto}
-                >
-                  <div className={styles.addPhotoIcon}>
-                    <Camera size={24} />
-                  </div>
-                  <span>Take Photo</span>
-                </button>
-              )} */}
             </div>
 
             {photos.length < 4 && (

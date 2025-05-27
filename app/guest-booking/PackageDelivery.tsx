@@ -561,6 +561,7 @@ export default function PackageDelivery({ onNext, onBack, onUpdate, initialData 
         <button
           className={`${styles.continueButton} ${!isValidForm() || isLoading ? styles.disabled : ''}`}
           onClick={handleSubmit}
+          type='button'
           disabled={!isValidForm() || isLoading}
         >
           {isLoading ? (

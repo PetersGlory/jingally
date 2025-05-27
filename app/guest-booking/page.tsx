@@ -192,9 +192,7 @@ export default function CreateShipmentPage() {
               console.log('Function not implemented.');
             } } handleNextStep={function (): void {
               console.log('Function not implemented.');
-            } } serviceType={''} handlePreviousStep={function (): void {
-              throw new Error('Function not implemented.');
-            } }      />
+            } } serviceType={''}      />
         </div>
       </div>
     </>
