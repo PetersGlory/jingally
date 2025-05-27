@@ -47,7 +47,7 @@ export const updatePackageDimensions = async (packageId: string, dimensions: any
 
 // Update Shipment Photos
 export const updateShipmentPhotos = async (packageId: string, photos: any, token: string) => {
-  const response = await generalApi.put(`/guest-shipments/${packageId}/photos`, photos, {
+  const response = await generalApi.post(`/guest-shipments/${packageId}/photos`, photos, {
     headers: {
       Authorization: `Bearer ${token}`,
       'Content-Type': 'multipart/form-data',

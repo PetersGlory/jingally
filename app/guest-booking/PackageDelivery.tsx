@@ -390,7 +390,7 @@ export default function PackageDelivery({ onNext, onBack, onUpdate, initialData 
 
       <main className={styles.main}>
         {/* Delivery Mode */}
-        <div className={styles.section}>
+        {/* <div className={styles.section}>
           <div className={styles.sectionHeader}>
             <div className={styles.iconContainer}>
               <MapPin size={20} />
@@ -437,7 +437,7 @@ export default function PackageDelivery({ onNext, onBack, onUpdate, initialData 
               Drop Off
             </button>
           </div>
-        </div>
+        </div> */}
 
         {/* Pickup Address Form */}
         {renderAddressForm(

@@ -115,8 +115,9 @@ export default function PackageDetails({ selectedType, serviceType, onNext, onBa
     try {
       setIsLoading(true);
       setErrors({});
+      const selectedService = localStorage.getItem('selectedService')
       const dataBody={
-        serviceType: serviceType,
+        serviceType: selectedService || formData.serviceType,
         packageType: formData.type,
         packageDescription: formData.description,
         fragile: formData.isFragile.toString()

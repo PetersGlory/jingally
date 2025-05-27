@@ -173,7 +173,7 @@ export default function PackageDimension({
       setIsLoading(true);
       const response = await getPriceGuides();
       if (response) {
-        setGuides(response);
+        setGuides(response.data);
       }
     } catch (err) {
       console.error('Error fetching price guides:', err);
@@ -337,7 +337,7 @@ export default function PackageDimension({
               </div>
               
               <div className={styles.priceGuideList}>
-                {guides
+                {guides && guides
                   .filter(guide => 
                     guide.guideName.toLowerCase().includes(searchTerm.toLowerCase())
                   )
