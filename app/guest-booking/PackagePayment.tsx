@@ -200,15 +200,14 @@ export default function PackagePayment({ handleNextStep, onBack }: { handleNextS
   const fetchData = useCallback(async () => {
     try {
       setIsLoading(true);
-      const [shipmentStr, accessToken] = await Promise.all([
-        localStorage.getItem('packageInfo'),
-        localStorage.getItem('accessToken')
+      const [shipmentStr] = await Promise.all([
+        localStorage.getItem('packageInfo')
       ]);
 
-      if (shipmentStr && accessToken) {
+      if (shipmentStr) {
         const parsedShipment: Shipment = JSON.parse(shipmentStr);
         setShipment(parsedShipment);
-        setToken(JSON.parse(accessToken));
+        setToken('');
       } else {
         setError('No shipment information found');
       }
@@ -430,7 +429,7 @@ export default function PackagePayment({ handleNextStep, onBack }: { handleNextS
         
         setTimeout(() => {
           setShowSuccessModal(false);
-          router.replace("/dashboard/shipments");
+          router.replace("/");
         }, 2000);
       } else {
         setError(paymentResponse.message || 'Payment failed');
@@ -468,7 +467,7 @@ export default function PackagePayment({ handleNextStep, onBack }: { handleNextS
         
         setTimeout(() => {
           setShowSuccessModal(false);
-          router.replace("/dashboard/shipments");
+          router.replace("/");
         }, 2000);
       } else {
         setError(paymentResponse.message || 'Payment failed');
@@ -658,46 +657,57 @@ export default function PackagePayment({ handleNextStep, onBack }: { handleNextS
                 </div>
               ))}
 
-              <div className="mt-4 space-y-3">
-                <div className="flex items-center space-x-2">
-                  <input
-                    type="checkbox"
-                    id="pay70"
-                    className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                    onChange={(e) => {
-                      if (e.target.checked) {
-                        const total = parseFloat(costs.find(c => c.type === 'total')?.amount.replace('£', '') || '0');
-                        const seventyPercent = (total * 0.7).toFixed(2);
-                        setSelectedPaymentAmount(seventyPercent);
-                      } else {
-                        setSelectedPaymentAmount('0');
-                      }
-                    }}
-                  />
-                  <label htmlFor="pay70" className="text-sm font-medium text-gray-700">
-                    Pay 70% (£{(parseFloat(costs.find(c => c.type === 'total')?.amount.replace('£', '') || '0') * 0.7).toFixed(2)})
-                  </label>
+              {/* Part Payment */}
+              <div className='w-full'>
+                <h3 className='font-bold'>Part Payment</h3>
+                <div className="mt-4 space-y-3">
+                  <div className="flex items-center space-x-2">
+                    <input
+                      type="checkbox"
+                      id="pay70"
+                      className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                      onChange={(e) => {
+                        if (e.target.checked) {
+                          const total = parseFloat(costs.find(c => c.type === 'total')?.amount.replace('£', '') || '0');
+                          const seventyPercent = (total * 0.7).toFixed(2);
+                          setSelectedPaymentAmount(seventyPercent);
+                        } else {
+                          setSelectedPaymentAmount('0');
+                        }
+                      }}
+                    />
+                    <label htmlFor="pay70" className="text-sm font-medium text-gray-700">
+                      Pay 70% (£{(parseFloat(costs.find(c => c.type === 'total')?.amount.replace('£', '') || '0') * 0.7).toFixed(2)})
+                    </label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <input
+                      type="checkbox"
+                      id="pay50"
+                      className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                      onChange={(e) => {
+                        if (e.target.checked) {
+                          const total = parseFloat(costs.find(c => c.type === 'total')?.amount.replace('£', '') || '0');
+                          const fiftyPercent = (total * 0.5).toFixed(2);
+                          setSelectedPaymentAmount(fiftyPercent);
+                        } else {
+                          setSelectedPaymentAmount('0');
+                        }
+                      }}
+                    />
+                    <label htmlFor="pay50" className="text-sm font-medium text-gray-700">
+                      Pay 50% (£{(parseFloat(costs.find(c => c.type === 'total')?.amount.replace('£', '') || '0') * 0.5).toFixed(2)})
+                    </label>
+                  </div>
                 </div>
-                <div className="flex items-center space-x-2">
-                  <input
-                    type="checkbox"
-                    id="pay50"
-                    className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                    onChange={(e) => {
-                      if (e.target.checked) {
-                        const total = parseFloat(costs.find(c => c.type === 'total')?.amount.replace('£', '') || '0');
-                        const fiftyPercent = (total * 0.5).toFixed(2);
-                        setSelectedPaymentAmount(fiftyPercent);
-                      } else {
-                        setSelectedPaymentAmount('0');
-                      }
-                    }}
-                  />
-                  <label htmlFor="pay50" className="text-sm font-medium text-gray-700">
-                    Pay 50% (£{(parseFloat(costs.find(c => c.type === 'total')?.amount.replace('£', '') || '0') * 0.5).toFixed(2)})
-                  </label>
+
+                <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-md">
+                  <p className="text-sm text-yellow-800">
+                    <span className="font-medium">Note:</span> Balance payment is to be made upon final delivery
+                  </p>
                 </div>
               </div>
+              
             </div>
           </div>
 
@@ -968,19 +978,19 @@ export default function PackagePayment({ handleNextStep, onBack }: { handleNextS
         {/* Success Modal */}
         {showSuccessModal && (
           <div className={styles.modalOverlay}>
-            <div className={styles.successModal}>
-              <div className={styles.successIcon}>
-                <Check size={32} />
-              </div>
-              <h2>Payment Successful!</h2>
-              <p>
-                Your payment has been processed successfully. You will be redirected to tracking shortly.
-              </p>
-              <div className={styles.progressBar}>
-                <div className={styles.progress} />
-              </div>
+          <div className={styles.successModal}>
+            <div className={styles.successIcon}>
+              <Check size={32} />
+            </div>
+            <h2>Payment Scheduled Successfully!</h2>
+            <p>
+              Your payment has been scheduled successfully. You will be redirected to tracking shortly.
+            </p>
+            <div className={styles.progressBar}>
+              <div className={styles.progress} />
             </div>
           </div>
+        </div>
         )}
       </div>
     </PayPalScriptProvider>
