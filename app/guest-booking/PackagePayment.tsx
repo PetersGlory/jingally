@@ -610,8 +610,8 @@ export default function PackagePayment({ handleNextStep, onBack }: { handleNextS
                   <span>Delivery Address</span>
                 </div>
                 <span>
-                  {shipment?.deliveryAddress && parseAddress(shipment.deliveryAddress).street}, 
-                  {shipment?.deliveryAddress && parseAddress(shipment.deliveryAddress).city}
+                  {shipment.deliveryAddress && parseAddress(shipment.deliveryAddress).street}, 
+                  {shipment.deliveryAddress && parseAddress(shipment.deliveryAddress).city}
                 </span>
               </div>
             </div>
