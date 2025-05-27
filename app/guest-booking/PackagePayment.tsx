@@ -238,13 +238,13 @@ export default function PackagePayment({ handleNextStep, onBack }: { handleNextS
       icon: <Banknote size={20} />,
       isEnabled: true
     },
-    {
-      id: 'part_payment',
-      name: 'Part Payment',
-      description: 'Pay via bank transfer',
-      icon: <Banknote size={20} />,
-      isEnabled: true
-    },
+    // {
+    //   id: 'part_payment',
+    //   name: 'Part Payment',
+    //   description: 'Pay via bank transfer',
+    //   icon: <Banknote size={20} />,
+    //   isEnabled: true
+    // },
   ], []);
 
   const calculateCosts = useCallback((): CostItem[] => {
@@ -781,7 +781,7 @@ export default function PackagePayment({ handleNextStep, onBack }: { handleNextS
               'Processing...'
             ) : (
               selectedMethod === 'paypal' ? 'Pay with PayPal' : 
-              selectedMethod ? `Pay ${'£'+selectedPaymentAmount || costs.find(c => c.type === 'total')?.amount}` : 
+              selectedMethod ? `Schedule pay ${'£'+selectedPaymentAmount || costs.find(c => c.type === 'total')?.amount}` : 
               'Select Payment Method'
             )}
           </button>
