@@ -9,7 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import { ArrowLeft, Package, Truck, MapPin, Calendar, Clock, FileText, Download, AlertCircle, X, Phone, Mail, HelpCircle, Check, Share2 } from "lucide-react"
+import { ArrowLeft, Package, Truck, MapPin, Calendar, Clock, FileText, Download, AlertCircle, X, Phone, Mail, HelpCircle, Check, Share2, PenBoxIcon } from "lucide-react"
 import { getShipmentDetails, cancelShipment } from "@/lib/shipment"
 import PackagePayment from "@/components/package/PackagePayment"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
@@ -491,11 +491,17 @@ export default function ShipmentDetailPage() {
 
   if (error) {
     return (
-      <div className="flex items-center justify-center h-screen">
-        <Alert variant="destructive" className="w-1/2">
-          <AlertCircle className="h-4 w-4" />
-          <AlertTitle>Error</AlertTitle>
-          <AlertDescription>{error}</AlertDescription>
+      <div className="flex items-center justify-center min-h-screen bg-gray-50">
+        <Alert variant="destructive" className="w-full max-w-md mx-4 shadow-lg">
+          <div className="flex items-start gap-3">
+            <AlertCircle className="h-5 w-5 mt-0.5" />
+            <div className="space-y-1">
+              <AlertTitle className="text-base font-semibold">Error</AlertTitle>
+              <AlertDescription className="text-sm text-gray-600">
+                {error}
+              </AlertDescription>
+            </div>
+          </div>
         </Alert>
       </div>
     )
@@ -503,13 +509,17 @@ export default function ShipmentDetailPage() {
 
   if (!shipment) {
     return (
-      <div className="flex items-center justify-center h-screen">
-        <Alert>
-          <AlertCircle className="h-4 w-4" />
-          <AlertTitle>No Shipment Found</AlertTitle>
-          <AlertDescription>
-            The shipment you are looking for does not exist.
-          </AlertDescription>
+      <div className="flex items-center justify-center min-h-screen bg-gray-50">
+        <Alert variant="destructive" className="w-full max-w-md mx-4 shadow-lg">
+          <div className="flex items-start gap-3">
+            <AlertCircle className="h-5 w-5 mt-0.5" />
+            <div className="space-y-1">
+              <AlertTitle className="text-base font-semibold">No Shipment Found</AlertTitle>
+              <AlertDescription className="text-sm text-gray-600">
+                The shipment you are looking for does not exist.
+              </AlertDescription>
+            </div>
+          </div>
         </Alert>
       </div>
     )
@@ -541,6 +551,12 @@ export default function ShipmentDetailPage() {
               <Button variant="outline" size="sm" onClick={handleContinueShipment}>
                 <Download className="mr-2 h-4 w-4" />
                 Continue Shipment
+              </Button>
+            )}
+            {shipment?.status !== 'cancelled' && (              
+              <Button variant="outline" size="sm" onClick={()=>{}}>
+                <PenBoxIcon className="mr-2 h-4 w-4" />
+                Edit
               </Button>
             )}
             <Button 
