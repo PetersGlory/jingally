@@ -483,8 +483,14 @@ export default function ShipmentDetailPage() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900"></div>
+      <div className="flex items-center justify-center min-h-screen bg-gradient-to-b from-gray-50 to-white">
+        <div className="flex flex-col items-center space-y-4">
+          <div className="relative">
+            <div className="animate-spin rounded-full h-16 w-16 border-4 border-gray-200"></div>
+            <div className="absolute top-0 left-0 animate-spin rounded-full h-16 w-16 border-t-4 border-blue-600"></div>
+          </div>
+          <p className="text-sm font-medium text-gray-600 animate-pulse">Loading shipment details...</p>
+        </div>
       </div>
     )
   }
@@ -554,7 +560,10 @@ export default function ShipmentDetailPage() {
               </Button>
             )}
             {shipment?.status !== 'cancelled' && (              
-              <Button variant="outline" size="sm" onClick={()=>{}}>
+              <Button variant="outline" size="sm" onClick={()=>{
+                localStorage.setItem('packageInfo', JSON.stringify(shipment))
+                router.push(`/dashboard/shipments/${shipment?.id}/edit`)
+              }}>
                 <PenBoxIcon className="mr-2 h-4 w-4" />
                 Edit
               </Button>
