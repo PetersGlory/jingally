@@ -94,9 +94,9 @@ const DimensionInput: React.FC<{
     const numericValue = e.target.value.replace(/[^0-9.]/g, '');
     const finalValue = numericValue.replace(/(\..*)\./g, '$1');
     
-    if (max && parseFloat(finalValue) > max) {
-      return;
-    }
+    // if (max && parseFloat(finalValue) > max) {
+    //   return;
+    // }
     
     onChange(finalValue);
   };
