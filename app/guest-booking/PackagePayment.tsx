@@ -264,7 +264,7 @@ export default function PackagePayment({ handleNextStep, onBack }: { handleNextS
 
     switch (serviceType) {
       case SHIPPING_METHODS.SEA:
-        if (parsedPriceGuides.length > 0) {
+        if (parsedPriceGuides && parsedPriceGuides.length > 0) {
           // Sum up all price guide prices
           baseFee = parsedPriceGuides.reduce((sum, guide) => sum + guide.price, 0);
           methodName = 'Sea Freight (Price Guide)';
