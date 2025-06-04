@@ -1,7 +1,7 @@
 "use client"
 
 import React, { useEffect, useState, useCallback } from 'react';
-import { Package, Maximize2, Box, AlertCircle, ArrowRight, ArrowLeft } from 'lucide-react';
+import { Package, Maximize2, Box, AlertCircle, ArrowRight, ArrowLeft, Plus } from 'lucide-react';
 import styles from './PackageDimension.module.css';
 import { useRouter } from 'next/navigation';
 import { updatePackageDimensions } from '@/lib/guestShipment';
@@ -150,6 +150,7 @@ export default function PackageDimension({
   const [shipInfo, setShipInfo] = useState<Shipment>();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedGuides, setSelectedGuides] = useState<string[]>([]);
+  const [extraguides, setExtraguides] = useState<PriceGuide[]>([]);
 
   useEffect(() => {
     const accessToken = localStorage.getItem('accessToken');
@@ -250,8 +251,8 @@ export default function PackageDimension({
         );
       }else{
         console.log(guides)
-        const selectedPriceGuides = selectedGuides.map(guideId => {
-          const guide = guides.find(g => g.id === guideId);
+        const selectedPriceGuides = [...selectedGuides, ...extraguides].map(guideId => {
+          const guide = [...guides, ...extraguides].find(g => g.id === guideId);
           if (!guide) return null;
           return {
             id: guide.id,
@@ -337,6 +338,84 @@ export default function PackageDimension({
               </div>
               
               <div className={styles.priceGuideList}>
+                
+              <div className={styles.addNewItem}>
+                  <button 
+                    className={styles.addButton}
+                    onClick={() => {
+                      const itemName = prompt('Enter item name:');
+                      if (itemName) {
+                        const newGuide: PriceGuide = {
+                          id: 'custom-extraguide-'+Date.now().toString(),
+                          guideName: itemName,
+                          guideNumber: `CUSTOM-${Date.now()}`,
+                          price: 0
+                        };
+                        setExtraguides(prev => [...prev, newGuide]);
+                      }
+                    }}
+                  >
+                    <Plus size={20} />
+                    Add New Item
+                  </button>
+                </div>
+
+                
+                <div className={styles.extraItemsSection}>
+                  <h4 className={styles.extraItemsTitle}>Extra Items Added</h4>
+                  {extraguides.map((guide) => (
+                    <div 
+                      key={guide.id} 
+                      className={`${styles.priceGuideItem} ${selectedGuides.includes(guide.id) ? styles.selected : ''} gap-3`}
+                      onClick={() => toggleGuideSelection(guide.id)}
+                    >
+                      <div className={styles.checkbox}>
+                        <input
+                          type="checkbox"
+                          checked={selectedGuides.includes(guide.id)}
+                          onChange={() => {}}
+                        />
+                      </div>
+                      <div className={styles.guideInfo}>
+                        <h4>{guide.guideName}</h4>
+                        <p>{guide.guideNumber}</p>
+                        <span className={styles.price}>${guide.price}</span>
+                      </div>
+                      <div className={styles.quantityControls}>
+                        <button 
+                          className={styles.quantityButton}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            const currentCount = selectedGuides.filter(id => id === guide.id).length;
+                            if (currentCount > 0) {
+                              const index = selectedGuides.indexOf(guide.id);
+                              const newSelectedGuides = [...selectedGuides];
+                              newSelectedGuides.splice(index, 1);
+                              setSelectedGuides(newSelectedGuides);
+                            }
+                          }}
+                        >
+                          -
+                        </button>
+                        <span className={styles.quantity}>
+                          {selectedGuides.filter(id => id === guide.id).length}
+                        </span>
+                        <button 
+                          className={styles.quantityButton}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSelectedGuides([...selectedGuides, guide.id]);
+                          }}
+                        >
+                          +
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                
+                <h4 className={styles.extraItemsTitle}>Item List</h4>
                 {guides && guides
                   .filter(guide => 
                     guide.guideName.toLowerCase().includes(searchTerm.toLowerCase())

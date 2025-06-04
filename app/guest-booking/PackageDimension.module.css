@@ -330,6 +330,34 @@
   cursor: pointer;
 }
 
+.addNewItem {
+  margin-bottom: 1rem;
+}
+
+.addButton {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  background-color: #f3f4f6;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.5rem;
+  color: #374151;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.addButton:hover {
+  background-color: #e5e7eb;
+  border-color: #d1d5db;
+}
+
+.addButton:active {
+  background-color: #d1d5db;
+}
+
+
 .checkbox input[type="checkbox"]:checked {
   background-color: #2563eb;
   border-color: #2563eb;

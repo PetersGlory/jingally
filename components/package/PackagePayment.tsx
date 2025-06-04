@@ -654,7 +654,7 @@ export default function PackagePayment({ handleNextStep, handlePreviousStep }: {
                   {item.label}
                 </span>
                 <span className={item.type === 'total' ? styles.totalAmount : ''}>
-                  {item.amount}
+                  {item.label === 'Total' ? "Will be communicated." : item.amount}
                 </span>
               </div>
             ))}
@@ -713,7 +713,7 @@ export default function PackagePayment({ handleNextStep, handlePreviousStep }: {
         </div>
 
         {/* Payment Methods */}
-        <div className={styles.paymentSection}>
+        {/* <div className={styles.paymentSection}>
           <h2 className={styles.sectionTitle}>Select Payment Method</h2>
           <div className={styles.paymentMethods}>
             {paymentMethods.map((method) => {
@@ -757,7 +757,7 @@ export default function PackagePayment({ handleNextStep, handlePreviousStep }: {
               );
             })}
           </div>
-        </div>
+        </div> */}
 
         {/* Security Note */}
         <div className={styles.securityNote}>
@@ -773,16 +773,16 @@ export default function PackagePayment({ handleNextStep, handlePreviousStep }: {
 
       <footer className={styles.footer}>
         <button
-          className={`${styles.payButton} ${selectedMethod && !isLoading ? styles.active : ''}`}
-          disabled={!selectedMethod || isLoading}
-          onClick={handlePayment}
+          className={`${styles.payButton} ${!isLoading ? styles.active : ''}`}
+          disabled={isLoading}
+          onClick={handleBankTransferConfirmation}
         >
           {isLoading ? (
             'Processing...'
           ) : (
             selectedMethod === 'paypal' ? 'Pay with PayPal' : 
             selectedMethod ? `Pay ${'£'+selectedPaymentAmount || costs.find(c => c.type === 'total')?.amount}` : 
-            'Select Payment Method'
+            'Schedule Payment'
           )}
         </button>
       </footer>
@@ -980,11 +980,11 @@ export default function PackagePayment({ handleNextStep, handlePreviousStep }: {
         <div className={styles.modalOverlay}>
           <div className={styles.successModal}>
             <div className={styles.successIcon}>
-              <Check size={32} />
+              <Calendar size={32} />
             </div>
-            <h2>Payment Successful!</h2>
+            <h2>Payment Scheduled!</h2>
             <p>
-              Your payment has been processed successfully. You will be redirected to tracking shortly.
+              Your payment has been scheduled successfully. You will be notified when the payment is processed.
             </p>
             <div className={styles.progressBar}>
               <div className={styles.progress} />

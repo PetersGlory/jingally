@@ -652,67 +652,66 @@ export default function PackagePayment({ handleNextStep, onBack }: { handleNextS
                     {item.label}
                   </span>
                   <span className={item.type === 'total' ? styles.totalAmount : ''}>
-                    {item.amount}
+                    {item.label === 'Total' ? "Will be communicated." : item.amount}
                   </span>
                 </div>
               ))}
 
               {/* Part Payment */}
               <div className='w-full'>
-                <h3 className='font-bold'>Part Payment</h3>
-                <div className="mt-4 space-y-3">
-                  <div className="flex items-center space-x-2">
-                    <input
-                      type="checkbox"
-                      id="pay70"
-                      className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                      onChange={(e) => {
-                        if (e.target.checked) {
-                          const total = parseFloat(costs.find(c => c.type === 'total')?.amount.replace('£', '') || '0');
-                          const seventyPercent = (total * 0.7).toFixed(2);
-                          setSelectedPaymentAmount(seventyPercent);
-                        } else {
-                          setSelectedPaymentAmount('0');
-                        }
-                      }}
-                    />
-                    <label htmlFor="pay70" className="text-sm font-medium text-gray-700">
-                      Pay 70% (£{(parseFloat(costs.find(c => c.type === 'total')?.amount.replace('£', '') || '0') * 0.7).toFixed(2)})
-                    </label>
+                  <h3 className='font-bold'>Part Payment</h3>
+                  <div className="mt-4 space-y-3">
+                    <div className="flex items-center space-x-2">
+                      <input
+                        type="checkbox"
+                        id="pay70"
+                        className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            const total = parseFloat(costs.find(c => c.type === 'total')?.amount.replace('£', '') || '0');
+                            const seventyPercent = (total * 0.7).toFixed(2);
+                            setSelectedPaymentAmount(seventyPercent);
+                          } else {
+                            setSelectedPaymentAmount('0');
+                          }
+                        }}
+                      />
+                      <label htmlFor="pay70" className="text-sm font-medium text-gray-700">
+                        Pay 70% (£{(parseFloat(costs.find(c => c.type === 'total')?.amount.replace('£', '') || '0') * 0.7).toFixed(2)})
+                      </label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <input
+                        type="checkbox"
+                        id="pay50"
+                        className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            const total = parseFloat(costs.find(c => c.type === 'total')?.amount.replace('£', '') || '0');
+                            const fiftyPercent = (total * 0.5).toFixed(2);
+                            setSelectedPaymentAmount(fiftyPercent);
+                          } else {
+                            setSelectedPaymentAmount('0');
+                          }
+                        }}
+                      />
+                      <label htmlFor="pay50" className="text-sm font-medium text-gray-700">
+                        Pay 50% (£{(parseFloat(costs.find(c => c.type === 'total')?.amount.replace('£', '') || '0') * 0.5).toFixed(2)})
+                      </label>
+                    </div>
                   </div>
-                  <div className="flex items-center space-x-2">
-                    <input
-                      type="checkbox"
-                      id="pay50"
-                      className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                      onChange={(e) => {
-                        if (e.target.checked) {
-                          const total = parseFloat(costs.find(c => c.type === 'total')?.amount.replace('£', '') || '0');
-                          const fiftyPercent = (total * 0.5).toFixed(2);
-                          setSelectedPaymentAmount(fiftyPercent);
-                        } else {
-                          setSelectedPaymentAmount('0');
-                        }
-                      }}
-                    />
-                    <label htmlFor="pay50" className="text-sm font-medium text-gray-700">
-                      Pay 50% (£{(parseFloat(costs.find(c => c.type === 'total')?.amount.replace('£', '') || '0') * 0.5).toFixed(2)})
-                    </label>
-                  </div>
-                </div>
 
-                <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-md">
-                  <p className="text-sm text-yellow-800">
-                    <span className="font-medium">Note:</span> Balance payment is to be made upon final delivery
-                  </p>
+                  <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-md">
+                    <p className="text-sm text-yellow-800">
+                      <span className="font-medium">Note:</span> Balance payment is to be made upon final delivery
+                    </p>
+                  </div>
                 </div>
-              </div>
-              
             </div>
           </div>
 
           {/* Payment Methods */}
-          <div className={styles.paymentSection}>
+          {/* <div className={styles.paymentSection}>
             <h2 className={styles.sectionTitle}>Select Payment Method</h2>
             <div className={styles.paymentMethods}>
               {paymentMethods.map((method) => {
@@ -756,7 +755,7 @@ export default function PackagePayment({ handleNextStep, onBack }: { handleNextS
                 );
               })}
             </div>
-          </div>
+          </div> */}
 
           {/* Security Note */}
           <div className={styles.securityNote}>
@@ -772,17 +771,16 @@ export default function PackagePayment({ handleNextStep, onBack }: { handleNextS
 
         <footer className={styles.footer}>
           <button
-            className={`${styles.payButton} ${selectedMethod && !isLoading ? styles.active : ''}`}
-            disabled={!selectedMethod || isLoading}
-            type='button'
-            onClick={handlePayment}
+            className={`${styles.payButton} ${!isLoading ? styles.active : ''}`}
+            disabled={isLoading}
+            onClick={handleBankTransferConfirmation}
           >
             {isLoading ? (
               'Processing...'
             ) : (
               selectedMethod === 'paypal' ? 'Pay with PayPal' : 
-              selectedMethod ? `Schedule pay ${'£'+selectedPaymentAmount || costs.find(c => c.type === 'total')?.amount}` : 
-              'Select Payment Method'
+              selectedMethod ? `Pay ${'£'+selectedPaymentAmount || costs.find(c => c.type === 'total')?.amount}` : 
+              'Schedule Payment'
             )}
           </button>
         </footer>
