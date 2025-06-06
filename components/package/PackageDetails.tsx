@@ -159,7 +159,11 @@ export default function PackageDetails({ selectedType, serviceType, handleNextSt
         <div className={styles.typeGrid}>
           {PACKAGE_TYPES.map((type) => {
             // Skip items package type if service type is airfreight
-            if (serviceType === 'airfreight' && type.id === 'items') {
+            if (serviceType === 'airfreight' && type.id !== 'parcel') {
+              return null;
+            }
+
+            if (serviceType === 'seafreight' && type.id === 'pallet') {
               return null;
             }
             

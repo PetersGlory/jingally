@@ -63,7 +63,7 @@ export default function PackageDetails({ selectedType, serviceType, onNext, onBa
     type: selectedType || '',
     description: '',
     isFragile: false,
-    serviceType: ''
+    serviceType: serviceType || ''
   });
   const [errors, setErrors] = useState<FormErrors>({});
   const [isLoading, setIsLoading] = useState(false);
@@ -166,7 +166,7 @@ export default function PackageDetails({ selectedType, serviceType, onNext, onBa
         <div className={styles.typeGrid}>
           {PACKAGE_TYPES.map((type) => {
             // Skip items package type if service type is airfreight
-            if (formData.serviceType === 'airfreight' && type.id === 'items') {
+            if (formData.serviceType === 'airfreight' && type.id !== 'parcel') {
               return null;
             }
 
