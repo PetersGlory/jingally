@@ -99,6 +99,15 @@ export const getAddress = async (token: string) => {
   return response.data;
 };
 
+export const getAllAddresses = async(token:string) =>{
+  const response = await api.get("/addresses/all",{
+    headers:{
+      Authorization: `Bearer ${token}`
+    }
+  });
+  return response.data;
+}
+
 export const createAddress = async (data: object, token: string) => {
   const response = await api.post("/addresses", data, {
     headers: {

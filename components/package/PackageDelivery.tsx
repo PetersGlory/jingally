@@ -6,6 +6,7 @@ import { MapPin, Truck, Info, X, ChevronDown, ArrowRight, Loader, Check, ArrowLe
 import { LoadScript, Autocomplete } from '@react-google-maps/api';
 import styles from './PackageDelivery.module.css';
 import { updateDeliveryAddress } from '@/lib/shipment';
+import { getAllAddresses } from '@/lib/api';
 
 interface CountryCode {
   code: string;
@@ -57,6 +58,20 @@ export default function PackageDelivery({ handleNextStep, handlePreviousStep }: 
   const [searchQuery, setSearchQuery] = useState('');
   const [disabled, setDisabled] = useState(false);
   const [formErrors, setFormErrors] = useState<Partial<DeliveryForm>>({});
+  const [allDresses, setAllAddresses] = useState([])
+  const [addressSelected, setAddressSelected] = useState("");
+
+  useEffect(()=>{
+    const getAddresses = async () =>{
+      const token = localStorage.getItem('accessToken') || '';
+      const response = await getAllAddresses(JSON.parse(token));
+      if(response && response.success){
+        setAllAddresses(response.data)
+      }
+    }
+
+    getAddresses();
+  },[])
 
   const [form, setForm] = useState<DeliveryForm>({
     pickupAddress: {
@@ -105,11 +120,16 @@ export default function PackageDelivery({ handleNextStep, handlePreviousStep }: 
 
   const handleDeliveryModeChange = (mode: 'home' | 'park') => {
     setDeliveryMode(mode);
+    
+    if(mode === "home"){
+      alert('Service charge for Pickup costs £20')
+    }
+
     if (mode === 'park') {
       // Set default park address when park mode is selected
       setForm(prev => ({
         ...prev,
-        deliveryAddress: defaultParkAddress,
+        // deliveryAddress: defaultParkAddress,
         deliveryMode: 'park'
       }));
     }
@@ -380,6 +400,7 @@ export default function PackageDelivery({ handleNextStep, handlePreviousStep }: 
       <header className={styles.header}>
         <div className="flex flex-row items-center gap-4">
           <button 
+            type='button'
             className={styles.backButton}
             onClick={handlePreviousStep}
           >
@@ -397,7 +418,7 @@ export default function PackageDelivery({ handleNextStep, handlePreviousStep }: 
 
       <main className={styles.main}>
         {/* Delivery Mode */}
-        {/* <div className={styles.section}>
+        <div className={styles.section}>
           <div className={styles.sectionHeader}>
             <MapPin size={20} />
             <h2 className={styles.sectionTitle}>Delivery Mode</h2>
@@ -415,17 +436,61 @@ export default function PackageDelivery({ handleNextStep, handlePreviousStep }: 
               type='button'
               className={`${styles.modeButton} ${deliveryMode === 'park' ? styles.active : ''}`}
               onClick={() => {
-                alert('Drop-off address is currently unavailable.');
-                handleDeliveryModeChange('home')
+                handleDeliveryModeChange('park')
               }}
             >
               Drop Off
             </button>
           </div>
-        </div> */}
+        </div>
+
+        {deliveryMode == 'park' && allDresses.length > 0 && (
+          <div className={styles.section}>
+            <div className={styles.sectionHeader}>
+              <MapPin size={20} />
+              <h2 className={styles.sectionTitle}>Drop-off Addresses</h2>
+            </div>
+            <div className={styles.addressList}>
+              {allDresses.map((address: any, index: number) => (
+                <div key={index} className={`${styles.addressItem} ${addressSelected == address.id && styles.pickedAddress}`}>
+                  <div className={styles.addressDetails}>
+                    <p className={styles.addressStreet}>{address.street}</p>
+                    <p className={styles.addressCity}>{address.city}, {address.state}</p>
+                    <p className={styles.addressPostcode}>{address.zipCode}</p>
+                  </div>
+                  <button
+                    className={styles.selectAddressButton}
+                    type='button'
+                    onClick={() => {
+                      const updatedAddress = {
+                        street: address.street,
+                        city: address.city,
+                        state: address.state,
+                        country: address.country,
+                        postcode: address.zipCode,
+                        latitude: address.latitude,
+                        longitude: address.longitude,
+                        placeId: address.placeId,
+                        type: address.type
+                      };
+                      
+                      setForm(prev => ({
+                        ...prev,
+                        pickupAddress: updatedAddress
+                      }));
+                      setAddressSelected(address.id);
+                    }}
+                  >
+                    Select
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Pickup Address Form */}
-        {renderAddressForm(
+        {deliveryMode === "home" && renderAddressForm(
           'Pickup Address',
           <Truck size={20} />,
           form.pickupAddress,
@@ -434,7 +499,7 @@ export default function PackageDelivery({ handleNextStep, handlePreviousStep }: 
         )}
 
         {/* Delivery Address Form - Only show for home delivery */}
-        {deliveryMode === 'home' && renderAddressForm(
+        {renderAddressForm(
           'Delivery Address',
           <MapPin size={20} />,
           form.deliveryAddress,
@@ -442,24 +507,6 @@ export default function PackageDelivery({ handleNextStep, handlePreviousStep }: 
           'delivery'
         )}
 
-        {/* Park Delivery Info - Show only for park delivery */}
-        {deliveryMode === 'park' && (
-          <div className={styles.section}>
-            <div className={styles.sectionHeader}>
-              <MapPin size={20} />
-              <h2 className={styles.sectionTitle}>Park Delivery Point</h2>
-            </div>
-            <div className={styles.infoBox}>
-              <p>Your package will be delivered to our designated park delivery point:</p>
-              <div className={styles.parkAddress}>
-                <p><strong>Address:</strong> {defaultParkAddress.street}</p>
-                <p><strong>City:</strong> {defaultParkAddress.city}</p>
-                <p><strong>Postcode:</strong> {defaultParkAddress.postcode}</p>
-              </div>
-              <p className={styles.note}>You will be notified when your package arrives at the park delivery point.</p>
-            </div>
-          </div>
-        )}
 
         {/* Receiver Details */}
         <div className={styles.section}>

@@ -51,11 +51,16 @@ export default function EditShipmentPage() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
-        <div className="relative">
-          <div className="absolute -inset-1 rounded-full bg-gradient-to-r from-blue-500 to-indigo-500 opacity-75 blur"></div>
-          <div className="relative animate-spin rounded-full h-16 w-16 border-4 border-white border-t-transparent"></div>
-          <div className="mt-4 text-center text-gray-600 font-medium">Loading...</div>
+      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-slate-50 via-gray-50 to-slate-100">
+        <div className="relative group">
+          <div className="absolute -inset-0.5 rounded-full bg-gradient-to-r from-blue-600 via-indigo-500 to-purple-600 opacity-75 blur-lg group-hover:opacity-100 transition duration-1000"></div>
+          <div className="relative flex flex-col items-center">
+            <div className="animate-spin rounded-full h-20 w-20 border-4 border-white border-t-transparent shadow-lg"></div>
+            <div className="mt-6 text-center">
+              <p className="text-gray-700 font-medium text-lg tracking-wide">Loading</p>
+              <p className="text-gray-500 text-sm mt-1">Please wait while we prepare your shipment...</p>
+            </div>
+          </div>
         </div>
       </div>
     );
