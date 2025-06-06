@@ -169,6 +169,10 @@ export default function PackageDetails({ selectedType, serviceType, onNext, onBa
             if (formData.serviceType === 'airfreight' && type.id === 'items') {
               return null;
             }
+
+            if (formData.serviceType === 'seafreight' && type.id === 'pallet') {
+              return null;
+            }
             
             const Icon = type.icon;
             return (

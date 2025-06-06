@@ -699,6 +699,24 @@ export default function PackagePayment({ handleNextStep, onBack }: { handleNextS
                         Pay 50% (£{(parseFloat(costs.find(c => c.type === 'total')?.amount.replace('£', '') || '0') * 0.5).toFixed(2)})
                       </label>
                     </div>
+                    <div className="flex items-center space-x-2">
+                    <input
+                      type="checkbox"
+                      id="payFull"
+                      className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                      onChange={(e) => {
+                        if (e.target.checked) {
+                          const total = parseFloat(costs.find(c => c.type === 'total')?.amount.replace('£', '') || '0');
+                          setSelectedPaymentAmount(total.toFixed(2));
+                        } else {
+                          setSelectedPaymentAmount('0');
+                        }
+                      }}
+                    />
+                    <label htmlFor="payFull" className="text-sm font-medium text-gray-700">
+                      Pay in full upon delivery (£{parseFloat(costs.find(c => c.type === 'total')?.amount.replace('£', '') || '0').toFixed(2)})
+                    </label>
+                  </div>
                   </div>
 
                   <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-md">
