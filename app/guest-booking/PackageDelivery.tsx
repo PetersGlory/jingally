@@ -389,55 +389,7 @@ export default function PackageDelivery({ onNext, onBack, onUpdate, initialData 
       </header>
 
       <main className={styles.main}>
-        {/* Delivery Mode */}
-        {/* <div className={styles.section}>
-          <div className={styles.sectionHeader}>
-            <div className={styles.iconContainer}>
-              <MapPin size={20} />
-            </div>
-            <h2 className={styles.sectionTitle}>Delivery Mode</h2>
-          </div>
-          <div className={styles.deliveryModeButtons}>
-            <button
-              type="button"
-              disabled={disabled}
-              className={`${styles.modeButton} ${deliveryMode === 'home' ? styles.active : ''}`}
-              onClick={() => {
-                setDeliveryMode('home');
-                setForm(prev => ({
-                  ...prev,
-                  deliveryAddress: {
-                    street: '',
-                    city: '',
-                    state: '',
-                    country: '',
-                    postcode: '',
-                    latitude: 0,
-                    longitude: 0,
-                    placeId: '',
-                    type: 'residential'
-                  }
-                }));
-              }}
-            >
-              Pick Up
-            </button>
-            <button
-              type="button"
-              className={`${styles.modeButton} ${deliveryMode === 'park' ? styles.active : ''}`}
-              onClick={() => {
-                setDeliveryMode('park');
-                setDisabled(true);
-                setForm(prev => ({
-                  ...prev,
-                  deliveryAddress: DEFAULT_PARK_ADDRESS
-                }));
-              }}
-            >
-              Drop Off
-            </button>
-          </div>
-        </div> */}
+        
 
         {/* Pickup Address Form */}
         {renderAddressForm(
