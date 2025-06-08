@@ -594,6 +594,94 @@ export default function PackageDimension({
                 </div>
               </div>
             </>
+          ): shipInfo?.packageType === "container" ? (
+            <>
+              <div className={styles.priceGuideSection}>
+                <h3 className={styles.sectionTitle}>Select Container Type</h3>
+                
+                <div className={styles.priceGuideList}>
+                  <div className={styles.addNewItem}>
+                    <select 
+                      className={styles.containerSelect}
+                      onChange={(e) => {
+                        const selectedOption = e.target.value;
+                        if (selectedOption) {
+                          const [size, type] = selectedOption.split('-');
+                          const isHighCube = type === 'highcube';
+                          const newGuide: PriceGuide = {
+                            id: 'container-' + Date.now().toString(),
+                            guideName: `${size} Container${isHighCube ? ' (High Cube)' : ''}`,
+                            guideNumber: `${size}${isHighCube ? '-HC' : ''}-${Math.floor(Math.random() * 1000)}`,
+                            price: 0
+                          };
+                          setExtraguides(prev => [...prev, newGuide]);
+                          e.target.value = ''; // Reset select after adding
+                        }
+                      }}
+                    >
+                      <option value="">Select a container type</option>
+                      <option value="20ft-standard">20ft Container</option>
+                      <option value="40ft-standard">40ft Container</option>
+                      <option value="40ft-highcube">40ft High Cube Container</option>
+                      <option value="45ft-highcube">45ft High Cube Container</option>
+                    </select>
+                  </div>
+
+                  <div className={styles.extraItemsSection}>
+                    <h4 className={styles.extraItemsTitle}>Selected Containers</h4>
+                    {extraguides.map((guide) => (
+                      <div 
+                        key={guide.id} 
+                        className={`${styles.priceGuideItem} ${selectedGuides.includes(guide.id) ? styles.selected : ''} gap-3`}
+                        onClick={() => toggleGuideSelection(guide.id)}
+                      >
+                        <div className={styles.checkbox}>
+                          <input
+                            type="checkbox"
+                            checked={selectedGuides.includes(guide.id)}
+                            onChange={() => {}}
+                          />
+                        </div>
+                        <div className={styles.guideInfo}>
+                          <h4>{guide.guideName}</h4>
+                          <p>{guide.guideNumber}</p>
+                          <span className={styles.price}>${guide.price}</span>
+                        </div>
+                        <div className={styles.quantityControls}>
+                          <button 
+                            className={styles.quantityButton}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              const currentCount = selectedGuides.filter(id => id === guide.id).length;
+                              if (currentCount > 0) {
+                                const index = selectedGuides.indexOf(guide.id);
+                                const newSelectedGuides = [...selectedGuides];
+                                newSelectedGuides.splice(index, 1);
+                                setSelectedGuides(newSelectedGuides);
+                              }
+                            }}
+                          >
+                            -
+                          </button>
+                          <span className={styles.quantity}>
+                            {selectedGuides.filter(id => id === guide.id).length}
+                          </span>
+                          <button 
+                            className={styles.quantityButton}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setSelectedGuides([...selectedGuides, guide.id]);
+                            }}
+                          >
+                            +
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </>
           ) :(
             <>
               <div className={styles.section}>

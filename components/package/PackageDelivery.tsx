@@ -431,9 +431,10 @@ export default function PackageDelivery({ handleNextStep, handlePreviousStep }: 
 
   return (
     <LoadScript
-      googleMapsApiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY ?? ''}
+      googleMapsApiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY ?? 'AIzaSyAZxFKvKwUfo5jMamjurbZzs_9u79UjWno'}
       libraries={["places"]}
       onLoad={() => setMapLoaded(true)}
+      
     >
       <div className={styles.container}>
         <header className={styles.header}>

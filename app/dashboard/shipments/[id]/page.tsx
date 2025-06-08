@@ -654,7 +654,7 @@ export default function ShipmentDetailPage() {
 
                       {shipment?.priceGuides && (
                         <div>
-                          <h3 className="mb-2 font-medium">Price Guides</h3>
+                          <h3 className="mb-2 font-medium">{shipment?.packageType ==="container" ? "Container" : "Price Guides"}</h3>
                           <div className="rounded-lg border p-3 text-sm">
                             <div className="grid grid-cols-2 gap-2">
                               {(() => {

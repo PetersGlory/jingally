@@ -623,7 +623,7 @@ export default function PackagePayment({ handleNextStep, handlePreviousStep }: {
           <div className="flex flex-col p-4 border border-gray-200 rounded-lg bg-white">
             <div className="flex items-center gap-2 mb-2">
               <List className="h-4 w-4 text-gray-600" />
-              <span className="font-medium text-gray-900">Price Guides</span>
+              <span className="font-medium text-gray-900">{shipment.packageType === "container" ? "Container" :"Price Guides"}</span>
             </div>
             <div className="flex flex-col gap-2">
               {(() => {
