@@ -527,27 +527,261 @@ export default function PackageDelivery({ handleNextStep, handlePreviousStep }: 
         {/* Pickup Address Form */}
         {deliveryMode === "home" && (
           <>
-            <AddressForm 
-              title='Pickup Address'
-              icon={<Truck size={20} />}
-              address={form.pickupAddress}
-              setAddress={(address) => setForm({ ...form, pickupAddress: address })}
-              type='pickup'
-            />
+          <div className={styles.section}>
+            <div className={styles.sectionHeader}>
+              <div className={styles.iconContainer}>
+                <Truck size={20} />
+              </div>
+              <h2 className={styles.sectionTitle}>{'Pickup Address'}</h2>
+            </div>
+
+            <div className={styles.addressForm}>
+              <div className={styles.inputGroup}>
+                <label className={styles.label}>Street Address</label>
+                <LoadScript
+                  googleMapsApiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY ?? ''}
+                  libraries={["places"]}
+                  onLoad={() => setMapLoaded(true)}
+                >
+                  <div className="relative items-center">
+                    <div className="relative w-6 inset-y-0 left-0 flex items-center pointer-events-none">
+                      <MapPin className="h-5 w-5 text-gray-400" />
+                    </div>
+                    <Autocomplete
+                      onLoad={(autocomplete: google.maps.places.Autocomplete) => {
+                        setPickupAutocomplete(autocomplete);
+                      }}
+                      onPlaceChanged={() => handlePlaceSelect("pickup")}
+                    >
+                      <input
+                        type="text"
+                        className={`${styles.input}`}
+                        placeholder="Enter street address"
+                        value={form.pickupAddress.street}
+                        onChange={(e) => setForm({ ...form, pickupAddress:{
+                          ...form.pickupAddress,
+                          street: e.target.value
+                        } })}
+                      />
+                    </Autocomplete>
+                  </div>
+                </LoadScript>
+              </div>
+
+              <div className={styles.formRow}>
+                <div className={styles.inputGroup}>
+                  <label className={styles.label}>City</label>
+                  <input
+                    type="text"
+                    className={`${styles.input}`}
+                    placeholder="City"
+                    value={form.pickupAddress.city}
+                    onChange={(e) => setForm({ ...form, pickupAddress:{
+                      ...form.pickupAddress,
+                      city: e.target.value
+                    } })}
+                  />
+                </div>
+                <div className={styles.inputGroup}>
+                  <label className={styles.label}>State</label>
+                  <input
+                    type="text"
+                    className={`${styles.input}`}
+                    placeholder="State"
+                    value={form.pickupAddress.state}
+                    onChange={(e) => setForm({ ...form, pickupAddress:{
+                      ...form.pickupAddress,
+                      state: e.target.value
+                    } })}
+                  />
+                </div>
+              </div>
+
+              <div className={styles.formRow}>
+                <div className={styles.inputGroup}>
+                  <label className={styles.label}>Country</label>
+                  <input
+                    type="text"
+                    className={`${styles.input} `}
+                    placeholder="Country"
+                    value={form.pickupAddress.country}
+                    onChange={(e) => setForm({ ...form, pickupAddress:{
+                      ...form.pickupAddress,
+                      country: e.target.value
+                    } })}
+                  />
+                </div>
+                <div className={styles.inputGroup}>
+                  <label className={styles.label}>Postcode</label>
+                  <input
+                    type="text"
+                    className={`${styles.input}`}
+                    placeholder="Postcode"
+                    value={form.pickupAddress.postcode}
+                    onChange={(e) => setForm({ ...form, pickupAddress:{
+                      ...form.pickupAddress,
+                      postcode: e.target.value
+                    } })}
+                  />
+                </div>
+              </div>
+
+              <div className={styles.inputGroup}>
+                <label className={styles.label}>Address Type</label>
+                <div className={styles.addressTypeButtons}>
+                  <button
+                    className={`${styles.typeButton} ${form.pickupAddress.type === 'residential' ? styles.active : ''}`}
+                    onClick={() => setForm({ ...form, pickupAddress:{
+                      ...form.pickupAddress,
+                      type: 'residential'
+                    } })}
+                  >
+                    Residential
+                  </button>
+                  <button
+                    className={`${styles.typeButton} ${form.pickupAddress.type === 'business' ? styles.active : ''}`}
+                    onClick={() => setForm({ ...form, pickupAddress:{
+                      ...form.pickupAddress,
+                      type: 'business'
+                    } })}
+                  >
+                    Business
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
           </>
         )}
 
         {/* Delivery Address Form - Only show for home delivery */}
         
-        <AddressForm 
-          title='Delivery Address'
-          icon={<MapPin size={20} />}
-          address={form.deliveryAddress}
-          setAddress={(address) => setForm({ ...form, deliveryAddress: address })}
-          type='delivery'
-        />
+          <>
+            <div className={styles.section}>
+              <div className={styles.sectionHeader}>
+                <div className={styles.iconContainer}>
+                  <MapPin size={20} />
+                </div>
+                <h2 className={styles.sectionTitle}>Delivery Address</h2>
+              </div>
 
+              <div className={styles.addressForm}>
+                <div className={styles.inputGroup}>
+                  <label className={styles.label}>Street Address</label>
+                  <LoadScript
+                    googleMapsApiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY ?? ''}
+                    libraries={["places"]}
+                    onLoad={() => setMapLoaded(true)}
+                  >
+                    <div className="relative items-center">
+                      <div className="relative w-6 inset-y-0 left-0 flex items-center pointer-events-none">
+                        <MapPin className="h-5 w-5 text-gray-400" />
+                      </div>
+                      <Autocomplete
+                        onLoad={(autocomplete: google.maps.places.Autocomplete) => {
+                          setDeliveryAutocomplete(autocomplete);
+                        }}
+                        onPlaceChanged={() => handlePlaceSelect("delivery")}
+                      >
+                        <input
+                          type="text"
+                          className={`${styles.input}`}
+                          placeholder="Enter street address"
+                          value={form.deliveryAddress.street}
+                          onChange={(e) => setForm({ ...form, deliveryAddress:{
+                            ...form.deliveryAddress,
+                            street: e.target.value
+                          } })}
+                        />
+                      </Autocomplete>
+                    </div>
+                  </LoadScript>
+                </div>
 
+                <div className={styles.formRow}>
+                  <div className={styles.inputGroup}>
+                    <label className={styles.label}>City</label>
+                    <input
+                      type="text"
+                      className={`${styles.input}`}
+                      placeholder="City"
+                      value={form.deliveryAddress.city}
+                      onChange={(e) => setForm({ ...form, deliveryAddress:{
+                        ...form.deliveryAddress,
+                        city: e.target.value
+                      } })}
+                    />
+                  </div>
+                  <div className={styles.inputGroup}>
+                    <label className={styles.label}>State</label>
+                    <input
+                      type="text"
+                      className={`${styles.input}`}
+                      placeholder="State"
+                      value={form.deliveryAddress.state}
+                      onChange={(e) => setForm({ ...form, deliveryAddress:{
+                        ...form.deliveryAddress,
+                        state: e.target.value
+                      } })}
+                    />
+                  </div>
+                </div>
+
+                <div className={styles.formRow}>
+                  <div className={styles.inputGroup}>
+                    <label className={styles.label}>Country</label>
+                    <input
+                      type="text"
+                      className={`${styles.input}`}
+                      placeholder="Country"
+                      value={form.deliveryAddress.country}
+                      onChange={(e) => setForm({ ...form, deliveryAddress:{
+                        ...form.deliveryAddress,
+                        country: e.target.value
+                      } })}
+                    />
+                  </div>
+                  <div className={styles.inputGroup}>
+                    <label className={styles.label}>Postcode</label>
+                    <input
+                      type="text"
+                      className={`${styles.input}`}
+                      placeholder="Postcode"
+                      value={form.deliveryAddress.postcode}
+                      onChange={(e) => setForm({ ...form, deliveryAddress:{
+                        ...form.deliveryAddress,
+                        postcode: e.target.value
+                      } })}
+                    />
+                  </div>
+                </div>
+
+                <div className={styles.inputGroup}>
+                  <label className={styles.label}>Address Type</label>
+                  <div className={styles.addressTypeButtons}>
+                    <button
+                      className={`${styles.typeButton} ${form.deliveryAddress.type === 'residential' ? styles.active : ''}`}
+                      onClick={() => setForm({ ...form, deliveryAddress:{
+                        ...form.deliveryAddress,
+                        type: 'residential'
+                      } })}
+                    >
+                      Residential
+                    </button>
+                    <button
+                      className={`${styles.typeButton} ${form.deliveryAddress.type === 'business' ? styles.active : ''}`}
+                      onClick={() => setForm({ ...form, deliveryAddress:{
+                        ...form.deliveryAddress,
+                        type: 'business'
+                      } })}
+                    >
+                      Business
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </>
         {/* Receiver Details */}
         <div className={styles.section}>
           <h2 className={styles.sectionTitle}>Receiver Details</h2>
