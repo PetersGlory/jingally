@@ -307,7 +307,8 @@ export default function PackagePayment({ handleNextStep, handlePreviousStep }: {
     return [
       { label: `${methodName} Fee`, amount: `£${baseFee.toFixed(2)}`, type: 'regular' as const },
       ...(serviceType !== SHIPPING_METHODS.SEA ? [
-        { label: 'Service Fee', amount: `£${serviceFee.toFixed(2)}`, type: 'regular' as const }
+        { label: 'Service Fee', amount: `£${20.00}`, type: 'regular' as const }
+        // { label: 'Service Fee', amount: `£${serviceFee.toFixed(2)}`, type: 'regular' as const }
       ] : []),
       { label: 'Total', amount: `£${total.toFixed(2)}`, type: 'total' as const }
     ];
@@ -904,7 +905,7 @@ export default function PackagePayment({ handleNextStep, handlePreviousStep }: {
               <div className="flex flex-col items-center justify-center p-6">
                 <p className="text-center mb-4">You will be redirected to PayPal to complete your payment.</p>
                 <p className="text-center mb-6 font-semibold">
-                  Total Amount: {costs.find(c => c.type === 'total')?.amount}
+                  Total Amount: £20
                 </p>
                   <PayPalButtons
                     style={{
@@ -919,7 +920,7 @@ export default function PackagePayment({ handleNextStep, handlePreviousStep }: {
                         purchase_units: [
                           {
                             amount: {
-                              value: amount.toString(),
+                              value: '20',
                               currency_code: "GBP"
                             },
                             description: `Payment for shipment ${shipment?.trackingNumber}`

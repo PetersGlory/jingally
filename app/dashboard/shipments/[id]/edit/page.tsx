@@ -48,17 +48,28 @@ export default function EditShipmentPage() {
   const handlePreviousStep = () => {
     setCurrentStep(prev => prev - 1);
   };
-
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-slate-50 via-gray-50 to-slate-100">
+      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-white-50 via-gray-50 to-gray-100">
         <div className="relative group">
-          <div className="absolute -inset-0.5 rounded-full bg-gradient-to-r from-blue-600 via-indigo-500 to-purple-600 opacity-75 blur-lg group-hover:opacity-100 transition duration-1000"></div>
-          <div className="relative flex flex-col items-center">
-            <div className="animate-spin rounded-full h-20 w-20 border-4 border-white border-t-transparent shadow-lg"></div>
-            <div className="mt-6 text-center">
-              <p className="text-gray-700 font-medium text-lg tracking-wide">Loading</p>
-              <p className="text-gray-500 text-sm mt-1">Please wait while we prepare your shipment...</p>
+          <div className="absolute -inset-0.5 rounded-full bg-gradient-to-r from-gray-100 via-gray-200 to-gray-300 opacity-75 blur-lg group-hover:opacity-100 transition duration-1000"></div>
+          <div className="relative flex flex-col items-center p-8">
+            <div className="relative">
+              <div className="absolute -inset-1 rounded-full bg-gradient-to-r from-gray-100 via-gray-200 to-gray-300 opacity-75 blur-lg animate-pulse"></div>
+              <div className="relative animate-spin rounded-full h-24 w-24 border-4 border-gray-100 border-t-transparent shadow-lg"></div>
+            </div>
+            <div className="mt-8 text-center space-y-2">
+              <h2 className="text-2xl font-bold bg-gradient-to-r from-blue-600 via-indigo-500 to-purple-600 bg-clip-text text-transparent">
+                Loading Shipment Details
+              </h2>
+              <div className="flex items-center justify-center space-x-2">
+                <div className="w-2 h-2 bg-blue-600 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+                <div className="w-2 h-2 bg-indigo-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+                <div className="w-2 h-2 bg-purple-600 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+              </div>
+              <p className="text-gray-600 text-sm mt-4 max-w-sm">
+                Please wait while we retrieve and prepare your shipment information...
+              </p>
             </div>
           </div>
         </div>

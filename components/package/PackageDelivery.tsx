@@ -15,6 +15,50 @@ interface CountryCode {
   dial_code: string;
 }
 
+interface Shipment {
+  id: string;
+  trackingNumber: string;
+  status: string;
+  packageType: string;
+  serviceType: string;
+  packageDescription: string;
+  fragile: boolean;
+  weight: number;
+  dimensions: {
+    width: number;
+    height: number;
+    length: number;
+  };
+  pickupAddress: {
+    city: string;
+    type: string;
+    state: string;
+    street: string;
+    country: string;
+    postcode: string;
+  };
+  deliveryAddress: {
+    city: string;
+    type: string;
+    state: string;
+    street: string;
+    country: string;
+    postcode: string;
+  };
+  scheduledPickupTime: string;
+  estimatedDeliveryTime: string;
+  receiverName: string;
+  receiverPhoneNumber: string;
+  receiverEmail: string;
+  price: number | null;
+  paymentStatus: string;
+  notes: string | null;
+  driverId: string | null;
+  images: string[];
+  createdAt: string;
+  updatedAt: string;
+}
+
 interface Address {
   street: string;
   city: string;
@@ -205,6 +249,7 @@ export default function PackageDelivery({ handleNextStep, handlePreviousStep }: 
   const [disabled, setDisabled] = useState(false);
   const [formErrors, setFormErrors] = useState<Partial<DeliveryForm>>({});
   const [allDresses, setAllAddresses] = useState([])
+  const [shipInfo, setShipInfo] = useState<Shipment>();
   const [addressSelected, setAddressSelected] = useState("");
 
   useEffect(()=>{
@@ -214,6 +259,13 @@ export default function PackageDelivery({ handleNextStep, handlePreviousStep }: 
       if(response && response.success){
         setAllAddresses(response.data)
       }
+    }
+
+    const accessToken = localStorage.getItem('accessToken');
+    const packageInfo = localStorage.getItem('packageInfo');
+    
+    if (accessToken) {
+      setShipInfo(JSON.parse(packageInfo || '{}'));
     }
 
     getAddresses();
@@ -450,7 +502,7 @@ export default function PackageDelivery({ handleNextStep, handlePreviousStep }: 
           </div>
           <button 
             className={styles.cancelButton}
-            onClick={handlePreviousStep}
+            onClick={()=>router.replace("/dashboard/shipments")}
           >
             Cancel
           </button>
@@ -483,7 +535,7 @@ export default function PackageDelivery({ handleNextStep, handlePreviousStep }: 
               </button>
             </div>
 
-          {deliveryMode === 'home' && (
+          {deliveryMode === 'home' && shipInfo?.serviceType == "airfreight" && (
             <div className="mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
               <div className="flex items-start gap-3">
                 <AlertTriangle className="text-yellow-600 mt-0.5" size={20} />
