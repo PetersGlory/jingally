@@ -41,11 +41,163 @@ interface DeliveryForm {
   deliveryMode: 'home' | 'park';
 }
 
+interface AddressFormProps {
+  title: string;
+  icon: React.ReactNode;
+  address: Address;
+  setAddress: (address: Address) => void;
+  type: 'pickup' | 'delivery';
+  formErrors?: Partial<DeliveryForm>;
+  setMapLoaded?: (loaded: boolean) => void;
+  setPickupAutocomplete?: (autocomplete: google.maps.places.Autocomplete | null) => void;
+  setDeliveryAutocomplete?: (autocomplete: google.maps.places.Autocomplete | null) => void;
+  handlePlaceSelect?: (type: 'pickup' | 'delivery') => void;
+}
+
 const countryCodes: CountryCode[] = [
   { code: 'GB', name: 'United Kingdom', flag: '🇬🇧', dial_code: '+44' },
   { code: 'NG', name: 'Nigeria', flag: '🇳🇬', dial_code: '+234' },
   { code: 'GM', name: 'Gambia', flag: '🇬🇲', dial_code: '+220' },
 ];
+
+// Move this outside of PackageDelivery component
+const AddressForm: React.FC<AddressFormProps> = ({
+  title,
+  icon,
+  address,
+  setAddress,
+  type,
+  formErrors,
+  setMapLoaded,
+  setPickupAutocomplete,
+  setDeliveryAutocomplete,
+  handlePlaceSelect
+}) => {
+  return (
+    <div className={styles.section}>
+      <div className={styles.sectionHeader}>
+        <div className={styles.iconContainer}>
+          {icon}
+        </div>
+        <h2 className={styles.sectionTitle}>{title}</h2>
+      </div>
+
+      <div className={styles.addressForm}>
+        <div className={styles.inputGroup}>
+          <label className={styles.label}>Street Address</label>
+          <LoadScript
+            googleMapsApiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY ?? ''}
+            libraries={["places"]}
+            onLoad={() => setMapLoaded?.(true)}
+          >
+            <div className="relative items-center">
+              <div className="relative w-6 inset-y-0 left-0 flex items-center pointer-events-none">
+                <MapPin className="h-5 w-5 text-gray-400" />
+              </div>
+              <Autocomplete
+                onLoad={(autocomplete: google.maps.places.Autocomplete) => {
+                  if (type === 'pickup') {
+                    setPickupAutocomplete?.(autocomplete);
+                  } else {
+                    setDeliveryAutocomplete?.(autocomplete);
+                  }
+                }}
+                onPlaceChanged={() => handlePlaceSelect?.(type)}
+              >
+                <input
+                  type="text"
+                  className={`${styles.input} ${formErrors?.[`${type}Address`]?.street ? styles.error : ''}`}
+                  placeholder="Enter street address"
+                  value={address.street}
+                  onChange={(e) => setAddress({ ...address, street: e.target.value })}
+                />
+              </Autocomplete>
+            </div>
+          </LoadScript>
+          {formErrors?.[`${type}Address`]?.street && (
+            <span className={styles.errorMessage}>{formErrors?.[`${type}Address`]?.street}</span>
+          )}
+        </div>
+
+        <div className={styles.formRow}>
+          <div className={styles.inputGroup}>
+            <label className={styles.label}>City</label>
+            <input
+              type="text"
+              className={`${styles.input} ${formErrors?.[`${type}Address`]?.city ? styles.error : ''}`}
+              placeholder="City"
+              value={address.city}
+              onChange={(e) => setAddress({ ...address, city: e.target.value })}
+            />
+            {formErrors?.[`${type}Address`]?.city && (
+              <span className={styles.errorMessage}>{formErrors?.[`${type}Address`]?.city}</span>
+            )}
+          </div>
+          <div className={styles.inputGroup}>
+            <label className={styles.label}>State</label>
+            <input
+              type="text"
+              className={`${styles.input} ${formErrors?.[`${type}Address`]?.state ? styles.error : ''}`}
+              placeholder="State"
+              value={address.state}
+              onChange={(e) => setAddress({ ...address, state: e.target.value })}
+            />
+            {formErrors?.[`${type}Address`]?.state && (
+              <span className={styles.errorMessage}>{formErrors?.[`${type}Address`]?.state}</span>
+            )}
+          </div>
+        </div>
+
+        <div className={styles.formRow}>
+          <div className={styles.inputGroup}>
+            <label className={styles.label}>Country</label>
+            <input
+              type="text"
+              className={`${styles.input} ${formErrors?.[`${type}Address`]?.country ? styles.error : ''}`}
+              placeholder="Country"
+              value={address.country}
+              onChange={(e) => setAddress({ ...address, country: e.target.value })}
+            />
+            {formErrors?.[`${type}Address`]?.country && (
+              <span className={styles.errorMessage}>{formErrors?.[`${type}Address`]?.country}</span>
+            )}
+          </div>
+          <div className={styles.inputGroup}>
+            <label className={styles.label}>Postcode</label>
+            <input
+              type="text"
+              className={`${styles.input} ${formErrors?.[`${type}Address`]?.postcode ? styles.error : ''}`}
+              placeholder="Postcode"
+              value={address.postcode}
+              onChange={(e) => setAddress({ ...address, postcode: e.target.value })}
+            />
+            {formErrors?.[`${type}Address`]?.postcode && (
+              <span className={styles.errorMessage}>{formErrors?.[`${type}Address`]?.postcode}</span>
+            )}
+          </div>
+        </div>
+
+        <div className={styles.inputGroup}>
+          <label className={styles.label}>Address Type</label>
+          <div className={styles.addressTypeButtons}>
+            <button
+              className={`${styles.typeButton} ${address.type === 'residential' ? styles.active : ''}`}
+              onClick={() => setAddress({ ...address, type: 'residential' })}
+            >
+              Residential
+            </button>
+            <button
+              className={`${styles.typeButton} ${address.type === 'business' ? styles.active : ''}`}
+              onClick={() => setAddress({ ...address, type: 'business' })}
+            >
+              Business
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 export default function PackageDelivery({ handleNextStep, handlePreviousStep }: { handleNextStep: () => void, handlePreviousStep: () => void }) {
   const router = useRouter();
@@ -276,157 +428,6 @@ export default function PackageDelivery({ handleNextStep, handlePreviousStep }: 
     } finally {
       setIsLoading(false);
     }
-  };
-
-  interface AddressFormProps {
-    title: string;
-    icon: React.ReactNode;
-    address: Address;
-    setAddress: (address: Address) => void;
-    type: 'pickup' | 'delivery';
-    formErrors?: Partial<DeliveryForm>;
-    setMapLoaded?: (loaded: boolean) => void;
-    setPickupAutocomplete?: (autocomplete: google.maps.places.Autocomplete | null) => void;
-    setDeliveryAutocomplete?: (autocomplete: google.maps.places.Autocomplete | null) => void;
-    handlePlaceSelect?: (type: 'pickup' | 'delivery') => void;
-  }
-
-  const AddressForm: React.FC<AddressFormProps> = ({
-    title,
-    icon,
-    address,
-    setAddress,
-    type,
-    formErrors,
-    setMapLoaded,
-    setPickupAutocomplete,
-    setDeliveryAutocomplete,
-    handlePlaceSelect
-  }) => {
-    return (
-      <div className={styles.section}>
-        <div className={styles.sectionHeader}>
-          <div className={styles.iconContainer}>
-            {icon}
-          </div>
-          <h2 className={styles.sectionTitle}>{title}</h2>
-        </div>
-
-        <div className={styles.addressForm}>
-          <div className={styles.inputGroup}>
-            <label className={styles.label}>Street Address</label>
-            <LoadScript
-              googleMapsApiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY ?? ''}
-              libraries={["places"]}
-              onLoad={() => setMapLoaded?.(true)}
-            >
-              <div className="relative items-center">
-                <div className="relative w-6 inset-y-0 left-0 flex items-center pointer-events-none">
-                  <MapPin className="h-5 w-5 text-gray-400" />
-                </div>
-                <Autocomplete
-                  onLoad={(autocomplete: google.maps.places.Autocomplete) => {
-                    if (type === 'pickup') {
-                      setPickupAutocomplete?.(autocomplete);
-                    } else {
-                      setDeliveryAutocomplete?.(autocomplete);
-                    }
-                  }}
-                  onPlaceChanged={() => handlePlaceSelect?.(type)}
-                >
-                  <input
-                    type="text"
-                    className={`${styles.input} ${formErrors?.[`${type}Address`]?.street ? styles.error : ''}`}
-                    placeholder="Enter street address"
-                    value={address.street}
-                    onChange={(e) => setAddress({ ...address, street: e.target.value })}
-                  />
-                </Autocomplete>
-              </div>
-            </LoadScript>
-            {formErrors?.[`${type}Address`]?.street && (
-              <span className={styles.errorMessage}>{formErrors?.[`${type}Address`]?.street}</span>
-            )}
-          </div>
-
-          <div className={styles.formRow}>
-            <div className={styles.inputGroup}>
-              <label className={styles.label}>City</label>
-              <input
-                type="text"
-                className={`${styles.input} ${formErrors?.[`${type}Address`]?.city ? styles.error : ''}`}
-                placeholder="City"
-                value={address.city}
-                onChange={(e) => setAddress({ ...address, city: e.target.value })}
-              />
-              {formErrors?.[`${type}Address`]?.city && (
-                <span className={styles.errorMessage}>{formErrors?.[`${type}Address`]?.city}</span>
-              )}
-            </div>
-            <div className={styles.inputGroup}>
-              <label className={styles.label}>State</label>
-              <input
-                type="text"
-                className={`${styles.input} ${formErrors?.[`${type}Address`]?.state ? styles.error : ''}`}
-                placeholder="State"
-                value={address.state}
-                onChange={(e) => setAddress({ ...address, state: e.target.value })}
-              />
-              {formErrors?.[`${type}Address`]?.state && (
-                <span className={styles.errorMessage}>{formErrors?.[`${type}Address`]?.state}</span>
-              )}
-            </div>
-          </div>
-
-          <div className={styles.formRow}>
-            <div className={styles.inputGroup}>
-              <label className={styles.label}>Country</label>
-              <input
-                type="text"
-                className={`${styles.input} ${formErrors?.[`${type}Address`]?.country ? styles.error : ''}`}
-                placeholder="Country"
-                value={address.country}
-                onChange={(e) => setAddress({ ...address, country: e.target.value })}
-              />
-              {formErrors?.[`${type}Address`]?.country && (
-                <span className={styles.errorMessage}>{formErrors?.[`${type}Address`]?.country}</span>
-              )}
-            </div>
-            <div className={styles.inputGroup}>
-              <label className={styles.label}>Postcode</label>
-              <input
-                type="text"
-                className={`${styles.input} ${formErrors?.[`${type}Address`]?.postcode ? styles.error : ''}`}
-                placeholder="Postcode"
-                value={address.postcode}
-                onChange={(e) => setAddress({ ...address, postcode: e.target.value })}
-              />
-              {formErrors?.[`${type}Address`]?.postcode && (
-                <span className={styles.errorMessage}>{formErrors?.[`${type}Address`]?.postcode}</span>
-              )}
-            </div>
-          </div>
-
-          <div className={styles.inputGroup}>
-            <label className={styles.label}>Address Type</label>
-            <div className={styles.addressTypeButtons}>
-              <button
-                className={`${styles.typeButton} ${address.type === 'residential' ? styles.active : ''}`}
-                onClick={() => setAddress({ ...address, type: 'residential' })}
-              >
-                Residential
-              </button>
-              <button
-                className={`${styles.typeButton} ${address.type === 'business' ? styles.active : ''}`}
-                onClick={() => setAddress({ ...address, type: 'business' })}
-              >
-                Business
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
   };
 
   return (

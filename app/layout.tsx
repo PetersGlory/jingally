@@ -6,9 +6,6 @@ import { ThemeProvider } from "@/components/theme-provider"
 import { Toaster } from "@/components/ui/toaster"
 import { AuthProvider } from "@/components/auth-provider"
 import { Suspense } from 'react'
-import { Moon } from "lucide-react"
-import { Sun } from "lucide-react"
-import { Button } from "@/components/ui/button"
 
 const inter = Inter({ subsets: ["latin"] })
 
