@@ -270,11 +270,16 @@ export default function PackageDelivery({ handleNextStep, handlePreviousStep }: 
     type: 'business'
   };
 
-  const handleDeliveryModeChange = (mode: 'home' | 'park') => {
+  const handleDeliveryModeChange = async (mode: 'home' | 'park') => {
     setDeliveryMode(mode);
+
+    const packageInfo = localStorage.getItem('packageInfo');
+    const packageData = packageInfo ? JSON.parse(packageInfo) : {};
     
     if(mode === "home"){
-      alert('Service charge for Pickup costs £20');
+      if(packageData?.serviceType == 'airfreight'){
+        alert('Service charge for Pickup costs £20');
+      }
       setForm({
         ...form,
         pickupAddress:{
