@@ -163,7 +163,7 @@ export default function PackageDetails({ selectedType, serviceType, handleNextSt
               return null;
             }
 
-            if (serviceType === 'seafreight' && type.id === 'pallet') {
+            if (serviceType === 'seafreight' && type.id === 'parcel') {
               return null;
             }
             
