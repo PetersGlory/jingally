@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { MapPin, Truck, Info, X, ChevronDown, ArrowRight, Loader, Check, ArrowLeft } from 'lucide-react';
+import { MapPin, Truck, Info, X, ChevronDown, ArrowRight, Loader, Check, ArrowLeft, AlertTriangle } from 'lucide-react';
 import { LoadScript, Autocomplete } from '@react-google-maps/api';
 import styles from './PackageDelivery.module.css';
 import { updateDeliveryAddress } from '@/lib/shipment';
@@ -85,35 +85,29 @@ const AddressForm: React.FC<AddressFormProps> = ({
       <div className={styles.addressForm}>
         <div className={styles.inputGroup}>
           <label className={styles.label}>Street Address</label>
-          <LoadScript
-            googleMapsApiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY ?? ''}
-            libraries={["places"]}
-            onLoad={() => setMapLoaded?.(true)}
-          >
-            <div className="relative items-center">
-              <div className="relative w-6 inset-y-0 left-0 flex items-center pointer-events-none">
-                <MapPin className="h-5 w-5 text-gray-400" />
-              </div>
-              <Autocomplete
-                onLoad={(autocomplete: google.maps.places.Autocomplete) => {
-                  if (type === 'pickup') {
-                    setPickupAutocomplete?.(autocomplete);
-                  } else {
-                    setDeliveryAutocomplete?.(autocomplete);
-                  }
-                }}
-                onPlaceChanged={() => handlePlaceSelect?.(type)}
-              >
-                <input
-                  type="text"
-                  className={`${styles.input} ${formErrors?.[`${type}Address`]?.street ? styles.error : ''}`}
-                  placeholder="Enter street address"
-                  value={address.street}
-                  onChange={(e) => setAddress({ ...address, street: e.target.value })}
-                />
-              </Autocomplete>
+          <div className="relative items-center">
+            <div className="relative w-6 inset-y-0 left-0 flex items-center pointer-events-none">
+              <MapPin className="h-5 w-5 text-gray-400" />
             </div>
-          </LoadScript>
+            <Autocomplete
+              onLoad={(autocomplete: google.maps.places.Autocomplete) => {
+                if (type === 'pickup') {
+                  setPickupAutocomplete?.(autocomplete);
+                } else {
+                  setDeliveryAutocomplete?.(autocomplete);
+                }
+              }}
+              onPlaceChanged={() => handlePlaceSelect?.(type)}
+            >
+              <input
+                type="text"
+                className={`${styles.input} ${formErrors?.[`${type}Address`]?.street ? styles.error : ''}`}
+                placeholder="Enter street address"
+                value={address.street}
+                onChange={(e) => setAddress({ ...address, street: e.target.value })}
+              />
+            </Autocomplete>
+          </div>
           {formErrors?.[`${type}Address`]?.street && (
             <span className={styles.errorMessage}>{formErrors?.[`${type}Address`]?.street}</span>
           )}
@@ -436,118 +430,129 @@ export default function PackageDelivery({ handleNextStep, handlePreviousStep }: 
   };
 
   return (
-    <div className={styles.container}>
-      <header className={styles.header}>
-        <div className="flex flex-row items-center gap-4">
+    <LoadScript
+      googleMapsApiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY ?? ''}
+      libraries={["places"]}
+      onLoad={() => setMapLoaded(true)}
+    >
+      <div className={styles.container}>
+        <header className={styles.header}>
+          <div className="flex flex-row items-center gap-4">
+            <button 
+              type='button'
+              className={styles.backButton}
+              onClick={handlePreviousStep}
+            >
+              <ArrowLeft size={20} />
+            </button>
+            <h1>Delivery Details</h1>
+          </div>
           <button 
-            type='button'
-            className={styles.backButton}
+            className={styles.cancelButton}
             onClick={handlePreviousStep}
           >
-            <ArrowLeft size={20} />
+            Cancel
           </button>
-          <h1>Delivery Details</h1>
-        </div>
-        <button 
-          className={styles.cancelButton}
-          onClick={handlePreviousStep}
-        >
-          Cancel
-        </button>
-      </header>
+        </header>
 
-      <main className={styles.main}>
-        {/* Delivery Mode */}
-        <div className={styles.section}>
-          <div className={styles.sectionHeader}>
-            <MapPin size={20} />
-            <h2 className={styles.sectionTitle}>Delivery Mode</h2>
-          </div>
-          <div className={styles.deliveryModeButtons}>
-            <button
-              disabled={disabled}
-              type='button'
-              className={`${styles.modeButton} ${deliveryMode === 'home' ? styles.active : ''}`}
-              onClick={() => handleDeliveryModeChange('home')}
-            >
-              Pick-up
-            </button>
-            <button
-              type='button'
-              className={`${styles.modeButton} ${deliveryMode === 'park' ? styles.active : ''}`}
-              onClick={() => {
-                handleDeliveryModeChange('park')
-              }}
-            >
-              Drop Off
-            </button>
-          </div>
-        </div>
-
-        {deliveryMode == 'park' && allDresses.length > 0 && (
+        <main className={styles.main}>
+          {/* Delivery Mode */}
           <div className={styles.section}>
             <div className={styles.sectionHeader}>
               <MapPin size={20} />
-              <h2 className={styles.sectionTitle}>Drop-off Addresses</h2>
+              <h2 className={styles.sectionTitle}>Delivery Mode</h2>
             </div>
-            <div className={styles.addressList}>
-              {allDresses.map((address: any, index: number) => (
-                <div key={index} className={`${styles.addressItem} ${addressSelected == address.id && styles.pickedAddress}`}>
-                  <div className={styles.addressDetails}>
-                    <p className={styles.addressStreet}>{address.street}</p>
-                    <p className={styles.addressCity}>{address.city}, {address.state}</p>
-                    <p className={styles.addressPostcode}>{address.zipCode}</p>
-                  </div>
-                  <button
-                    className={styles.selectAddressButton}
-                    type='button'
-                    onClick={() => {
-                      const updatedAddress = {
-                        street: address.street,
-                        city: address.city,
-                        state: address.state,
-                        country: address.country,
-                        postcode: address.zipCode,
-                        latitude: address.latitude,
-                        longitude: address.longitude,
-                        placeId: address.placeId,
-                        type: address.type
-                      };
-                      
-                      setForm(prev => ({
-                        ...prev,
-                        pickupAddress: updatedAddress
-                      }));
-                      setAddressSelected(address.id);
-                    }}
-                  >
-                    Select
-                  </button>
-                </div>
-              ))}
+            <div className={styles.deliveryModeButtons}>
+              <button
+                disabled={disabled}
+                type='button'
+                className={`${styles.modeButton} ${deliveryMode === 'home' ? styles.active : ''}`}
+                onClick={() => handleDeliveryModeChange('home')}
+              >
+                Pick-up
+              </button>
+              <button
+                type='button'
+                className={`${styles.modeButton} ${deliveryMode === 'park' ? styles.active : ''}`}
+                onClick={() => {
+                  handleDeliveryModeChange('park')
+                }}
+              >
+                Drop Off
+              </button>
             </div>
-          </div>
-        )}
 
-        {/* Pickup Address Form */}
-        {deliveryMode === "home" && (
-          <>
-          <div className={styles.section}>
-            <div className={styles.sectionHeader}>
-              <div className={styles.iconContainer}>
-                <Truck size={20} />
+          {deliveryMode === 'home' && (
+            <div className="mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+              <div className="flex items-start gap-3">
+                <AlertTriangle className="text-yellow-600 mt-0.5" size={20} />
+                <p className="text-sm text-yellow-800">
+                  A service charge of £20 will be applied for pickup service.
+                </p>
               </div>
-              <h2 className={styles.sectionTitle}>{'Pickup Address'}</h2>
             </div>
+          )}
+          </div>
 
-            <div className={styles.addressForm}>
-              <div className={styles.inputGroup}>
-                <label className={styles.label}>Street Address</label>
-                <LoadScript
-                  googleMapsApiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY ?? ''}
-                  libraries={["places"]}
-                  onLoad={() => setMapLoaded(true)}
-                >
+          {deliveryMode == 'park' && allDresses.length > 0 && (
+            <div className={styles.section}>
+              <div className={styles.sectionHeader}>
+                <MapPin size={20} />
+                <h2 className={styles.sectionTitle}>Drop-off Addresses</h2>
+              </div>
+              <div className={styles.addressList}>
+                {allDresses.map((address: any, index: number) => (
+                  <div key={index} className={`${styles.addressItem} ${addressSelected == address.id && styles.pickedAddress}`}>
+                    <div className={styles.addressDetails}>
+                      <p className={styles.addressStreet}>{address.street}</p>
+                      <p className={styles.addressCity}>{address.city}, {address.state}</p>
+                      <p className={styles.addressPostcode}>{address.zipCode}</p>
+                    </div>
+                    <button
+                      className={styles.selectAddressButton}
+                      type='button'
+                      onClick={() => {
+                        const updatedAddress = {
+                          street: address.street,
+                          city: address.city,
+                          state: address.state,
+                          country: address.country,
+                          postcode: address.zipCode,
+                          latitude: address.latitude,
+                          longitude: address.longitude,
+                          placeId: address.placeId,
+                          type: address.type
+                        };
+                        
+                        setForm(prev => ({
+                          ...prev,
+                          pickupAddress: updatedAddress
+                        }));
+                        setAddressSelected(address.id);
+                      }}
+                    >
+                      Select
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Pickup Address Form */}
+          {deliveryMode === "home" && (
+            <>
+            <div className={styles.section}>
+              <div className={styles.sectionHeader}>
+                <div className={styles.iconContainer}>
+                  <Truck size={20} />
+                </div>
+                <h2 className={styles.sectionTitle}>{'Pickup Address'}</h2>
+              </div>
+
+              <div className={styles.addressForm}>
+                <div className={styles.inputGroup}>
+                  <label className={styles.label}>Street Address</label>
                   <div className="relative items-center">
                     <div className="relative w-6 inset-y-0 left-0 flex items-center pointer-events-none">
                       <MapPin className="h-5 w-5 text-gray-400" />
@@ -570,114 +575,108 @@ export default function PackageDelivery({ handleNextStep, handlePreviousStep }: 
                       />
                     </Autocomplete>
                   </div>
-                </LoadScript>
-              </div>
+                </div>
 
-              <div className={styles.formRow}>
-                <div className={styles.inputGroup}>
-                  <label className={styles.label}>City</label>
-                  <input
-                    type="text"
-                    className={`${styles.input}`}
-                    placeholder="City"
-                    value={form.pickupAddress.city}
-                    onChange={(e) => setForm({ ...form, pickupAddress:{
-                      ...form.pickupAddress,
-                      city: e.target.value
-                    } })}
-                  />
+                <div className={styles.formRow}>
+                  <div className={styles.inputGroup}>
+                    <label className={styles.label}>City</label>
+                    <input
+                      type="text"
+                      className={`${styles.input}`}
+                      placeholder="City"
+                      value={form.pickupAddress.city}
+                      onChange={(e) => setForm({ ...form, pickupAddress:{
+                        ...form.pickupAddress,
+                        city: e.target.value
+                      } })}
+                    />
+                  </div>
+                  <div className={styles.inputGroup}>
+                    <label className={styles.label}>State</label>
+                    <input
+                      type="text"
+                      className={`${styles.input}`}
+                      placeholder="State"
+                      value={form.pickupAddress.state}
+                      onChange={(e) => setForm({ ...form, pickupAddress:{
+                        ...form.pickupAddress,
+                        state: e.target.value
+                      } })}
+                    />
+                  </div>
                 </div>
-                <div className={styles.inputGroup}>
-                  <label className={styles.label}>State</label>
-                  <input
-                    type="text"
-                    className={`${styles.input}`}
-                    placeholder="State"
-                    value={form.pickupAddress.state}
-                    onChange={(e) => setForm({ ...form, pickupAddress:{
-                      ...form.pickupAddress,
-                      state: e.target.value
-                    } })}
-                  />
-                </div>
-              </div>
 
-              <div className={styles.formRow}>
-                <div className={styles.inputGroup}>
-                  <label className={styles.label}>Country</label>
-                  <input
-                    type="text"
-                    className={`${styles.input} `}
-                    placeholder="Country"
-                    value={form.pickupAddress.country}
-                    onChange={(e) => setForm({ ...form, pickupAddress:{
-                      ...form.pickupAddress,
-                      country: e.target.value
-                    } })}
-                  />
+                <div className={styles.formRow}>
+                  <div className={styles.inputGroup}>
+                    <label className={styles.label}>Country</label>
+                    <input
+                      type="text"
+                      className={`${styles.input} `}
+                      placeholder="Country"
+                      value={form.pickupAddress.country}
+                      onChange={(e) => setForm({ ...form, pickupAddress:{
+                        ...form.pickupAddress,
+                        country: e.target.value
+                      } })}
+                    />
+                  </div>
+                  <div className={styles.inputGroup}>
+                    <label className={styles.label}>Postcode</label>
+                    <input
+                      type="text"
+                      className={`${styles.input}`}
+                      placeholder="Postcode"
+                      value={form.pickupAddress.postcode}
+                      onChange={(e) => setForm({ ...form, pickupAddress:{
+                        ...form.pickupAddress,
+                        postcode: e.target.value
+                      } })}
+                    />
+                  </div>
                 </div>
-                <div className={styles.inputGroup}>
-                  <label className={styles.label}>Postcode</label>
-                  <input
-                    type="text"
-                    className={`${styles.input}`}
-                    placeholder="Postcode"
-                    value={form.pickupAddress.postcode}
-                    onChange={(e) => setForm({ ...form, pickupAddress:{
-                      ...form.pickupAddress,
-                      postcode: e.target.value
-                    } })}
-                  />
-                </div>
-              </div>
 
-              <div className={styles.inputGroup}>
-                <label className={styles.label}>Address Type</label>
-                <div className={styles.addressTypeButtons}>
-                  <button
-                    className={`${styles.typeButton} ${form.pickupAddress.type === 'residential' ? styles.active : ''}`}
-                    onClick={() => setForm({ ...form, pickupAddress:{
-                      ...form.pickupAddress,
-                      type: 'residential'
-                    } })}
-                  >
-                    Residential
-                  </button>
-                  <button
-                    className={`${styles.typeButton} ${form.pickupAddress.type === 'business' ? styles.active : ''}`}
-                    onClick={() => setForm({ ...form, pickupAddress:{
-                      ...form.pickupAddress,
-                      type: 'business'
-                    } })}
-                  >
-                    Business
-                  </button>
+                <div className={styles.inputGroup}>
+                  <label className={styles.label}>Address Type</label>
+                  <div className={styles.addressTypeButtons}>
+                    <button
+                      className={`${styles.typeButton} ${form.pickupAddress.type === 'residential' ? styles.active : ''}`}
+                      onClick={() => setForm({ ...form, pickupAddress:{
+                        ...form.pickupAddress,
+                        type: 'residential'
+                      } })}
+                    >
+                      Residential
+                    </button>
+                    <button
+                      className={`${styles.typeButton} ${form.pickupAddress.type === 'business' ? styles.active : ''}`}
+                      onClick={() => setForm({ ...form, pickupAddress:{
+                        ...form.pickupAddress,
+                        type: 'business'
+                      } })}
+                    >
+                      Business
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-          </>
-        )}
+            </>
+          )}
 
-        {/* Delivery Address Form - Only show for home delivery */}
-        
-          <>
-            <div className={styles.section}>
-              <div className={styles.sectionHeader}>
-                <div className={styles.iconContainer}>
-                  <MapPin size={20} />
+          {/* Delivery Address Form - Only show for home delivery */}
+          
+            <>
+              <div className={styles.section}>
+                <div className={styles.sectionHeader}>
+                  <div className={styles.iconContainer}>
+                    <MapPin size={20} />
+                  </div>
+                  <h2 className={styles.sectionTitle}>Delivery Address</h2>
                 </div>
-                <h2 className={styles.sectionTitle}>Delivery Address</h2>
-              </div>
 
-              <div className={styles.addressForm}>
-                <div className={styles.inputGroup}>
-                  <label className={styles.label}>Street Address</label>
-                  <LoadScript
-                    googleMapsApiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY ?? ''}
-                    libraries={["places"]}
-                    onLoad={() => setMapLoaded(true)}
-                  >
+                <div className={styles.addressForm}>
+                  <div className={styles.inputGroup}>
+                    <label className={styles.label}>Street Address</label>
                     <div className="relative items-center">
                       <div className="relative w-6 inset-y-0 left-0 flex items-center pointer-events-none">
                         <MapPin className="h-5 w-5 text-gray-400" />
@@ -700,231 +699,231 @@ export default function PackageDelivery({ handleNextStep, handlePreviousStep }: 
                         />
                       </Autocomplete>
                     </div>
-                  </LoadScript>
-                </div>
+                  </div>
 
-                <div className={styles.formRow}>
-                  <div className={styles.inputGroup}>
-                    <label className={styles.label}>City</label>
-                    <input
-                      type="text"
-                      className={`${styles.input}`}
-                      placeholder="City"
-                      value={form.deliveryAddress.city}
-                      onChange={(e) => setForm({ ...form, deliveryAddress:{
-                        ...form.deliveryAddress,
-                        city: e.target.value
-                      } })}
-                    />
+                  <div className={styles.formRow}>
+                    <div className={styles.inputGroup}>
+                      <label className={styles.label}>City</label>
+                      <input
+                        type="text"
+                        className={`${styles.input}`}
+                        placeholder="City"
+                        value={form.deliveryAddress.city}
+                        onChange={(e) => setForm({ ...form, deliveryAddress:{
+                          ...form.deliveryAddress,
+                          city: e.target.value
+                        } })}
+                      />
+                    </div>
+                    <div className={styles.inputGroup}>
+                      <label className={styles.label}>State</label>
+                      <input
+                        type="text"
+                        className={`${styles.input}`}
+                        placeholder="State"
+                        value={form.deliveryAddress.state}
+                        onChange={(e) => setForm({ ...form, deliveryAddress:{
+                          ...form.deliveryAddress,
+                          state: e.target.value
+                        } })}
+                      />
+                    </div>
                   </div>
-                  <div className={styles.inputGroup}>
-                    <label className={styles.label}>State</label>
-                    <input
-                      type="text"
-                      className={`${styles.input}`}
-                      placeholder="State"
-                      value={form.deliveryAddress.state}
-                      onChange={(e) => setForm({ ...form, deliveryAddress:{
-                        ...form.deliveryAddress,
-                        state: e.target.value
-                      } })}
-                    />
-                  </div>
-                </div>
 
-                <div className={styles.formRow}>
-                  <div className={styles.inputGroup}>
-                    <label className={styles.label}>Country</label>
-                    <input
-                      type="text"
-                      className={`${styles.input}`}
-                      placeholder="Country"
-                      value={form.deliveryAddress.country}
-                      onChange={(e) => setForm({ ...form, deliveryAddress:{
-                        ...form.deliveryAddress,
-                        country: e.target.value
-                      } })}
-                    />
+                  <div className={styles.formRow}>
+                    <div className={styles.inputGroup}>
+                      <label className={styles.label}>Country</label>
+                      <input
+                        type="text"
+                        className={`${styles.input}`}
+                        placeholder="Country"
+                        value={form.deliveryAddress.country}
+                        onChange={(e) => setForm({ ...form, deliveryAddress:{
+                          ...form.deliveryAddress,
+                          country: e.target.value
+                        } })}
+                      />
+                    </div>
+                    <div className={styles.inputGroup}>
+                      <label className={styles.label}>Postcode</label>
+                      <input
+                        type="text"
+                        className={`${styles.input}`}
+                        placeholder="Postcode"
+                        value={form.deliveryAddress.postcode}
+                        onChange={(e) => setForm({ ...form, deliveryAddress:{
+                          ...form.deliveryAddress,
+                          postcode: e.target.value
+                        } })}
+                      />
+                    </div>
                   </div>
-                  <div className={styles.inputGroup}>
-                    <label className={styles.label}>Postcode</label>
-                    <input
-                      type="text"
-                      className={`${styles.input}`}
-                      placeholder="Postcode"
-                      value={form.deliveryAddress.postcode}
-                      onChange={(e) => setForm({ ...form, deliveryAddress:{
-                        ...form.deliveryAddress,
-                        postcode: e.target.value
-                      } })}
-                    />
-                  </div>
-                </div>
 
-                <div className={styles.inputGroup}>
-                  <label className={styles.label}>Address Type</label>
-                  <div className={styles.addressTypeButtons}>
-                    <button
-                      className={`${styles.typeButton} ${form.deliveryAddress.type === 'residential' ? styles.active : ''}`}
-                      onClick={() => setForm({ ...form, deliveryAddress:{
-                        ...form.deliveryAddress,
-                        type: 'residential'
-                      } })}
-                    >
-                      Residential
-                    </button>
-                    <button
-                      className={`${styles.typeButton} ${form.deliveryAddress.type === 'business' ? styles.active : ''}`}
-                      onClick={() => setForm({ ...form, deliveryAddress:{
-                        ...form.deliveryAddress,
-                        type: 'business'
-                      } })}
-                    >
-                      Business
-                    </button>
+                  <div className={styles.inputGroup}>
+                    <label className={styles.label}>Address Type</label>
+                    <div className={styles.addressTypeButtons}>
+                      <button
+                        className={`${styles.typeButton} ${form.deliveryAddress.type === 'residential' ? styles.active : ''}`}
+                        onClick={() => setForm({ ...form, deliveryAddress:{
+                          ...form.deliveryAddress,
+                          type: 'residential'
+                        } })}
+                      >
+                        Residential
+                      </button>
+                      <button
+                        className={`${styles.typeButton} ${form.deliveryAddress.type === 'business' ? styles.active : ''}`}
+                        onClick={() => setForm({ ...form, deliveryAddress:{
+                          ...form.deliveryAddress,
+                          type: 'business'
+                        } })}
+                      >
+                        Business
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-          </>
-        {/* Receiver Details */}
-        <div className={styles.section}>
-          <h2 className={styles.sectionTitle}>Receiver Details</h2>
-          
-          <div className={styles.inputGroup}>
-            <label className={styles.label}>Full Name</label>
-            <input
-              type="text"
-              className={`${styles.input} ${formErrors.receiver?.name ? styles.error : ''}`}
-              placeholder="Enter receiver's full name"
-              value={form.receiver.name}
-              onChange={(e) => setForm({ ...form, receiver: { ...form.receiver, name: e.target.value } })}
-            />
-            {formErrors.receiver?.name && (
-              <span className={styles.errorMessage}>{formErrors.receiver?.name}</span>
-            )}
-          </div>
-
-          <div className={styles.inputGroup}>
-            <label className={styles.label}>Email Address</label>
-            <input
-              type="email"
-              className={styles.input}
-              placeholder="Enter receiver's email address"
-              value={form.receiver.email}
-              onChange={(e) => setForm({ ...form, receiver: { ...form.receiver, email: e.target.value } })}
-            />
-          </div>
-
-          <div className={styles.inputGroup}>
-            <label className={styles.label}>Phone Number</label>
-            <div className={styles.phoneInput}>
-              <button
-                className={styles.countryCodeButton}
-                onClick={() => setShowCountryModal(true)}
-              >
-                <span className={styles.flag}>
-                  {countryCodes.find(c => c.dial_code === form.receiver.countryCode)?.flag}
-                </span>
-                <span className={styles.dialCode}>{form.receiver.countryCode}</span>
-                <ChevronDown size={16} />
-              </button>
-              <input
-                type="tel"
-                className={`${styles.phoneNumberInput} ${formErrors.receiver?.phone ? styles.error : ''}`}
-                placeholder="Enter phone number"
-                value={form.receiver.phone}
-                onChange={(e) => setForm({ ...form, receiver: { ...form.receiver, phone: e.target.value } })}
-              />
-            </div>
-            {formErrors.receiver?.phone && (
-              <span className={styles.errorMessage}>{formErrors.receiver?.phone}</span>
-            )}
-          </div>
-        </div>
-
-        {/* Info Note */}
-        <div className={styles.infoNote}>
-          <Info size={20} />
-          <div>
-            <h3>Important Note</h3>
-            <p>
-              Please ensure all address details are accurate. The driver will contact the receiver before delivery.
-            </p>
-          </div>
-        </div>
-      </main>
-
-      <footer className={styles.footer}>
-        <button
-          className={`${styles.continueButton} ${!isValidForm() || isLoading ? styles.disabled : ''}`}
-          onClick={handleSubmit}
-          disabled={!isValidForm() || isLoading}
-        >
-          {isLoading ? (
-            <>
-              <Loader size={20} className={styles.spinner} />
-              Saving...
             </>
-          ) : (
-            <div className="flex flex-row items-center gap-2">
-              Continue
-              <ArrowRight size={20} />
-            </div>
-          )}
-        </button>
-      </footer>
-
-      {/* Country Code Modal */}
-      {showCountryModal && (
-        <div className={styles.modalOverlay}>
-          <div className={styles.modal}>
-            <div className={styles.modalHeader}>
-              <h2>Select Country</h2>
-              <button onClick={() => setShowCountryModal(false)}>
-                <X size={24} />
-              </button>
-            </div>
-            <div className={styles.modalContent}>
+          {/* Receiver Details */}
+          <div className={styles.section}>
+            <h2 className={styles.sectionTitle}>Receiver Details</h2>
+            
+            <div className={styles.inputGroup}>
+              <label className={styles.label}>Full Name</label>
               <input
                 type="text"
-                className={styles.searchInput}
-                placeholder="Search countries"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                className={`${styles.input} ${formErrors.receiver?.name ? styles.error : ''}`}
+                placeholder="Enter receiver's full name"
+                value={form.receiver.name}
+                onChange={(e) => setForm({ ...form, receiver: { ...form.receiver, name: e.target.value } })}
               />
-              <div className={styles.countryList}>
-                {countryCodes
-                  .filter(country => 
-                    country.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                    country.dial_code.includes(searchQuery)
-                  )
-                  .map(country => (
-                    <button
-                      key={country.code}
-                      className={`${styles.countryItem} ${form.receiver.countryCode === country.dial_code ? styles.selected : ''}`}
-                      onClick={() => {
-                        setForm({ ...form, receiver: { ...form.receiver, countryCode: country.dial_code } });
-                        setShowCountryModal(false);
-                      }}
-                    >
-                      <span className={styles.flag}>{country.flag}</span>
-                      <div className={styles.countryInfo}>
-                        <span className={styles.countryName}>{country.name}</span>
-                        <span className={styles.dialCode}>{country.dial_code}</span>
-                      </div>
-                      {form.receiver.countryCode === country.dial_code && (
-                        <div className={styles.checkIcon}>
-                          <Check size={20} />
+              {formErrors.receiver?.name && (
+                <span className={styles.errorMessage}>{formErrors.receiver?.name}</span>
+              )}
+            </div>
+
+            <div className={styles.inputGroup}>
+              <label className={styles.label}>Email Address</label>
+              <input
+                type="email"
+                className={styles.input}
+                placeholder="Enter receiver's email address"
+                value={form.receiver.email}
+                onChange={(e) => setForm({ ...form, receiver: { ...form.receiver, email: e.target.value } })}
+              />
+            </div>
+
+            <div className={styles.inputGroup}>
+              <label className={styles.label}>Phone Number</label>
+              <div className={styles.phoneInput}>
+                <button
+                  className={styles.countryCodeButton}
+                  onClick={() => setShowCountryModal(true)}
+                >
+                  <span className={styles.flag}>
+                    {countryCodes.find(c => c.dial_code === form.receiver.countryCode)?.flag}
+                  </span>
+                  <span className={styles.dialCode}>{form.receiver.countryCode}</span>
+                  <ChevronDown size={16} />
+                </button>
+                <input
+                  type="tel"
+                  className={`${styles.phoneNumberInput} ${formErrors.receiver?.phone ? styles.error : ''}`}
+                  placeholder="Enter phone number"
+                  value={form.receiver.phone}
+                  onChange={(e) => setForm({ ...form, receiver: { ...form.receiver, phone: e.target.value } })}
+                />
+              </div>
+              {formErrors.receiver?.phone && (
+                <span className={styles.errorMessage}>{formErrors.receiver?.phone}</span>
+              )}
+            </div>
+          </div>
+
+          {/* Info Note */}
+          <div className={styles.infoNote}>
+            <Info size={20} />
+            <div>
+              <h3>Important Note</h3>
+              <p>
+                Please ensure all address details are accurate. The driver will contact the receiver before delivery.
+              </p>
+            </div>
+          </div>
+        </main>
+
+        <footer className={styles.footer}>
+          <button
+            className={`${styles.continueButton} ${!isValidForm() || isLoading ? styles.disabled : ''}`}
+            onClick={handleSubmit}
+            disabled={!isValidForm() || isLoading}
+          >
+            {isLoading ? (
+              <>
+                <Loader size={20} className={styles.spinner} />
+                Saving...
+              </>
+            ) : (
+              <div className="flex flex-row items-center gap-2">
+                Continue
+                <ArrowRight size={20} />
+              </div>
+            )}
+          </button>
+        </footer>
+
+        {/* Country Code Modal */}
+        {showCountryModal && (
+          <div className={styles.modalOverlay}>
+            <div className={styles.modal}>
+              <div className={styles.modalHeader}>
+                <h2>Select Country</h2>
+                <button onClick={() => setShowCountryModal(false)}>
+                  <X size={24} />
+                </button>
+              </div>
+              <div className={styles.modalContent}>
+                <input
+                  type="text"
+                  className={styles.searchInput}
+                  placeholder="Search countries"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+                <div className={styles.countryList}>
+                  {countryCodes
+                    .filter(country => 
+                      country.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                      country.dial_code.includes(searchQuery)
+                    )
+                    .map(country => (
+                      <button
+                        key={country.code}
+                        className={`${styles.countryItem} ${form.receiver.countryCode === country.dial_code ? styles.selected : ''}`}
+                        onClick={() => {
+                          setForm({ ...form, receiver: { ...form.receiver, countryCode: country.dial_code } });
+                          setShowCountryModal(false);
+                        }}
+                      >
+                        <span className={styles.flag}>{country.flag}</span>
+                        <div className={styles.countryInfo}>
+                          <span className={styles.countryName}>{country.name}</span>
+                          <span className={styles.dialCode}>{country.dial_code}</span>
                         </div>
-                      )}
-                    </button>
-                  ))}
+                        {form.receiver.countryCode === country.dial_code && (
+                          <div className={styles.checkIcon}>
+                            <Check size={20} />
+                          </div>
+                        )}
+                      </button>
+                    ))}
+                </div>
               </div>
             </div>
           </div>
-        </div>
-      )}
-    </div>
+        )}
+      </div>
+    </LoadScript>
   );
 }
