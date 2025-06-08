@@ -528,6 +528,7 @@ export default function PackageDimension({
                               price: 0
                             };
                             setExtraguides(prev => [...prev, newGuide]);
+                            toggleGuideSelection(newGuide.id)
                             closeModal();
                           }
                         });
@@ -616,6 +617,7 @@ export default function PackageDimension({
                           };
                           setExtraguides(prev => [...prev, newGuide]);
                           e.target.value = ''; // Reset select after adding
+                          toggleGuideSelection(newGuide.id)
                         }
                       }}
                     >
