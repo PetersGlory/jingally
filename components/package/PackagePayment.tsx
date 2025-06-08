@@ -801,7 +801,7 @@ export default function PackagePayment({ handleNextStep, handlePreviousStep }: {
           disabled={isLoading}
           onClick={() => {
             if (shipment?.serviceType === 'airfreight' && shipment?.deliveryType === 'park') {
-              setShowBankModal(true);
+              setShowPayPalModal(true);
             } else {
               handleBankTransferConfirmation();
             }
