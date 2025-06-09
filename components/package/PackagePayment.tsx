@@ -254,7 +254,7 @@ export default function PackagePayment({ handleNextStep, handlePreviousStep }: {
   const calculateCosts = useCallback((): CostItem[] => {
     if (!shipment) return [];
     
-    const { serviceType, priceGuides, weight, dimensions } = shipment;
+    const { serviceType, priceGuides, weight, dimensions, deliveryType } = shipment;
     let baseFee = 0;
     let methodName = '';
 
@@ -306,7 +306,7 @@ export default function PackagePayment({ handleNextStep, handlePreviousStep }: {
 
     return [
       { label: `${methodName} Fee`, amount: `£${baseFee.toFixed(2)}`, type: 'regular' as const },
-      ...(serviceType !== SHIPPING_METHODS.SEA ? [
+      ...(serviceType !== SHIPPING_METHODS.SEA && deliveryType == "home" ? [
         { label: 'Service Fee', amount: `£${20.00}`, type: 'regular' as const }
         // { label: 'Service Fee', amount: `£${serviceFee.toFixed(2)}`, type: 'regular' as const }
       ] : []),
