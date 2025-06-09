@@ -801,7 +801,7 @@ export default function PackagePayment({ handleNextStep, handlePreviousStep }: {
           className={`${styles.payButton} ${!isLoading ? styles.active : ''}`}
           disabled={isLoading}
           onClick={() => {
-            if (shipment?.serviceType === 'airfreight' && shipment?.deliveryType === 'park') {
+            if (shipment?.serviceType === 'airfreight' && shipment?.deliveryType === 'home') {
               setShowPayPalModal(true);
             } else {
               handleBankTransferConfirmation();
@@ -811,7 +811,7 @@ export default function PackagePayment({ handleNextStep, handlePreviousStep }: {
           {isLoading ? (
             'Processing...'
           ) : (
-            selectedMethod === 'paypal' ? 'Pay with PayPal' : (shipment?.serviceType === 'airfreight' && shipment?.deliveryType === 'park') ? 'Pay £20':
+            selectedMethod === 'paypal' ? 'Pay with PayPal' : (shipment?.serviceType === 'airfreight' && shipment?.deliveryType === 'home') ? 'Pay £20':
             selectedMethod ? `Pay ${'£'+selectedPaymentAmount || costs.find(c => c.type === 'total')?.amount}` : 
             'Schedule Payment'
           )}
