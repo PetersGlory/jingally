@@ -1,7 +1,7 @@
 "use client"
 
 import React, { useEffect, useState, useCallback } from 'react';
-import { Package, Maximize2, Box, AlertCircle, ArrowRight, ArrowLeft, Plus } from 'lucide-react';
+import { Package, Maximize2, Box, AlertCircle, ArrowRight, ArrowLeft, Plus, Trash2 } from 'lucide-react';
 import styles from './PackageDimension.module.css';
 import { useRouter } from 'next/navigation';
 import { getPriceGuides, updatePackageDimensions } from '@/lib/shipment';
@@ -151,6 +151,30 @@ export default function PackageDimension({
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedGuides, setSelectedGuides] = useState<string[]>([]);
 
+  const [dimensions, setDimensions] = useState<Array<{
+    id: number;
+    length: string;
+    width: string;
+    height: string;
+  }>>([{
+    id: Date.now(),
+    length: '',
+    width: '',
+    height: ''
+  }]);
+
+  const MAX_DIMENSION = 1000; // Maximum dimension in cm
+  const MAX_WEIGHT = 1000; // Maximum weight in kg
+
+  const handleDimensionChange = (dimensionId: number, field: 'length' | 'width' | 'height', value: string) => {
+    setDimensions(prev => prev.map(dim => 
+      dim.id === dimensionId 
+        ? { ...dim, [field]: value }
+        : dim
+    ));
+  };
+
+
   useEffect(() => {
     const accessToken = localStorage.getItem('accessToken');
     const packageInfo = localStorage.getItem('packageInfo');
@@ -187,23 +211,38 @@ export default function PackageDimension({
   const validateForm = useCallback((): boolean => {
     const newErrors: FormErrors = {};
     const numericFields = ['weight', 'length', 'width', 'height'] as const;
-    if(selectedGuides.length == 0){
     
-    numericFields.forEach(field => {
-      const value = formData[field];
-      if (!value.trim()) {
-        newErrors[field] = `Please enter package ${field}`;
-      } else if (isNaN(Number(value)) || Number(value) <= 0) {
-        newErrors[field] = `Please enter a valid ${field}`;
-      } else if (Number(value) > MAX_DIMENSION) {
-        newErrors[field] = `${field.charAt(0).toUpperCase() + field.slice(1)} cannot exceed ${MAX_DIMENSION}`;
+    // Only validate dimensions if no guides are selected
+    if (selectedGuides.length === 0) {
+      // Validate weight
+      const weightValue = formData.weight;
+      if (!weightValue.trim()) {
+        newErrors.weight = 'Please enter package weight';
+      } else if (isNaN(Number(weightValue)) || Number(weightValue) <= 0) {
+        newErrors.weight = 'Please enter a valid weight';
+      } else if (Number(weightValue) > MAX_WEIGHT) {
+        newErrors.weight = `Weight cannot exceed ${MAX_WEIGHT}kg`;
       }
-    });
+
+      // Validate dimensions array
+      dimensions.forEach((dimension, index) => {
+        const dimensionFields = ['length', 'width', 'height'] as const;
+        dimensionFields.forEach(field => {
+          const value = dimension[field];
+          if (!value.trim()) {
+            newErrors[field] = `Please enter ${field} for dimension set ${index + 1}`;
+          } else if (isNaN(Number(value)) || Number(value) <= 0) {
+            newErrors[field] = `Please enter a valid ${field} for dimension set ${index + 1}`;
+          } else if (Number(value) > MAX_DIMENSION) {
+            newErrors[field] = `${field.charAt(0).toUpperCase() + field.slice(1)} cannot exceed ${MAX_DIMENSION}cm`;
+          }
+        });
+      });
+    }
 
     setErrors(newErrors);
-    }
     return Object.keys(newErrors).length === 0;
-  }, [formData]);
+  }, [formData, dimensions, selectedGuides.length]);
 
   const handleInputChange = (field: keyof PackageDimensions, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -686,67 +725,107 @@ export default function PackageDimension({
             </>
           ) :(
             <>
-              <div className={styles.section}>
-            <h3 className={styles.sectionTitle}>Weight</h3>
-            <DimensionInput
-              label="Weight (kg)"
-              value={formData.weight}
-              onChange={(value) => handleInputChange('weight', value)}
-              error={errors.weight}
-              icon={<Package size={20} />}
-              max={MAX_WEIGHT}
-              placeholder="Enter weight in kilograms"
-            />
-          </div>
+              <div className="space-y-6">
+                {/* Weight Section */}
+                <div className="bg-white rounded-lg p-6 shadow-sm">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Weight</h3>
+                  <DimensionInput
+                    label="Weight (kg)"
+                    value={formData.weight}
+                    onChange={(value) => handleInputChange('weight', value)}
+                    error={errors.weight}
+                    icon={<Package size={20} />}
+                    max={MAX_WEIGHT}
+                    placeholder="Enter weight in kilograms"
+                  />
+                </div>
 
-          <div className={styles.section}>
-            <h3 className={styles.sectionTitle}>Dimensions (cm)</h3>
-            <div className={styles.dimensionsGrid}>
-              <DimensionInput
-                label="Length"
-                value={formData.length}
-                onChange={(value) => handleInputChange('length', value)}
-                error={errors.length}
-                icon={<Maximize2 size={20} />}
-                placeholder="Enter length"
-              />
+                {/* Dimensions Section */}
+                <div className="bg-white rounded-lg p-6 shadow-sm">
+                  <div className="flex justify-between items-center mb-4">
+                    <h3 className="text-lg font-semibold text-gray-900">Dimensions (cm)</h3>
+                    <button
+                      onClick={() => {
+                        const newDimension = {
+                          id: Date.now(),
+                          length: '',
+                          width: '',
+                          height: ''
+                        };
+                        setDimensions([...dimensions, newDimension]);
+                      }}
+                      className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                    >
+                      <Plus size={20} className="mr-2" />
+                      Add Dimension
+                    </button>
+                  </div>
 
-              <DimensionInput
-                label="Width"
-                value={formData.width}
-                onChange={(value) => handleInputChange('width', value)}
-                error={errors.width}
-                icon={<Maximize2 size={20} />}
-                placeholder="Enter width"
-              />
+                  {dimensions.map((dimension, index) => (
+                    <div key={dimension.id} className="mb-6 last:mb-0">
+                      <div className="flex justify-between items-center mb-4">
+                        <h4 className="text-md font-medium text-gray-700">Dimension Set {index + 1}</h4>
+                        {dimensions.length > 1 && (
+                          <button
+                            onClick={() => {
+                              const newDimensions = dimensions.filter(d => d.id !== dimension.id);
+                              setDimensions(newDimensions);
+                            }}
+                            className="text-red-600 hover:text-red-800"
+                          >
+                            <Trash2 size={20} />
+                          </button>
+                        )}
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <DimensionInput
+                          label="Length"
+                          value={dimension.length}
+                          onChange={(value) => handleDimensionChange(dimension.id, 'length', value)}
+                          error={errors.length}
+                          icon={<Maximize2 size={20} />}
+                          placeholder="Enter length"
+                        />
+                        <DimensionInput
+                          label="Width"
+                          value={dimension.width}
+                          onChange={(value) => handleDimensionChange(dimension.id, 'width', value)}
+                          error={errors.width}
+                          icon={<Maximize2 size={20} />}
+                          placeholder="Enter width"
+                        />
+                        <DimensionInput
+                          label="Height"
+                          value={dimension.height}
+                          onChange={(value) => handleDimensionChange(dimension.id, 'height', value)}
+                          error={errors.height}
+                          icon={<Maximize2 size={20} />}
+                          placeholder="Enter height"
+                        />
+                      </div>
+                    </div>
+                  ))}
+                </div>
 
-              <DimensionInput
-                label="Height"
-                value={formData.height}
-                onChange={(value) => handleInputChange('height', value)}
-                error={errors.height}
-                icon={<Maximize2 size={20} />}
-                placeholder="Enter height"
-              />
-            </div>
-          </div>
-
-          <div className={styles.volumeSection}>
-            <div className={styles.volumeHeader}>
-              <div className={styles.volumeIcon}>
-                <Box size={20} />
+                {/* Volume Section */}
+                <div className="bg-white rounded-lg p-6 shadow-sm">
+                  <div className="flex items-center space-x-3 mb-4">
+                    <div className="p-2 bg-blue-100 rounded-lg">
+                      <Box size={20} className="text-blue-600" />
+                    </div>
+                    <h3 className="text-lg font-semibold text-gray-900">Total Volume</h3>
+                  </div>
+                  <p className="text-2xl font-bold text-gray-900 mb-2">
+                    {calculateVolume()} cm³
+                  </p>
+                  <p className="text-sm text-gray-500">
+                    Calculated based on length × width × height
+                  </p>
+                </div>
               </div>
-              <h3 className={styles.volumeTitle}>Total Volume</h3>
-            </div>
-            <p className={styles.volumeValue}>
-              {calculateVolume()} cm³
-            </p>
-            <p className={styles.volumeSubtitle}>
-              Calculated based on length × width × height
-            </p>
-          </div>
             </>
           )}
+          {/* </main> */}
 
           
 
