@@ -6,6 +6,8 @@ import PackageDetails from '@/components/package/PackageDetails';
 import PackagePhoto from '@/components/package/PackagePhoto';
 import PackagePickup from '@/components/package/PackagePickup';
 import PackageDelivery from '@/components/package/PackageDelivery';
+import PackageDimension from '@/components/package/PackageDimension';
+import PackagePayment from '@/components/package/PackagePayment';
 
 export default function EditShipmentPage() {
   const router = useRouter();
@@ -50,26 +52,21 @@ export default function EditShipmentPage() {
   };
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-white-50 via-gray-50 to-gray-100">
-        <div className="relative group">
-          <div className="absolute -inset-0.5 rounded-full bg-gradient-to-r from-gray-100 via-gray-200 to-gray-300 opacity-75 blur-lg group-hover:opacity-100 transition duration-1000"></div>
-          <div className="relative flex flex-col items-center p-8">
-            <div className="relative">
-              <div className="absolute -inset-1 rounded-full bg-gradient-to-r from-gray-100 via-gray-200 to-gray-300 opacity-75 blur-lg animate-pulse"></div>
-              <div className="relative animate-spin rounded-full h-24 w-24 border-4 border-gray-100 border-t-transparent shadow-lg"></div>
-            </div>
-            <div className="mt-8 text-center space-y-2">
-              <h2 className="text-2xl font-bold bg-gradient-to-r from-blue-600 via-indigo-500 to-purple-600 bg-clip-text text-transparent">
-                Loading Shipment Details
-              </h2>
-              <div className="flex items-center justify-center space-x-2">
-                <div className="w-2 h-2 bg-blue-600 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
-                <div className="w-2 h-2 bg-indigo-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
-                <div className="w-2 h-2 bg-purple-600 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
-              </div>
-              <p className="text-gray-600 text-sm mt-4 max-w-sm">
-                Please wait while we retrieve and prepare your shipment information...
-              </p>
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="flex flex-col items-center space-y-6">
+          <div className="relative">
+            <div className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+            <div className="absolute top-0 left-0 w-16 h-16 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin" style={{ animationDuration: '1.5s' }}></div>
+            <div className="absolute top-0 left-0 w-16 h-16 border-4 border-purple-500 border-t-transparent rounded-full animate-spin" style={{ animationDuration: '2s' }}></div>
+          </div>
+          <div className="text-center">
+            <h2 className="text-xl font-semibold text-gray-800 mb-2">
+              Loading Shipment Details
+            </h2>
+            <div className="flex items-center justify-center space-x-1">
+              <div className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-pulse"></div>
+              <div className="w-1.5 h-1.5 bg-indigo-500 rounded-full animate-pulse" style={{ animationDelay: '0.2s' }}></div>
+              <div className="w-1.5 h-1.5 bg-purple-500 rounded-full animate-pulse" style={{ animationDelay: '0.4s' }}></div>
             </div>
           </div>
         </div>
@@ -103,6 +100,14 @@ export default function EditShipmentPage() {
               <span className="step-number">3</span>
               <span className="step-label">Pickup</span>
             </div>
+          <div className={`step ${currentStep >= 4 ? 'active' : ''}`}>
+            <span className="step-number">4</span>
+            <span className="step-label">Dimensions</span>
+          </div>
+          <div className={`step ${currentStep >= 5 ? 'active' : ''}`}>
+            <span className="step-number">5</span>
+            <span className="step-label">Payment</span>
+          </div>
           </div>
         </div>
 
@@ -126,6 +131,19 @@ export default function EditShipmentPage() {
               handlePreviousStep={handlePreviousStep}
             />
           )}
+
+        {currentStep === 4 && (
+          <PackageDimension
+            handleNextStep={handleNextStep}
+            handlePreviousStep={handlePreviousStep}
+          />
+        )}
+        {currentStep === 5 && (
+          <PackagePayment
+            handleNextStep={handleNextStep}
+            handlePreviousStep={handlePreviousStep}
+          />
+        )}
         </div>
       </div>
 
