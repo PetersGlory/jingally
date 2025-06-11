@@ -156,17 +156,19 @@ export default function PackageDimension({
     length: string;
     width: string;
     height: string;
+    weight: string;
   }>>([{
     id: Date.now(),
     length: '',
     width: '',
-    height: ''
+    height: '',
+    weight: ''
   }]);
 
   const MAX_DIMENSION = 1000; // Maximum dimension in cm
   const MAX_WEIGHT = 1000; // Maximum weight in kg
 
-  const handleDimensionChange = (dimensionId: number, field: 'length' | 'width' | 'height', value: string) => {
+  const handleDimensionChange = (dimensionId: number, field: 'length' | 'width' | 'height' | 'weight', value: string) => {
     setDimensions(prev => prev.map(dim => 
       dim.id === dimensionId 
         ? { ...dim, [field]: value }
@@ -214,26 +216,18 @@ export default function PackageDimension({
     
     // Only validate dimensions if no guides are selected
     if (selectedGuides.length === 0) {
-      // Validate weight
-      const weightValue = formData.weight;
-      if (!weightValue.trim()) {
-        newErrors.weight = 'Please enter package weight';
-      } else if (isNaN(Number(weightValue)) || Number(weightValue) <= 0) {
-        newErrors.weight = 'Please enter a valid weight';
-      } else if (Number(weightValue) > MAX_WEIGHT) {
-        newErrors.weight = `Weight cannot exceed ${MAX_WEIGHT}kg`;
-      }
-
       // Validate dimensions array
       dimensions.forEach((dimension, index) => {
-        const dimensionFields = ['length', 'width', 'height'] as const;
+        const dimensionFields = ['length', 'width', 'height', 'weight'] as const;
         dimensionFields.forEach(field => {
           const value = dimension[field];
           if (!value.trim()) {
             newErrors[field] = `Please enter ${field} for dimension set ${index + 1}`;
           } else if (isNaN(Number(value)) || Number(value) <= 0) {
             newErrors[field] = `Please enter a valid ${field} for dimension set ${index + 1}`;
-          } else if (Number(value) > MAX_DIMENSION) {
+          } else if (field === 'weight' && Number(value) > MAX_WEIGHT) {
+            newErrors[field] = `Weight cannot exceed ${MAX_WEIGHT}kg`;
+          } else if (field !== 'weight' && Number(value) > MAX_DIMENSION) {
             newErrors[field] = `${field.charAt(0).toUpperCase() + field.slice(1)} cannot exceed ${MAX_DIMENSION}cm`;
           }
         });
@@ -242,7 +236,7 @@ export default function PackageDimension({
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
-  }, [formData, dimensions, selectedGuides.length]);
+  }, [dimensions, selectedGuides.length]);
 
   const handleInputChange = (field: keyof PackageDimensions, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -259,33 +253,36 @@ export default function PackageDimension({
   }, [formData]);
 
   const handleSubmit = async () => {
-
     if (!validateForm() && selectedGuides.length==0) return;
 
     const packageInfo = localStorage.getItem('packageInfo');
     const shipment = JSON.parse(packageInfo || '{}');
     
-    if (parseFloat(formData.weight) > MAX_WEIGHT && shipment.serviceType !== 'airfreight') {
-      setErrors(prev => ({ ...prev, weight: `Weight cannot exceed ${MAX_WEIGHT}kg` }));
-      return;
-    }
-
     try {
       setIsLoading(true);
       const packageId = shipment.id;
       
       let response;
 
-      if(formData.weight !== "" && formData.length !== ""){
+      if(dimensions[0].weight !== "" && dimensions[0].length !== ""){
+        // Calculate total weight
+        const totalWeight = dimensions.reduce((sum, dim) => sum + (parseFloat(dim.weight) || 0), 0);
+        
+        if(totalWeight > MAX_WEIGHT && shipment.serviceType !== 'airfreight') {
+          setErrors(prev => ({ ...prev, weight: `Total weight cannot exceed ${MAX_WEIGHT}kg` }));
+          return;
+        }
+
         response = await updatePackageDimensions(
           packageId,
           {
-            weight: parseFloat(formData.weight),
-            dimensions: {
-              length: parseFloat(formData.length),
-              width: parseFloat(formData.width),
-              height: parseFloat(formData.height),
-            }
+            weight: totalWeight,
+            dimensions: dimensions.map(dim => ({
+              length: parseFloat(dim.length),
+              width: parseFloat(dim.width),
+              height: parseFloat(dim.height),
+              weight: parseFloat(dim.weight)
+            }))
           },
           token
         );
@@ -727,7 +724,7 @@ export default function PackageDimension({
             <>
               <div className="space-y-6">
                 {/* Weight Section */}
-                <div className="bg-white rounded-lg p-6 shadow-sm">
+                {/* <div className="bg-white rounded-lg p-6 shadow-sm">
                   <h3 className="text-lg font-semibold text-gray-900 mb-4">Weight</h3>
                   <DimensionInput
                     label="Weight (kg)"
@@ -738,7 +735,7 @@ export default function PackageDimension({
                     max={MAX_WEIGHT}
                     placeholder="Enter weight in kilograms"
                   />
-                </div>
+                </div> */}
 
                 {/* Dimensions Section */}
                 <div className="bg-white rounded-lg p-6 shadow-sm">
@@ -746,13 +743,13 @@ export default function PackageDimension({
                     <h3 className="text-lg font-semibold text-gray-900">Dimensions (cm)</h3>
                     <button
                       onClick={() => {
-                        const newDimension = {
+                        setDimensions([...dimensions, {
                           id: Date.now(),
                           length: '',
                           width: '',
-                          height: ''
-                        };
-                        setDimensions([...dimensions, newDimension]);
+                          height: '',
+                          weight: ''
+                        }]);
                       }}
                       className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                     >
@@ -777,7 +774,16 @@ export default function PackageDimension({
                           </button>
                         )}
                       </div>
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                        <DimensionInput
+                          label="Weight (kg)"
+                          value={dimension.weight}
+                          onChange={(value) => handleDimensionChange(dimension.id, 'weight', value)}
+                          error={errors.weight}
+                          icon={<Package size={20} />}
+                          max={MAX_WEIGHT}
+                          placeholder="Enter weight"
+                        />
                         <DimensionInput
                           label="Length"
                           value={dimension.length}
