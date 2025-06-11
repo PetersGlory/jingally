@@ -244,13 +244,18 @@ export default function PackageDimension({
   };
 
   const calculateVolume = useCallback((): string => {
-    const { length, width, height } = formData;
-    if (length && width && height) {
-      const volume = Number(length) * Number(width) * Number(height);
-      return volume.toFixed(2);
-    }
-    return '0.00';
-  }, [formData]);
+    // Calculate total volume from all dimension sets
+    const totalVolume = dimensions.reduce((sum, dimension) => {
+      const { length, width, height } = dimension;
+      if (length && width && height) {
+        const volume = Number(length) * Number(width) * Number(height);
+        return sum + volume;
+      }
+      return sum;
+    }, 0);
+    
+    return totalVolume.toFixed(2);
+  }, [dimensions]);
 
   const handleSubmit = async () => {
     if (!validateForm() && selectedGuides.length==0) return;
