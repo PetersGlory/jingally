@@ -3,19 +3,43 @@
   flex-direction: column;
   min-height: 100vh;
   background-color: white;
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
 }
 
 .header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 1rem 2rem;
+  padding: 1.5rem 2rem;
   border-bottom: 1px solid #e5e7eb;
+  background-color: white;
+  position: sticky;
+  top: 0;
+  z-index: 10;
 }
 
 .header h1 {
   font-size: 1.5rem;
   font-weight: 600;
+  color: #111827;
+  margin: 0;
+}
+
+.backButton {
+  background: none;
+  border: none;
+  padding: 0.5rem;
+  color: #6b7280;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.backButton:hover {
   color: #111827;
 }
 
@@ -33,36 +57,43 @@
 }
 
 .datesContainer {
-  display: flex;
-  padding: 1rem 2rem;
-  border-bottom: 1px solid #e5e7eb;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: 1rem;
-}
-
-.dateButton {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 0.75rem;
-  background: none;
-  border: none;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.dateButton:hover {
+  padding: 1.5rem 2rem;
+  border-bottom: 1px solid #e5e7eb;
   background-color: #f9fafb;
 }
 
+.dateButton {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 1.25rem;
+  background: white;
+  border: 2px solid #e5e7eb;
+  border-radius: 1rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.dateButton:hover {
+  border-color: #2563eb;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
 .selectedDate {
-  border-bottom: 2px solid #2563eb;
+  border-color: #2563eb;
+  background-color: #eff6ff;
 }
 
 .weekday {
   font-weight: 500;
   color: #6b7280;
-  margin-bottom: 0.25rem;
+  margin-bottom: 0.5rem;
+  font-size: 1rem;
 }
 
 .selectedDate .weekday {
@@ -70,7 +101,7 @@
 }
 
 .date {
-  font-size: 0.875rem;
+  font-size: 1.125rem;
   font-weight: 600;
   color: #111827;
 }
@@ -79,51 +110,28 @@
   flex: 1;
   padding: 2rem;
   overflow-y: auto;
+  background-color: white;
+}
+
+.selectedDateInfo {
+  background-color: #f9fafb;
+  border-radius: 1rem;
+  padding: 2rem;
+  text-align: center;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 .selectedDateTitle {
-  font-size: 1.25rem;
+  font-size: 1.5rem;
   font-weight: 600;
   color: #111827;
-  margin-bottom: 1.5rem;
+  margin-bottom: 1rem;
 }
 
-.timeSlots {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-}
-
-.timeSlot {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 1rem;
-  border: 1px solid #e5e7eb;
-  border-radius: 0.75rem;
-  background: none;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.timeSlot:hover {
-  border-color: #2563eb;
-  background-color: rgba(37, 99, 235, 0.05);
-}
-
-.selectedSlot {
-  border-color: #2563eb;
-  background-color: rgba(37, 99, 235, 0.05);
-}
-
-.timeText {
-  font-size: 1rem;
-  color: #111827;
-}
-
-.selectedSlot .timeText {
-  color: #2563eb;
-  font-weight: 500;
+.pickupTimeInfo {
+  color: #6b7280;
+  font-size: 1.125rem;
+  margin-top: 1rem;
 }
 
 .emptyState {
@@ -133,21 +141,37 @@
   min-height: 200px;
   color: #6b7280;
   text-align: center;
+  font-size: 1.125rem;
 }
 
 .footer {
-  padding: 1rem 2rem;
+  padding: 1.5rem 2rem;
   border-top: 1px solid #e5e7eb;
+  background-color: white;
+  position: sticky;
+  bottom: 0;
+}
+
+.footerButtons {
+  display: flex;
+  gap: 1rem;
+  max-width: 600px;
+  margin: 0 auto;
 }
 
 .confirmButton {
-  width: 100%;
-  padding: 1rem;
+  flex: 1;
+  padding: 1rem 2rem;
   border: none;
   border-radius: 0.75rem;
   font-weight: 600;
+  font-size: 1rem;
   cursor: pointer;
-  transition: background-color 0.2s;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
 }
 
 .active {
@@ -157,6 +181,7 @@
 
 .active:hover {
   background-color: #1d4ed8;
+  transform: translateY(-1px);
 }
 
 .disabled {
@@ -171,25 +196,59 @@
   cursor: not-allowed;
 }
 
-@media (max-width: 640px) {
+@media (max-width: 768px) {
   .header {
     padding: 1rem;
   }
 
   .datesContainer {
     padding: 1rem;
-    flex-wrap: wrap;
+    grid-template-columns: repeat(2, 1fr);
   }
 
   .dateButton {
-    flex: 1 1 calc(50% - 0.5rem);
+    padding: 1rem;
   }
 
   .main {
     padding: 1rem;
   }
 
+  .selectedDateInfo {
+    padding: 1.5rem;
+  }
+
+  .selectedDateTitle {
+    font-size: 1.25rem;
+  }
+
   .footer {
     padding: 1rem;
+  }
+
+  .footerButtons {
+    flex-direction: column;
+  }
+
+  .confirmButton {
+    width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .datesContainer {
+    grid-template-columns: 1fr;
+  }
+
+  .header h1 {
+    font-size: 1.25rem;
+  }
+
+  .selectedDateTitle {
+    font-size: 1.125rem;
+  }
+
+  .pickupTimeInfo {
+    font-size: 1rem;
   }
 } 

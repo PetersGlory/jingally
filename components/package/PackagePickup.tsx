@@ -6,16 +6,9 @@ import { X, Check, ArrowLeft } from 'lucide-react';
 import styles from './PackagePickup.module.css';
 import { updatePickupDateTime } from '@/lib/shipment';
 
-interface TimeSlot {
-  start: string;
-  end: string;
-  isFree: boolean;
-}
-
 export default function PackagePickup({ handleNextStep, handlePreviousStep }: { handleNextStep: () => void, handlePreviousStep: () => void }) {
   const router = useRouter();
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
-  const [selectedSlot, setSelectedSlot] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [token, setToken] = useState('');
 
@@ -26,20 +19,6 @@ export default function PackagePickup({ handleNextStep, handlePreviousStep }: { 
     }
   }, []);
 
-  const generateTimeSlots = (): TimeSlot[] => {
-    const slots: TimeSlot[] = [];
-    for (let i = 10; i < 22; i += 2) {
-      slots.push({
-        start: `${i}:00`,
-        end: `${i + 2}:00`,
-        isFree: true
-      });
-    }
-    return slots;
-  };
-
-  const timeSlots = generateTimeSlots();
-  
   // Get next available Tuesday and Thursday
   const getNextAvailableDays = () => {
     const today = new Date();
@@ -70,9 +49,9 @@ export default function PackagePickup({ handleNextStep, handlePreviousStep }: { 
     });
   };
 
-  const handleConfirmTimeSlot = async () => {
-    if (!selectedDate || selectedSlot === null) {
-      alert('Please select both date and time slot');
+  const handleConfirmDate = async () => {
+    if (!selectedDate) {
+      alert('Please select a date');
       return;
     }
 
@@ -87,7 +66,7 @@ export default function PackagePickup({ handleNextStep, handlePreviousStep }: { 
       }
       const packageInfo = JSON.parse(packageInfoStr);
 
-      // Parse selected date and time
+      // Parse selected date
       const selectedDayIndex = availableDays.findIndex(
         date => formatDate(date) === selectedDate
       );
@@ -96,17 +75,14 @@ export default function PackagePickup({ handleNextStep, handlePreviousStep }: { 
         return;
       }
       
-      const timeSlot = timeSlots[selectedSlot];
-      const [hours] = timeSlot.start.split(':').map(Number);
-      
-      // Create date object for the selected date and time
+      // Create date object for the selected date
       const scheduledDate = new Date(availableDays[selectedDayIndex]);
-      scheduledDate.setHours(hours, 0, 0, 0);
+      scheduledDate.setHours(10, 0, 0, 0); // Set default pickup time to 10 AM
 
       // Format for API
       const scheduledPickupTime = scheduledDate.toISOString();
 
-      // Update pickup date/time in the backend
+      // Update pickup date in the backend
       const response = await updatePickupDateTime(
         packageInfo.id,
         { scheduledPickupTime },
@@ -118,7 +94,7 @@ export default function PackagePickup({ handleNextStep, handlePreviousStep }: { 
         localStorage.setItem('currentStep', '7')
         handleNextStep();
       } else {
-        throw new Error(response.message || 'Failed to update pickup date/time');
+        throw new Error(response.message || 'Failed to update pickup date');
       }
     } catch (error) {
       console.error('Error scheduling pickup:', error);
@@ -169,33 +145,17 @@ export default function PackagePickup({ handleNextStep, handlePreviousStep }: { 
 
       <main className={styles.main}>
         {selectedDate ? (
-          <>
+          <div className={styles.selectedDateInfo}>
             <h2 className={styles.selectedDateTitle}>
-              {selectedDate}
+              Selected Date: {selectedDate}
             </h2>
-
-            <div className={styles.timeSlots}>
-              {timeSlots.map((slot, index) => (
-                <button
-                  key={index}
-                  className={`${styles.timeSlot} ${
-                    selectedSlot === index ? styles.selectedSlot : ''
-                  }`}
-                  onClick={() => setSelectedSlot(index)}
-                >
-                  <span className={styles.timeText}>
-                    {slot.start} - {slot.end}
-                  </span>
-                  {selectedSlot === index && (
-                    <Check size={20} />
-                  )}
-                </button>
-              ))}
-            </div>
-          </>
+            <p className={styles.pickupTimeInfo}>
+              Pickup will be scheduled between 10:00 AM - 2:00 PM
+            </p>
+          </div>
         ) : (
           <div className={styles.emptyState}>
-            <p>Please select a day to view available time slots</p>
+            <p>Please select a date to schedule your pickup</p>
           </div>
         )}
       </main>
@@ -213,14 +173,14 @@ export default function PackagePickup({ handleNextStep, handlePreviousStep }: { 
           </button>
           <button
             className={`${styles.confirmButton} ${
-              selectedSlot !== null && selectedDate !== null
+              selectedDate !== null
                 ? isLoading ? styles.loading : styles.active
                 : styles.disabled
             }`}
-            disabled={selectedSlot === null || selectedDate === null || isLoading}
-            onClick={handleConfirmTimeSlot}
+            disabled={selectedDate === null || isLoading}
+            onClick={handleConfirmDate}
           >
-            {isLoading ? 'Scheduling...' : selectedSlot !== null && selectedDate !== null ? 'Confirm Time Slot' : 'Select a Time Slot'}
+            {isLoading ? 'Scheduling...' : selectedDate !== null ? 'Confirm Date' : 'Select a Date'}
           </button>
         </div>
       </footer>

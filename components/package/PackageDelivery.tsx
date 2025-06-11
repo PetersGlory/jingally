@@ -324,7 +324,7 @@ export default function PackageDelivery({ handleNextStep, handlePreviousStep }: 
     
     if(mode === "home"){
       if(packageData?.serviceType == 'airfreight'){
-        alert('Service charge for Pickup costs £20');
+      alert('Service charge for Pickup costs £20');
       }
       setForm({
         ...form,
@@ -481,59 +481,59 @@ export default function PackageDelivery({ handleNextStep, handlePreviousStep }: 
     }
   };
 
-  return (
-    <LoadScript
+    return (
+            <LoadScript
       googleMapsApiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY ?? 'AIzaSyAZxFKvKwUfo5jMamjurbZzs_9u79UjWno'}
-      libraries={["places"]}
+              libraries={["places"]}
       onLoad={() => setMapLoaded(true)}
       
     >
-      <div className={styles.container}>
-        <header className={styles.header}>
-          <div className="flex flex-row items-center gap-4">
-            <button 
-              type='button'
-              className={styles.backButton}
-              onClick={handlePreviousStep}
-            >
-              <ArrowLeft size={20} />
-            </button>
-            <h1>Delivery Details</h1>
-          </div>
+    <div className={styles.container}>
+      <header className={styles.header}>
+        <div className="flex flex-row items-center gap-4">
           <button 
-            className={styles.cancelButton}
-            onClick={()=>router.replace("/dashboard/shipments")}
+            type='button'
+            className={styles.backButton}
+            onClick={handlePreviousStep}
           >
-            Cancel
+            <ArrowLeft size={20} />
           </button>
-        </header>
+          <h1>Delivery Details</h1>
+        </div>
+        <button 
+          className={styles.cancelButton}
+            onClick={()=>router.replace("/dashboard/shipments")}
+        >
+          Cancel
+        </button>
+      </header>
 
-        <main className={styles.main}>
-          {/* Delivery Mode */}
-          <div className={styles.section}>
-            <div className={styles.sectionHeader}>
-              <MapPin size={20} />
-              <h2 className={styles.sectionTitle}>Delivery Mode</h2>
-            </div>
-            <div className={styles.deliveryModeButtons}>
-              <button
-                disabled={disabled}
-                type='button'
-                className={`${styles.modeButton} ${deliveryMode === 'home' ? styles.active : ''}`}
-                onClick={() => handleDeliveryModeChange('home')}
-              >
-                Pick-up
-              </button>
-              <button
-                type='button'
-                className={`${styles.modeButton} ${deliveryMode === 'park' ? styles.active : ''}`}
-                onClick={() => {
-                  handleDeliveryModeChange('park')
-                }}
-              >
-                Drop Off
-              </button>
-            </div>
+      <main className={styles.main}>
+        {/* Delivery Mode */}
+        <div className={styles.section}>
+          <div className={styles.sectionHeader}>
+            <MapPin size={20} />
+            <h2 className={styles.sectionTitle}>Delivery Mode</h2>
+          </div>
+          <div className={styles.deliveryModeButtons}>
+            <button
+              disabled={disabled}
+              type='button'
+              className={`${styles.modeButton} ${deliveryMode === 'home' ? styles.active : ''}`}
+              onClick={() => handleDeliveryModeChange('home')}
+            >
+              Pick-up
+            </button>
+            <button
+              type='button'
+              className={`${styles.modeButton} ${deliveryMode === 'park' ? styles.active : ''}`}
+              onClick={() => {
+                handleDeliveryModeChange('park')
+              }}
+            >
+              Drop Off
+            </button>
+          </div>
 
           {deliveryMode === 'home' && shipInfo?.serviceType == "airfreight" && (
             <div className="mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
@@ -545,56 +545,56 @@ export default function PackageDelivery({ handleNextStep, handlePreviousStep }: 
               </div>
             </div>
           )}
-          </div>
+        </div>
 
-          {deliveryMode == 'park' && allDresses.length > 0 && (
-            <div className={styles.section}>
-              <div className={styles.sectionHeader}>
-                <MapPin size={20} />
-                <h2 className={styles.sectionTitle}>Drop-off Addresses</h2>
-              </div>
-              <div className={styles.addressList}>
-                {allDresses.map((address: any, index: number) => (
-                  <div key={index} className={`${styles.addressItem} ${addressSelected == address.id && styles.pickedAddress}`}>
-                    <div className={styles.addressDetails}>
-                      <p className={styles.addressStreet}>{address.street}</p>
-                      <p className={styles.addressCity}>{address.city}, {address.state}</p>
-                      <p className={styles.addressPostcode}>{address.zipCode}</p>
-                    </div>
-                    <button
-                      className={styles.selectAddressButton}
-                      type='button'
-                      onClick={() => {
-                        const updatedAddress = {
-                          street: address.street,
-                          city: address.city,
-                          state: address.state,
-                          country: address.country,
-                          postcode: address.zipCode,
-                          latitude: address.latitude,
-                          longitude: address.longitude,
-                          placeId: address.placeId,
-                          type: address.type
-                        };
-                        
-                        setForm(prev => ({
-                          ...prev,
-                          pickupAddress: updatedAddress
-                        }));
-                        setAddressSelected(address.id);
-                      }}
-                    >
-                      Select
-                    </button>
-                  </div>
-                ))}
-              </div>
+        {deliveryMode == 'park' && allDresses.length > 0 && (
+          <div className={styles.section}>
+            <div className={styles.sectionHeader}>
+              <MapPin size={20} />
+              <h2 className={styles.sectionTitle}>Drop-off Addresses</h2>
             </div>
-          )}
+            <div className={styles.addressList}>
+              {allDresses.map((address: any, index: number) => (
+                <div key={index} className={`${styles.addressItem} ${addressSelected == address.id && styles.pickedAddress}`}>
+                  <div className={styles.addressDetails}>
+                    <p className={styles.addressStreet}>{address.street}</p>
+                    <p className={styles.addressCity}>{address.city}, {address.state}</p>
+                    <p className={styles.addressPostcode}>{address.zipCode}</p>
+                  </div>
+                  <button
+                    className={styles.selectAddressButton}
+                    type='button'
+                    onClick={() => {
+                      const updatedAddress = {
+                        street: address.street,
+                        city: address.city,
+                        state: address.state,
+                        country: address.country,
+                        postcode: address.zipCode,
+                        latitude: address.latitude,
+                        longitude: address.longitude,
+                        placeId: address.placeId,
+                        type: address.type
+                      };
+                      
+                      setForm(prev => ({
+                        ...prev,
+                        pickupAddress: updatedAddress
+                      }));
+                      setAddressSelected(address.id);
+                    }}
+                  >
+                    Select
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
-          {/* Pickup Address Form */}
-          {deliveryMode === "home" && (
-            <>
+        {/* Pickup Address Form */}
+        {deliveryMode === "home" && (
+          <>
             <div className={styles.section}>
               <div className={styles.sectionHeader}>
                 <div className={styles.iconContainer}>
@@ -713,11 +713,11 @@ export default function PackageDelivery({ handleNextStep, handlePreviousStep }: 
                 </div>
               </div>
             </div>
-            </>
-          )}
+          </>
+        )}
 
-          {/* Delivery Address Form - Only show for home delivery */}
-          
+        {/* Delivery Address Form - Only show for home delivery */}
+        
             <>
               <div className={styles.section}>
                 <div className={styles.sectionHeader}>
@@ -838,145 +838,145 @@ export default function PackageDelivery({ handleNextStep, handlePreviousStep }: 
                 </div>
               </div>
             </>
-          {/* Receiver Details */}
-          <div className={styles.section}>
-            <h2 className={styles.sectionTitle}>Receiver Details</h2>
-            
-            <div className={styles.inputGroup}>
-              <label className={styles.label}>Full Name</label>
+        {/* Receiver Details */}
+        <div className={styles.section}>
+          <h2 className={styles.sectionTitle}>Receiver Details</h2>
+          
+          <div className={styles.inputGroup}>
+            <label className={styles.label}>Full Name</label>
+            <input
+              type="text"
+              className={`${styles.input} ${formErrors.receiver?.name ? styles.error : ''}`}
+              placeholder="Enter receiver's full name"
+              value={form.receiver.name}
+              onChange={(e) => setForm({ ...form, receiver: { ...form.receiver, name: e.target.value } })}
+            />
+            {formErrors.receiver?.name && (
+              <span className={styles.errorMessage}>{formErrors.receiver?.name}</span>
+            )}
+          </div>
+
+          <div className={styles.inputGroup}>
+            <label className={styles.label}>Email Address</label>
+            <input
+              type="email"
+              className={styles.input}
+              placeholder="Enter receiver's email address"
+              value={form.receiver.email}
+              onChange={(e) => setForm({ ...form, receiver: { ...form.receiver, email: e.target.value } })}
+            />
+          </div>
+
+          <div className={styles.inputGroup}>
+            <label className={styles.label}>Phone Number</label>
+            <div className={styles.phoneInput}>
+              <button
+                className={styles.countryCodeButton}
+                onClick={() => setShowCountryModal(true)}
+              >
+                <span className={styles.flag}>
+                  {countryCodes.find(c => c.dial_code === form.receiver.countryCode)?.flag}
+                </span>
+                <span className={styles.dialCode}>{form.receiver.countryCode}</span>
+                <ChevronDown size={16} />
+              </button>
+              <input
+                type="tel"
+                className={`${styles.phoneNumberInput} ${formErrors.receiver?.phone ? styles.error : ''}`}
+                placeholder="Enter phone number"
+                value={form.receiver.phone}
+                onChange={(e) => setForm({ ...form, receiver: { ...form.receiver, phone: e.target.value } })}
+              />
+            </div>
+            {formErrors.receiver?.phone && (
+              <span className={styles.errorMessage}>{formErrors.receiver?.phone}</span>
+            )}
+          </div>
+        </div>
+
+        {/* Info Note */}
+        <div className={styles.infoNote}>
+          <Info size={20} />
+          <div>
+            <h3>Important Note</h3>
+            <p>
+              Please ensure all address details are accurate. The driver will contact the receiver before delivery.
+            </p>
+          </div>
+        </div>
+      </main>
+
+      <footer className={styles.footer}>
+        <button
+          className={`${styles.continueButton} ${!isValidForm() || isLoading ? styles.disabled : ''}`}
+          onClick={handleSubmit}
+          disabled={!isValidForm() || isLoading}
+        >
+          {isLoading ? (
+            <>
+              <Loader size={20} className={styles.spinner} />
+              Saving...
+            </>
+          ) : (
+            <div className="flex flex-row items-center gap-2">
+              Continue
+              <ArrowRight size={20} />
+            </div>
+          )}
+        </button>
+      </footer>
+
+      {/* Country Code Modal */}
+      {showCountryModal && (
+        <div className={styles.modalOverlay}>
+          <div className={styles.modal}>
+            <div className={styles.modalHeader}>
+              <h2>Select Country</h2>
+              <button onClick={() => setShowCountryModal(false)}>
+                <X size={24} />
+              </button>
+            </div>
+            <div className={styles.modalContent}>
               <input
                 type="text"
-                className={`${styles.input} ${formErrors.receiver?.name ? styles.error : ''}`}
-                placeholder="Enter receiver's full name"
-                value={form.receiver.name}
-                onChange={(e) => setForm({ ...form, receiver: { ...form.receiver, name: e.target.value } })}
+                className={styles.searchInput}
+                placeholder="Search countries"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
               />
-              {formErrors.receiver?.name && (
-                <span className={styles.errorMessage}>{formErrors.receiver?.name}</span>
-              )}
-            </div>
-
-            <div className={styles.inputGroup}>
-              <label className={styles.label}>Email Address</label>
-              <input
-                type="email"
-                className={styles.input}
-                placeholder="Enter receiver's email address"
-                value={form.receiver.email}
-                onChange={(e) => setForm({ ...form, receiver: { ...form.receiver, email: e.target.value } })}
-              />
-            </div>
-
-            <div className={styles.inputGroup}>
-              <label className={styles.label}>Phone Number</label>
-              <div className={styles.phoneInput}>
-                <button
-                  className={styles.countryCodeButton}
-                  onClick={() => setShowCountryModal(true)}
-                >
-                  <span className={styles.flag}>
-                    {countryCodes.find(c => c.dial_code === form.receiver.countryCode)?.flag}
-                  </span>
-                  <span className={styles.dialCode}>{form.receiver.countryCode}</span>
-                  <ChevronDown size={16} />
-                </button>
-                <input
-                  type="tel"
-                  className={`${styles.phoneNumberInput} ${formErrors.receiver?.phone ? styles.error : ''}`}
-                  placeholder="Enter phone number"
-                  value={form.receiver.phone}
-                  onChange={(e) => setForm({ ...form, receiver: { ...form.receiver, phone: e.target.value } })}
-                />
-              </div>
-              {formErrors.receiver?.phone && (
-                <span className={styles.errorMessage}>{formErrors.receiver?.phone}</span>
-              )}
-            </div>
-          </div>
-
-          {/* Info Note */}
-          <div className={styles.infoNote}>
-            <Info size={20} />
-            <div>
-              <h3>Important Note</h3>
-              <p>
-                Please ensure all address details are accurate. The driver will contact the receiver before delivery.
-              </p>
-            </div>
-          </div>
-        </main>
-
-        <footer className={styles.footer}>
-          <button
-            className={`${styles.continueButton} ${!isValidForm() || isLoading ? styles.disabled : ''}`}
-            onClick={handleSubmit}
-            disabled={!isValidForm() || isLoading}
-          >
-            {isLoading ? (
-              <>
-                <Loader size={20} className={styles.spinner} />
-                Saving...
-              </>
-            ) : (
-              <div className="flex flex-row items-center gap-2">
-                Continue
-                <ArrowRight size={20} />
-              </div>
-            )}
-          </button>
-        </footer>
-
-        {/* Country Code Modal */}
-        {showCountryModal && (
-          <div className={styles.modalOverlay}>
-            <div className={styles.modal}>
-              <div className={styles.modalHeader}>
-                <h2>Select Country</h2>
-                <button onClick={() => setShowCountryModal(false)}>
-                  <X size={24} />
-                </button>
-              </div>
-              <div className={styles.modalContent}>
-                <input
-                  type="text"
-                  className={styles.searchInput}
-                  placeholder="Search countries"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                />
-                <div className={styles.countryList}>
-                  {countryCodes
-                    .filter(country => 
-                      country.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                      country.dial_code.includes(searchQuery)
-                    )
-                    .map(country => (
-                      <button
-                        key={country.code}
-                        className={`${styles.countryItem} ${form.receiver.countryCode === country.dial_code ? styles.selected : ''}`}
-                        onClick={() => {
-                          setForm({ ...form, receiver: { ...form.receiver, countryCode: country.dial_code } });
-                          setShowCountryModal(false);
-                        }}
-                      >
-                        <span className={styles.flag}>{country.flag}</span>
-                        <div className={styles.countryInfo}>
-                          <span className={styles.countryName}>{country.name}</span>
-                          <span className={styles.dialCode}>{country.dial_code}</span>
+              <div className={styles.countryList}>
+                {countryCodes
+                  .filter(country => 
+                    country.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                    country.dial_code.includes(searchQuery)
+                  )
+                  .map(country => (
+                    <button
+                      key={country.code}
+                      className={`${styles.countryItem} ${form.receiver.countryCode === country.dial_code ? styles.selected : ''}`}
+                      onClick={() => {
+                        setForm({ ...form, receiver: { ...form.receiver, countryCode: country.dial_code } });
+                        setShowCountryModal(false);
+                      }}
+                    >
+                      <span className={styles.flag}>{country.flag}</span>
+                      <div className={styles.countryInfo}>
+                        <span className={styles.countryName}>{country.name}</span>
+                        <span className={styles.dialCode}>{country.dial_code}</span>
+                      </div>
+                      {form.receiver.countryCode === country.dial_code && (
+                        <div className={styles.checkIcon}>
+                          <Check size={20} />
                         </div>
-                        {form.receiver.countryCode === country.dial_code && (
-                          <div className={styles.checkIcon}>
-                            <Check size={20} />
-                          </div>
-                        )}
-                      </button>
-                    ))}
-                </div>
+                      )}
+                    </button>
+                  ))}
               </div>
             </div>
           </div>
-        )}
-      </div>
+        </div>
+      )}
+    </div>
     </LoadScript>
   );
 }

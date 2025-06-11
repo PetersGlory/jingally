@@ -60,7 +60,7 @@ export default function PackageDetails({ selectedType, serviceType, handleNextSt
   const router = useRouter();
   const [formData, setFormData] = useState<PackageDetails>({
     type: selectedType || '',
-    description: '',
+    description: serviceType === 'airfreight' ? 'this is airfrieght and its N/A' :'',
     isFragile: false,
   });
   const [errors, setErrors] = useState<FormErrors>({});
@@ -189,6 +189,8 @@ export default function PackageDetails({ selectedType, serviceType, handleNextSt
         {errors.type && <span className={styles.error}>{errors.type}</span>}
       </div>
 
+      {serviceType !== 'airfreight' && (
+
       <div className={styles.section}>
         <h2>Package Description</h2>
         <div className={styles.inputGroup}>
@@ -203,6 +205,7 @@ export default function PackageDetails({ selectedType, serviceType, handleNextSt
           {errors.description && <span className={styles.error}>{errors.description}</span>}
         </div>
       </div>
+      )}
 
       <div className={styles.section}>
         <h2>Fragile Package</h2>

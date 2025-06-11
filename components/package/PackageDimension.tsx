@@ -438,7 +438,7 @@ export default function PackageDimension({
                       <div className={styles.guideInfo}>
                         <h4>{guide.guideName}</h4>
                         <p>{guide.guideNumber}</p>
-                        <span className={styles.price}>${guide.price}</span>
+                        <span className={styles.price}>£{guide.price}</span>
                       </div>
                       <div className={styles.quantityControls}>
                         <button 
@@ -558,7 +558,7 @@ export default function PackageDimension({
                         <div className={styles.guideInfo}>
                           <h4>{guide.guideName}</h4>
                           <p>{guide.guideNumber}</p>
-                          <span className={styles.price}>${guide.price}</span>
+                          <span className={styles.price}>£{guide.price}</span>
                         </div>
                         <div className={styles.quantityControls}>
                           <button 

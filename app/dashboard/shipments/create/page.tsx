@@ -41,38 +41,40 @@ export default function CreateShipment() {
   return (
     <>
       <div className="w-full max-w-4xl mx-auto px-4 py-8">
-        <div className="flex items-center justify-between mb-8">
-          {STEPS.map((step, index) => (
-            <React.Fragment key={step.id}>
-              <div
-                className={`flex flex-col items-center ${
-                  index === currentStep - 1
-                    ? 'text-blue-600'
-                    : index < currentStep - 1
-                    ? 'text-green-600'
-                    : 'text-gray-400'
-                }`}
-              >
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center border-2 ${
-                  index === currentStep - 1
-                    ? 'border-blue-600 bg-blue-50'
-                    : index < currentStep - 1
-                    ? 'border-green-600 bg-green-50'
-                    : 'border-gray-300'
-                }`}>
-                  {index < currentStep - 1 ? '✓' : index + 1}
-                </div>
-                <span className="text-sm mt-2 font-medium">{step.title}</span>
-              </div>
-              {index < STEPS.length - 1 && (
+        <div className="overflow-x-auto w-full">
+          <div className="flex items-center justify-between mb-8 md:w-full w-[350px] overflow-x-auto">
+            {STEPS.map((step, index) => (
+              <React.Fragment key={step.id}>
                 <div
-                  className={`flex-1 h-0.5 mx-4 ${
-                    index < currentStep - 1 ? 'bg-green-600' : 'bg-gray-300'
+                  className={`flex flex-col items-center ${
+                    index === currentStep - 1
+                      ? 'text-blue-600'
+                      : index < currentStep - 1
+                      ? 'text-green-600'
+                      : 'text-gray-400'
                   }`}
-                />
-              )}
-            </React.Fragment>
-          ))}
+                >
+                  <div className={`w-8 h-8 rounded-full flex items-center justify-center border-2 ${
+                    index === currentStep - 1
+                      ? 'border-blue-600 bg-blue-50'
+                      : index < currentStep - 1
+                      ? 'border-green-600 bg-green-50'
+                      : 'border-gray-300'
+                  }`}>
+                    {index < currentStep - 1 ? '✓' : index + 1}
+                  </div>
+                  <span className="text-sm mt-2 font-medium">{step.title}</span>
+                </div>
+                {index < STEPS.length - 1 && (
+                  <div
+                    className={`flex-1 h-0.5 mx-4 ${
+                      index < currentStep - 1 ? 'bg-green-600' : 'bg-gray-300'
+                    }`}
+                  />
+                )}
+              </React.Fragment>
+            ))}
+          </div>
         </div>
       </div>
       {currentStep === 1 && <PackageService onSelectType={setSelectedType} handleNextStep={handleNextStep} />} 
