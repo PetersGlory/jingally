@@ -278,16 +278,12 @@ export default function PackageDimension({
           return;
         }
 
+        // const alldimensions = dimensions.map()
+
         response = await updatePackageDimensions(
           packageId,
           {
-            weight: totalWeight,
-            dimensions: dimensions.map(dim => ({
-              length: parseFloat(dim.length),
-              width: parseFloat(dim.width),
-              height: parseFloat(dim.height),
-              weight: parseFloat(dim.weight)
-            }))
+            priceGuides: dimensions,
           },
           token
         );

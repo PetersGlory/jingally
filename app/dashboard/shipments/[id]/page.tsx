@@ -9,9 +9,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import { ArrowLeft, Package, Truck, MapPin, Calendar, Clock, FileText, Download, AlertCircle, X, Phone, Mail, HelpCircle, Check, Share2, PenBoxIcon } from "lucide-react"
+import { ArrowLeft, Package, Truck, MapPin, Calendar, Clock, FileText, Download, AlertCircle, X, Phone, Mail, HelpCircle, Check, Share2, PenBoxIcon, List } from "lucide-react"
 import { getShipmentDetails, cancelShipment } from "@/lib/shipment"
-import PackagePayment from "@/components/package/PackagePayment"
+import PackagePayment, { DimensionPallet } from "@/components/package/PackagePayment"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { toast } from "sonner"
 
@@ -652,7 +652,7 @@ export default function ShipmentDetailPage() {
                         </div>
                       </div>
 
-                      {shipment?.priceGuides && (
+                      {shipment?.priceGuides && shipment?.packageType !=="pallet" && (
                         <div>
                           <h3 className="mb-2 font-medium">{shipment?.packageType ==="container" ? "Container" : "Price Guides"}</h3>
                           <div className="rounded-lg border p-3 text-sm">
@@ -669,6 +669,49 @@ export default function ShipmentDetailPage() {
                                 ));
                               })()}
                             </div>
+                          </div>
+                        </div>
+                      )}
+
+                      {shipment?.priceGuides && shipment?.packageType ==="pallet" && (
+                        <div className="flex flex-col p-6 border border-gray-200 rounded-xl bg-white shadow-sm hover:shadow-md transition-shadow duration-300">
+                          <div className="flex items-center gap-3 mb-4">
+                            <div className="p-2 bg-blue-50 rounded-lg">
+                              <List className="h-5 w-5 text-blue-600" />
+                            </div>
+                            <span className="text-lg font-semibold text-gray-900">Pallet Information</span>
+                          </div>
+                          <div className="flex flex-col gap-3">
+                            {(() => {
+                              const guides = typeof shipment.priceGuides === 'string' 
+                                ? JSON.parse(shipment.priceGuides) 
+                                : shipment.priceGuides;
+                              return guides.map((guide: DimensionPallet, index: number) => (
+                                <div 
+                                  key={guide.id} 
+                                  className="flex justify-between items-start p-4 bg-gray-50 rounded-lg border border-gray-100 hover:bg-gray-100 transition-colors duration-200"
+                                >
+                                  <div className="flex flex-col gap-1">
+                                    <span className="text-base font-semibold text-gray-900">Pallet {index + 1}</span>
+                                    <div className="flex items-center gap-2 text-sm text-gray-600">
+                                      <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-gradient-to-r from-blue-50 to-blue-100 text-blue-800 shadow-sm border border-blue-200">
+                                        <div className="flex flex-col items-center">
+                                          <span className="text-sm font-medium">
+                                            {guide.length} × {guide.width} × {guide.height} cm 
+                                          </span>
+                                          <span className="text-xs text-blue-600 mt-0.5">
+                                          (L × W × H)
+                                          </span>
+                                        </div>
+                                      </span>
+                                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full bg-green-100 text-green-800">
+                                        {guide.weight} kg
+                                      </span>
+                                    </div>
+                                  </div>
+                                </div>
+                              ));
+                            })()}
                           </div>
                         </div>
                       )}

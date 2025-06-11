@@ -49,6 +49,14 @@ interface PriceGuide {
   guideNumber: string;
 }
 
+export interface DimensionPallet{
+  id: number;
+  length: string;
+  width: string;
+  height: string;
+  weight: string;
+}
+
 interface Shipment {
   id: string;
   trackingNumber: string;
@@ -624,7 +632,7 @@ export default function PackagePayment({ handleNextStep, handlePreviousStep }: {
           </div>
         </div>
 
-        {shipment?.priceGuides && (
+        {shipment?.priceGuides && shipment?.packageType !=="pallet" && (
           <div className="flex flex-col p-4 border border-gray-200 rounded-lg bg-white">
             <div className="flex items-center gap-2 mb-2">
               <List className="h-4 w-4 text-gray-600" />
@@ -646,11 +654,54 @@ export default function PackagePayment({ handleNextStep, handlePreviousStep }: {
           </div>
         )}
 
+        {shipment?.priceGuides && shipment?.packageType ==="pallet" && (
+          <div className="flex flex-col p-6 border border-gray-200 rounded-xl bg-white shadow-sm hover:shadow-md transition-shadow duration-300">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="p-2 bg-blue-50 rounded-lg">
+                <List className="h-5 w-5 text-blue-600" />
+              </div>
+              <span className="text-lg font-semibold text-gray-900">Pallet Information</span>
+            </div>
+            <div className="flex flex-col gap-3">
+              {(() => {
+                const guides = typeof shipment.priceGuides === 'string' 
+                  ? JSON.parse(shipment.priceGuides) 
+                  : shipment.priceGuides;
+                return guides.map((guide: DimensionPallet, index: number) => (
+                  <div 
+                    key={guide.id} 
+                    className="flex justify-between items-start p-4 bg-gray-50 rounded-lg border border-gray-100 hover:bg-gray-100 transition-colors duration-200"
+                  >
+                    <div className="flex flex-col gap-1">
+                      <span className="text-base font-semibold text-gray-900">Pallet {index + 1}</span>
+                      <div className="flex items-center gap-2 text-sm text-gray-600">
+                        <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-gradient-to-r from-blue-50 to-blue-100 text-blue-800 shadow-sm border border-blue-200">
+                          <div className="flex flex-col items-center">
+                            <span className="text-sm font-medium">
+                              {guide.length} × {guide.width} × {guide.height} cm 
+                            </span>
+                            <span className="text-xs text-blue-600 mt-0.5">
+                             (L × W × H)
+                            </span>
+                          </div>
+                        </span>
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full bg-green-100 text-green-800">
+                          {guide.weight} kg
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                ));
+              })()}
+            </div>
+          </div>
+        )}
+
         {/* Cost Breakdown */}
         <div className={styles.costSection}>
           <h2 className={styles.sectionTitle}>Cost Breakdown</h2>
           <div className={styles.costList}>
-            {costs.map((item) => (
+            {shipment?.packageType !== "pallet" && costs.map((item) => (
               <div 
                 key={item.label}
                 className={`${styles.costItem} ${item.type === 'total' ? styles.totalItem : ''}`}
@@ -659,7 +710,7 @@ export default function PackagePayment({ handleNextStep, handlePreviousStep }: {
                   {item.label}
                 </span>
                 <span className={item.type === 'total' ? styles.totalAmount : ''}>
-                  {item.label === 'Total' ? "Will be communicated." : item.amount}
+                  {item.label === 'Total' ? "Will be communicated." : item.amount ? item?.amount : "0"}
                 </span>
               </div>
             ))}
@@ -685,7 +736,7 @@ export default function PackagePayment({ handleNextStep, handlePreviousStep }: {
                     }}
                   />
                   <label htmlFor="pay70" className="text-sm font-medium text-gray-700">
-                    Pay 70% (£{(parseFloat(costs.find(c => c.type === 'total')?.amount.replace('£', '') || '0') * 0.7).toFixed(2)})
+                    Pay 70%{/*  (£{(parseFloat(costs.find(c => c.type === 'total')?.amount.replace('£', '') || '0') * 0.7).toFixed(2)}) */}
                   </label>
                 </div>
                 <div className="flex items-center space-x-2">
@@ -704,7 +755,7 @@ export default function PackagePayment({ handleNextStep, handlePreviousStep }: {
                     }}
                   />
                   <label htmlFor="pay50" className="text-sm font-medium text-gray-700">
-                    Pay 50% (£{(parseFloat(costs.find(c => c.type === 'total')?.amount.replace('£', '') || '0') * 0.5).toFixed(2)})
+                    Pay 50% {/* (£{(parseFloat(costs.find(c => c.type === 'total')?.amount.replace('£', '') || '0') * 0.5).toFixed(2)}) */}
                   </label>
                 </div>
                 <div className="flex items-center space-x-2">
@@ -722,7 +773,7 @@ export default function PackagePayment({ handleNextStep, handlePreviousStep }: {
                     }}
                   />
                   <label htmlFor="payFull" className="text-sm font-medium text-gray-700">
-                    Pay in full upon delivery (£{parseFloat(costs.find(c => c.type === 'total')?.amount.replace('£', '') || '0').toFixed(2)})
+                    Pay in full upon delivery{/* (£{parseFloat(costs.find(c => c.type === 'total')?.amount.replace('£', '') || '0').toFixed(2)}) */}
                   </label>
                 </div>
               </div>
