@@ -40,7 +40,7 @@ export default function EditShipmentPage() {
   }, [searchParams, router]);
 
   const handleNextStep = () => {
-    if(currentStep === 3){
+    if(currentStep === 6){
       router.push(`/dashboard/shipments/${searchParams?.id}`)
     }else{
       setCurrentStep(prev => prev + 1);

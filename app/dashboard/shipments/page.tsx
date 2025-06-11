@@ -260,7 +260,7 @@ export default function ShipmentsPage() {
                                   </span>
                                 </TableCell>
                                 <TableCell className="text-center capitalize">
-                                  {shipment.paymentMethod || 'N/A'}
+                                  {'Scheduled'}
                                 </TableCell>
                                 <TableCell className="text-right sticky right-0 bg-background z-10">
                                   <Link href={`/dashboard/shipments/${shipment.id}`}>
