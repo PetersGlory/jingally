@@ -10,7 +10,6 @@ interface PackageDetails {
   type: string;
   description: string;
   isFragile: boolean;
-  serviceType?: string;
 }
 
 interface FormErrors {
@@ -61,22 +60,11 @@ export default function PackageDetails({ selectedType, serviceType, onNext, onBa
   const router = useRouter();
   const [formData, setFormData] = useState<PackageDetails>({
     type: selectedType || '',
-    description: '',
+    description: serviceType === 'airfreight' ? 'this is airfrieght and its N/A' :'',
     isFragile: false,
-    serviceType: serviceType || ''
   });
   const [errors, setErrors] = useState<FormErrors>({});
   const [isLoading, setIsLoading] = useState(false);
-
-  useEffect(()=>{
-    const selectedService = localStorage.getItem('selectedService')
-    if(selectedService){
-      setFormData({
-        ...formData,
-        serviceType: selectedService
-      })
-    }
-  },[])
 
   const validateForm = (): boolean => {
     const newErrors: FormErrors = {};
@@ -113,17 +101,22 @@ export default function PackageDetails({ selectedType, serviceType, onNext, onBa
     if (!validateForm()) return;
 
     try {
+      const selectedService = localStorage.getItem("selectedService");
       setIsLoading(true);
       setErrors({});
-      const selectedService = localStorage.getItem('selectedService')
       const dataBody={
-        serviceType: selectedService || formData.serviceType,
+        serviceType: selectedService || serviceType,
         packageType: formData.type,
         packageDescription: formData.description,
         fragile: formData.isFragile.toString()
       }
 
-      const response = await createShipment(dataBody, '');
+      const token = localStorage.getItem('accessToken') || "";
+      if (!token) {
+        console.log("testing")
+      }
+
+      const response = await createShipment(dataBody);
 
       if (response.success) {
         localStorage.setItem('packageInfo', JSON.stringify(response.data));
@@ -166,11 +159,11 @@ export default function PackageDetails({ selectedType, serviceType, onNext, onBa
         <div className={styles.typeGrid}>
           {PACKAGE_TYPES.map((type) => {
             // Skip items package type if service type is airfreight
-            if (formData.serviceType === 'airfreight' && type.id !== 'parcel') {
+            if (serviceType === 'airfreight' && type.id !== 'parcel') {
               return null;
             }
 
-            if (formData.serviceType === 'seafreight' && type.id === 'pallet') {
+            if (serviceType === 'seafreight' && type.id === 'parcel') {
               return null;
             }
             
@@ -196,6 +189,8 @@ export default function PackageDetails({ selectedType, serviceType, onNext, onBa
         {errors.type && <span className={styles.error}>{errors.type}</span>}
       </div>
 
+      {serviceType !== 'airfreight' && (
+
       <div className={styles.section}>
         <h2>Package Description</h2>
         <div className={styles.inputGroup}>
@@ -210,6 +205,7 @@ export default function PackageDetails({ selectedType, serviceType, onNext, onBa
           {errors.description && <span className={styles.error}>{errors.description}</span>}
         </div>
       </div>
+      )}
 
       <div className={styles.section}>
         <h2>Fragile Package</h2>
@@ -232,7 +228,6 @@ export default function PackageDetails({ selectedType, serviceType, onNext, onBa
       <button
         className={styles.submitButton}
         onClick={handleSubmit}
-        type='button'
         disabled={isLoading}
       >
         {isLoading ? (

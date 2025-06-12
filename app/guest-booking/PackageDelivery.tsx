@@ -6,6 +6,7 @@ import { MapPin, Truck, Info, X, ChevronDown, ArrowRight, Loader, Check, ArrowLe
 import { LoadScript, Autocomplete } from '@react-google-maps/api';
 import styles from './PackageDelivery.module.css';
 import { updateDeliveryAddress } from '@/lib/guestShipment';
+import { validatePhoneNumber } from '@/lib/validatePhone';
 
 interface CountryCode {
   code: string;
@@ -168,6 +169,31 @@ export default function PackageDelivery({ onNext, onBack, onUpdate, initialData 
   };
 
   const handleSubmit = async () => {
+
+    const phoneNumber = form.receiver.countryCode + form.receiver.phone;
+    const validate = await validatePhoneNumber(phoneNumber);
+
+    console.log(validate)
+    if(!validate.isValid){
+      alert("Invalid Phone Number")
+      setForm({
+        ...form,
+        receiver:{
+          ...form.receiver,
+          phone: ""
+        }
+      })
+      return;
+    }else{
+      setForm({
+        ...form,
+        receiver:{
+          ...form.receiver,
+          phone: validate.formattedNumber || ""
+        }
+      })
+    }
+
     if (!isValidForm()) {
       setFormErrors({
         pickupAddress: {

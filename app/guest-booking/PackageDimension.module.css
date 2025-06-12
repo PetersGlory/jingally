@@ -401,6 +401,92 @@
   color: #374151;
 }
 
+.containerSelect {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.375rem;
+  background-color: white;
+  color: #374151;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.containerSelect:hover {
+  border-color: #d1d5db;
+}
+
+.containerSelect:focus {
+  outline: none;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.1);
+}
+
+.containerSelect option {
+  padding: 0.5rem;
+  background-color: white;
+  color: #374151;
+}
+
+.containerSelect option:checked {
+  background-color: #2563eb;
+  color: white;
+}
+
+.extraItemsTitle {
+  font-size: 1rem;
+  font-weight: 500;
+  color: #374151;
+  margin-bottom: 1rem;
+}
+
+.priceGuideItem {
+  display: flex;
+  align-items: center;
+  padding: 1rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.375rem;
+  background-color: white;
+  transition: all 0.2s;
+  cursor: pointer;
+}
+
+.priceGuideItem:hover {
+  border-color: #d1d5db;
+  background-color: #f9fafb;
+}
+
+.priceGuideItem.selected {
+  border-color: #2563eb;
+  background-color: #eff6ff;
+}
+
+.guideInfo {
+  flex: 1;
+  margin-left: 1rem;
+}
+
+.guideInfo h4 {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #374151;
+  margin-bottom: 0.25rem;
+}
+
+.guideInfo p {
+  font-size: 0.75rem;
+  color: #6b7280;
+  margin-bottom: 0.25rem;
+}
+
+.price {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #2563eb;
+}
+
+
 @media (max-width: 768px) {
   .header {
     padding: 1rem;

@@ -1,7 +1,7 @@
 "use client"
 
 import React, { useEffect, useState, useCallback } from 'react';
-import { Package, Maximize2, Box, AlertCircle, ArrowRight, ArrowLeft, Plus } from 'lucide-react';
+import { Package, Maximize2, Box, AlertCircle, ArrowRight, ArrowLeft, Plus, Trash2 } from 'lucide-react';
 import styles from './PackageDimension.module.css';
 import { useRouter } from 'next/navigation';
 import { updatePackageDimensions } from '@/lib/guestShipment';
@@ -147,17 +147,40 @@ export default function PackageDimension({
   const [errors, setErrors] = useState<FormErrors>({});
   const [isLoading, setIsLoading] = useState(false);
   const [guides, setGuides] = useState<PriceGuide[]>([]);
+  const [extraguides, setExtraguides] = useState<PriceGuide[]>([]);
   const [shipInfo, setShipInfo] = useState<Shipment>();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedGuides, setSelectedGuides] = useState<string[]>([]);
-  const [extraguides, setExtraguides] = useState<PriceGuide[]>([]);
+
+  const [dimensions, setDimensions] = useState<Array<{
+    id: number;
+    length: string;
+    width: string;
+    height: string;
+    weight: string;
+  }>>([{
+    id: Date.now(),
+    length: '',
+    width: '',
+    height: '',
+    weight: ''
+  }]);
+
+  const MAX_DIMENSION = 1000; // Maximum dimension in cm
+  const MAX_WEIGHT = 1000; // Maximum weight in kg
+
+  const handleDimensionChange = (dimensionId: number, field: 'length' | 'width' | 'height' | 'weight', value: string) => {
+    setDimensions(prev => prev.map(dim => 
+      dim.id === dimensionId 
+        ? { ...dim, [field]: value }
+        : dim
+    ));
+  };
+
 
   useEffect(() => {
-    const accessToken = localStorage.getItem('accessToken');
-    const packageInfo = localStorage.getItem('packageInfo');
-    
-    setToken('');
-    getPricings('');
+    const packageInfo = localStorage.getItem('packageInfo');    
+    getPricings();
     setShipInfo(JSON.parse(packageInfo || '{}'));
   }, []);
 
@@ -169,12 +192,12 @@ export default function PackageDimension({
     );
   };
 
-  const getPricings = async (token: string) => {
+  const getPricings = async () => {
     try {
       setIsLoading(true);
       const response = await getPriceGuides();
       if (response) {
-        setGuides(response.data);
+        setGuides(response);
       }
     } catch (err) {
       console.error('Error fetching price guides:', err);
@@ -186,23 +209,30 @@ export default function PackageDimension({
   const validateForm = useCallback((): boolean => {
     const newErrors: FormErrors = {};
     const numericFields = ['weight', 'length', 'width', 'height'] as const;
-    if(selectedGuides.length == 0){
     
-    numericFields.forEach(field => {
-      const value = formData[field];
-      if (!value.trim()) {
-        newErrors[field] = `Please enter package ${field}`;
-      } else if (isNaN(Number(value)) || Number(value) <= 0) {
-        newErrors[field] = `Please enter a valid ${field}`;
-      } else if (Number(value) > MAX_DIMENSION) {
-        newErrors[field] = `${field.charAt(0).toUpperCase() + field.slice(1)} cannot exceed ${MAX_DIMENSION}`;
-      }
-    });
+    // Only validate dimensions if no guides are selected
+    if (selectedGuides.length === 0) {
+      // Validate dimensions array
+      dimensions.forEach((dimension, index) => {
+        const dimensionFields = ['length', 'width', 'height', 'weight'] as const;
+        dimensionFields.forEach(field => {
+          const value = dimension[field];
+          if (!value.trim()) {
+            newErrors[field] = `Please enter ${field} for dimension set ${index + 1}`;
+          } else if (isNaN(Number(value)) || Number(value) <= 0) {
+            newErrors[field] = `Please enter a valid ${field} for dimension set ${index + 1}`;
+          } else if (field === 'weight' && Number(value) > MAX_WEIGHT) {
+            newErrors[field] = `Weight cannot exceed ${MAX_WEIGHT}kg`;
+          } else if (field !== 'weight' && Number(value) > MAX_DIMENSION) {
+            newErrors[field] = `${field.charAt(0).toUpperCase() + field.slice(1)} cannot exceed ${MAX_DIMENSION}cm`;
+          }
+        });
+      });
+    }
 
     setErrors(newErrors);
-    }
     return Object.keys(newErrors).length === 0;
-  }, [formData]);
+  }, [dimensions, selectedGuides.length]);
 
   const handleInputChange = (field: keyof PackageDimensions, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -210,25 +240,24 @@ export default function PackageDimension({
   };
 
   const calculateVolume = useCallback((): string => {
-    const { length, width, height } = formData;
+    // Calculate total volume from all dimension sets
+    const totalVolume = dimensions.reduce((sum, dimension) => {
+      const { length, width, height } = dimension;
     if (length && width && height) {
       const volume = Number(length) * Number(width) * Number(height);
-      return volume.toFixed(2);
+        return sum + volume;
     }
-    return '0.00';
-  }, [formData]);
+      return sum;
+    }, 0);
+
+    return totalVolume.toFixed(2);
+  }, [dimensions]);
 
   const handleSubmit = async () => {
-
     if (!validateForm() && selectedGuides.length==0) return;
 
     const packageInfo = localStorage.getItem('packageInfo');
     const shipment = JSON.parse(packageInfo || '{}');
-    
-    if (parseFloat(formData.weight) > MAX_WEIGHT && shipment.serviceType !== 'airfreight') {
-      setErrors(prev => ({ ...prev, weight: `Weight cannot exceed ${MAX_WEIGHT}kg` }));
-      return;
-    }
 
     try {
       setIsLoading(true);
@@ -236,21 +265,27 @@ export default function PackageDimension({
       
       let response;
 
-      if(formData.weight !== "" && formData.length !== ""){
+      if(dimensions[0].weight !== "" && dimensions[0].length !== ""){
+        // Calculate total weight
+        const totalWeight = dimensions.reduce((sum, dim) => sum + (parseFloat(dim.weight) || 0), 0);
+        
+        if(totalWeight > MAX_WEIGHT && shipment.serviceType !== 'airfreight') {
+          setErrors(prev => ({ ...prev, weight: `Total weight cannot exceed ${MAX_WEIGHT}kg` }));
+          return;
+        }
+
+        // const alldimensions = dimensions.map()
+
         response = await updatePackageDimensions(
           packageId,
           {
-            weight: parseFloat(formData.weight),
-            dimensions: {
-              length: parseFloat(formData.length),
-              width: parseFloat(formData.width),
-              height: parseFloat(formData.height),
-            }
+            priceGuides: dimensions,
           },
           token
         );
       }else{
         console.log(guides)
+        console.log(extraguides)
         const selectedPriceGuides = [...selectedGuides, ...extraguides].map(guideId => {
           const guide = [...guides, ...extraguides].find(g => g.id === guideId);
           if (!guide) return null;
@@ -436,7 +471,7 @@ export default function PackageDimension({
                       <div className={styles.guideInfo}>
                         <h4>{guide.guideName}</h4>
                         <p>{guide.guideNumber}</p>
-                        <span className={styles.price}>${guide.price}</span>
+                        <span className={styles.price}>£{guide.price}</span>
                       </div>
                       <div className={styles.quantityControls}>
                         <button 
@@ -526,6 +561,7 @@ export default function PackageDimension({
                               price: 0
                             };
                             setExtraguides(prev => [...prev, newGuide]);
+                            toggleGuideSelection(newGuide.id)
                             closeModal();
                           }
                         });
@@ -539,6 +575,95 @@ export default function PackageDimension({
                   
                   <div className={styles.extraItemsSection}>
                     <h4 className={styles.extraItemsTitle}>Added Items</h4>
+                    {extraguides.map((guide) => (
+                      <div 
+                        key={guide.id} 
+                        className={`${styles.priceGuideItem} ${selectedGuides.includes(guide.id) ? styles.selected : ''} gap-3`}
+                        onClick={() => toggleGuideSelection(guide.id)}
+                      >
+                        <div className={styles.checkbox}>
+                          <input
+                            type="checkbox"
+                            checked={selectedGuides.includes(guide.id)}
+                            onChange={() => {}}
+                          />
+                        </div>
+                        <div className={styles.guideInfo}>
+                          <h4>{guide.guideName}</h4>
+                          <p>{guide.guideNumber}</p>
+                          <span className={styles.price}>£{guide.price}</span>
+                        </div>
+                        <div className={styles.quantityControls}>
+                          <button 
+                            className={styles.quantityButton}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              const currentCount = selectedGuides.filter(id => id === guide.id).length;
+                              if (currentCount > 0) {
+                                const index = selectedGuides.indexOf(guide.id);
+                                const newSelectedGuides = [...selectedGuides];
+                                newSelectedGuides.splice(index, 1);
+                                setSelectedGuides(newSelectedGuides);
+                              }
+                            }}
+                          >
+                            -
+                          </button>
+                          <span className={styles.quantity}>
+                            {selectedGuides.filter(id => id === guide.id).length}
+                          </span>
+                          <button 
+                            className={styles.quantityButton}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setSelectedGuides([...selectedGuides, guide.id]);
+                            }}
+                          >
+                            +
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </>
+          ): shipInfo?.packageType === "container" ? (
+            <>
+              <div className={styles.priceGuideSection}>
+                <h3 className={styles.sectionTitle}>Select Container Type</h3>
+                
+                <div className={styles.priceGuideList}>
+                  <div className={styles.addNewItem}>
+                    <select 
+                      className={styles.containerSelect}
+                      onChange={(e) => {
+                        const selectedOption = e.target.value;
+                        if (selectedOption) {
+                          const [size, type] = selectedOption.split('-');
+                          const isHighCube = type === 'highcube';
+                          const newGuide: PriceGuide = {
+                            id: 'container-' + Date.now().toString(),
+                            guideName: `${size} Container${isHighCube ? ' (High Cube)' : ''}`,
+                            guideNumber: `${size}${isHighCube ? '-HC' : ''}-${Math.floor(Math.random() * 1000)}`,
+                            price: 0
+                          };
+                          setExtraguides(prev => [...prev, newGuide]);
+                          e.target.value = ''; // Reset select after adding
+                          toggleGuideSelection(newGuide.id)
+                        }
+                      }}
+                    >
+                      <option value="">Select a container type</option>
+                      <option value="20ft-standard">20ft Container</option>
+                      <option value="40ft-standard">40ft Container</option>
+                      <option value="40ft-highcube">40ft High Cube Container</option>
+                      <option value="45ft-highcube">45ft High Cube Container</option>
+                    </select>
+                  </div>
+
+                  <div className={styles.extraItemsSection}>
+                    <h4 className={styles.extraItemsTitle}>Selected Containers</h4>
                     {extraguides.map((guide) => (
                       <div 
                         key={guide.id} 
@@ -594,72 +719,122 @@ export default function PackageDimension({
             </>
           ) :(
             <>
-              <div className={styles.section}>
-            <h3 className={styles.sectionTitle}>Weight</h3>
-            <DimensionInput
-              label="Weight (kg)"
-              value={formData.weight}
-              onChange={(value) => handleInputChange('weight', value)}
-              error={errors.weight}
-              icon={<Package size={20} />}
-              max={MAX_WEIGHT}
-              placeholder="Enter weight in kilograms"
-            />
-          </div>
+              <div className="space-y-6">
+                {/* Weight Section */}
+                {/* <div className="bg-white rounded-lg p-6 shadow-sm">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Weight</h3>
+                  <DimensionInput
+                    label="Weight (kg)"
+                    value={formData.weight}
+                    onChange={(value) => handleInputChange('weight', value)}
+                    error={errors.weight}
+                    icon={<Package size={20} />}
+                    max={MAX_WEIGHT}
+                    placeholder="Enter weight in kilograms"
+                  />
+                </div> */}
 
-          <div className={styles.section}>
-            <h3 className={styles.sectionTitle}>Dimensions (cm)</h3>
-            <div className={styles.dimensionsGrid}>
-              <DimensionInput
-                label="Length"
-                value={formData.length}
-                onChange={(value) => handleInputChange('length', value)}
-                error={errors.length}
-                icon={<Maximize2 size={20} />}
-                placeholder="Enter length"
-              />
+                {/* Dimensions Section */}
+                <div className="bg-white rounded-lg p-6 shadow-sm">
+                  <div className="flex justify-between items-center mb-4">
+                    <h3 className="text-lg font-semibold text-gray-900">Dimensions (cm)</h3>
+                    <button
+                      onClick={() => {
+                        setDimensions([...dimensions, {
+                          id: Date.now(),
+                          length: '',
+                          width: '',
+                          height: '',
+                          weight: ''
+                        }]);
+                      }}
+                      className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                    >
+                      <Plus size={20} className="mr-2" />
+                      Add Dimension
+                    </button>
+                  </div>
 
-              <DimensionInput
-                label="Width"
-                value={formData.width}
-                onChange={(value) => handleInputChange('width', value)}
-                error={errors.width}
-                icon={<Maximize2 size={20} />}
-                placeholder="Enter width"
-              />
+                  {dimensions.map((dimension, index) => (
+                    <div key={dimension.id} className="mb-6 last:mb-0">
+                      <div className="flex justify-between items-center mb-4">
+                        <h4 className="text-md font-medium text-gray-700">Dimension Set {index + 1}</h4>
+                        {dimensions.length > 1 && (
+                          <button
+                            onClick={() => {
+                              const newDimensions = dimensions.filter(d => d.id !== dimension.id);
+                              setDimensions(newDimensions);
+                            }}
+                            className="text-red-600 hover:text-red-800"
+                          >
+                            <Trash2 size={20} />
+                          </button>
+                        )}
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                        <DimensionInput
+                          label="Weight (kg)"
+                          value={dimension.weight}
+                          onChange={(value) => handleDimensionChange(dimension.id, 'weight', value)}
+                          error={errors.weight}
+                          icon={<Package size={20} />}
+                          max={MAX_WEIGHT}
+                          placeholder="Enter weight"
+                        />
+                        <DimensionInput
+                          label="Length"
+                          value={dimension.length}
+                          onChange={(value) => handleDimensionChange(dimension.id, 'length', value)}
+                          error={errors.length}
+                          icon={<Maximize2 size={20} />}
+                          placeholder="Enter length"
+                        />
+                        <DimensionInput
+                          label="Width"
+                          value={dimension.width}
+                          onChange={(value) => handleDimensionChange(dimension.id, 'width', value)}
+                          error={errors.width}
+                          icon={<Maximize2 size={20} />}
+                          placeholder="Enter width"
+                        />
+                        <DimensionInput
+                          label="Height"
+                          value={dimension.height}
+                          onChange={(value) => handleDimensionChange(dimension.id, 'height', value)}
+                          error={errors.height}
+                          icon={<Maximize2 size={20} />}
+                          placeholder="Enter height"
+                        />
+                      </div>
+                    </div>
+                  ))}
+                </div>
 
-              <DimensionInput
-                label="Height"
-                value={formData.height}
-                onChange={(value) => handleInputChange('height', value)}
-                error={errors.height}
-                icon={<Maximize2 size={20} />}
-                placeholder="Enter height"
-              />
-            </div>
-          </div>
-
-          <div className={styles.volumeSection}>
-            <div className={styles.volumeHeader}>
-              <div className={styles.volumeIcon}>
-                <Box size={20} />
+                {/* Volume Section */}
+                <div className="bg-white rounded-lg p-6 shadow-sm">
+                  <div className="flex items-center space-x-3 mb-4">
+                    <div className="p-2 bg-blue-100 rounded-lg">
+                      <Box size={20} className="text-blue-600" />
+                    </div>
+                    <h3 className="text-lg font-semibold text-gray-900">Total Volume</h3>
+                  </div>
+                  <p className="text-2xl font-bold text-gray-900 mb-2">
+                    {calculateVolume()} cm³
+                  </p>
+                  <p className="text-sm text-gray-500">
+                    Calculated based on length × width × height
+                  </p>
+                </div>
               </div>
-              <h3 className={styles.volumeTitle}>Total Volume</h3>
-            </div>
-            <p className={styles.volumeValue}>
-              {calculateVolume()} cm³
-            </p>
-            <p className={styles.volumeSubtitle}>
-              Calculated based on length × width × height
-            </p>
-          </div>
             </>
-          )}          
+          )}
+          {/* </main> */}
+
+          
 
           <button
             className={`${styles.submitButton} ${isLoading ? styles.loading : ''}`}
             onClick={handleSubmit}
-            type='button'
             disabled={isLoading}
           >
             {isLoading ? (
@@ -675,4 +850,4 @@ export default function PackageDimension({
       </main>
     </div>
   );
-} 
+}

@@ -247,13 +247,13 @@ export default function PackageDimension({
     // Calculate total volume from all dimension sets
     const totalVolume = dimensions.reduce((sum, dimension) => {
       const { length, width, height } = dimension;
-      if (length && width && height) {
-        const volume = Number(length) * Number(width) * Number(height);
+    if (length && width && height) {
+      const volume = Number(length) * Number(width) * Number(height);
         return sum + volume;
-      }
+    }
       return sum;
     }, 0);
-    
+
     return totalVolume.toFixed(2);
   }, [dimensions]);
 
@@ -262,7 +262,7 @@ export default function PackageDimension({
 
     const packageInfo = localStorage.getItem('packageInfo');
     const shipment = JSON.parse(packageInfo || '{}');
-    
+
     try {
       setIsLoading(true);
       const packageId = shipment.id;

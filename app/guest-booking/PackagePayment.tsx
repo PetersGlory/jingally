@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import styles from './PackagePayment.module.css';
 import { updatePaymentStatus } from '@/lib/guestShipment';
 import { PayPalScriptProvider, PayPalButtons } from "@paypal/react-paypal-js";
+import { DimensionPallet } from '@/components/package/PackagePayment';
 
 // Types
 interface PaymentMethod {
@@ -64,8 +65,8 @@ interface Shipment {
     length: number;
   } | null;
   priceGuides: string;
-  pickupAddress: string;
-  deliveryAddress: string;
+  pickupAddress: string | Address;
+  deliveryAddress: string | Address;
   deliveryType: string;
   scheduledPickupTime: string;
   estimatedDeliveryTime: string;
@@ -250,7 +251,7 @@ export default function PackagePayment({ handleNextStep, onBack }: { handleNextS
   const calculateCosts = useCallback((): CostItem[] => {
     if (!shipment) return [];
     
-    const { serviceType, priceGuides, weight, dimensions } = shipment;
+    const { serviceType, priceGuides, weight, dimensions, deliveryType } = shipment;
     let baseFee = 0;
     let methodName = '';
 
@@ -302,8 +303,9 @@ export default function PackagePayment({ handleNextStep, onBack }: { handleNextS
 
     return [
       { label: `${methodName} Fee`, amount: `£${baseFee.toFixed(2)}`, type: 'regular' as const },
-      ...(serviceType !== SHIPPING_METHODS.SEA ? [
-        { label: 'Service Fee', amount: `£${serviceFee.toFixed(2)}`, type: 'regular' as const }
+      ...(serviceType !== SHIPPING_METHODS.SEA && deliveryType == "home" ? [
+        { label: 'Service Fee', amount: `£${20.00}`, type: 'regular' as const }
+        // { label: 'Service Fee', amount: `£${serviceFee.toFixed(2)}`, type: 'regular' as const }
       ] : []),
       { label: 'Total', amount: `£${total.toFixed(2)}`, type: 'total' as const }
     ];
@@ -609,124 +611,173 @@ export default function PackagePayment({ handleNextStep, onBack }: { handleNextS
                   <MapPin className="h-4 w-4" />
                   <span>Delivery Address</span>
                 </div>
-                <span>
-                  {shipment.deliveryAddress && parseAddress(shipment.deliveryAddress).street}, 
-                  {shipment.deliveryAddress && parseAddress(shipment.deliveryAddress).city}
-                </span>
+                
+              <span>
+                {shipment?.deliveryAddress && (
+                  typeof shipment.deliveryAddress === 'string' 
+                    ? `${parseAddress(shipment.deliveryAddress).street}, ${parseAddress(shipment.deliveryAddress).city}`
+                    : `${shipment.deliveryAddress?.street}, ${shipment.deliveryAddress?.city}`
+                )}
+              </span>
               </div>
             </div>
           </div>
 
-          {shipment?.priceGuides && (
-            <div className="flex flex-col p-4 border border-gray-200 rounded-lg bg-white">
-              <div className="flex items-center gap-2 mb-2">
-                <List className="h-4 w-4 text-gray-600" />
-                <span className="font-medium text-gray-900">Price Guides</span>
-              </div>
-              <div className="flex flex-col gap-2">
-                {(() => {
-                  const guides = typeof shipment.priceGuides === 'string' 
-                    ? JSON.parse(shipment.priceGuides) 
-                    : shipment.priceGuides;
-                  return guides.map((guide: PriceGuide) => (
-                    <div key={guide.id} className="flex justify-between items-center text-sm text-gray-700 py-1 px-2 bg-gray-50 rounded">
-                      <span>{guide.guideName}</span>
-                      <span className="font-medium text-blue-600">${guide.price}</span>
-                    </div>
-                  ));
-                })()}
-              </div>
+          {shipment?.priceGuides && shipment?.packageType !=="pallet" && (
+          <div className="flex flex-col p-4 border border-gray-200 rounded-lg bg-white">
+            <div className="flex items-center gap-2 mb-2">
+              <List className="h-4 w-4 text-gray-600" />
+              <span className="font-medium text-gray-900">{shipment.packageType === "container" ? "Container" :"Price Guides"}</span>
             </div>
-          )}
+            <div className="flex flex-col gap-2">
+              {(() => {
+                const guides = typeof shipment.priceGuides === 'string' 
+                  ? JSON.parse(shipment.priceGuides) 
+                  : shipment.priceGuides;
+                return guides.map((guide: PriceGuide) => (
+                  <div key={guide.id} className="flex justify-between items-center text-sm text-gray-700 py-1 px-2 bg-gray-50 rounded">
+                    <span>{guide.guideName}</span>
+                    <span className="font-medium text-blue-600">£{guide.price}</span>
+                  </div>
+                ));
+              })()}
+            </div>
+          </div>
+        )}
+
+        {shipment?.priceGuides && shipment?.packageType ==="pallet" && (
+          <div className="flex flex-col p-6 border border-gray-200 rounded-xl bg-white shadow-sm hover:shadow-md transition-shadow duration-300">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="p-2 bg-blue-50 rounded-lg">
+                <List className="h-5 w-5 text-blue-600" />
+              </div>
+              <span className="text-lg font-semibold text-gray-900">Pallet Information</span>
+            </div>
+            <div className="flex flex-col gap-3">
+              {(() => {
+                const guides = typeof shipment.priceGuides === 'string' 
+                  ? JSON.parse(shipment.priceGuides) 
+                  : shipment.priceGuides;
+                return guides.map((guide: DimensionPallet, index: number) => (
+                  <div 
+                    key={guide.id} 
+                    className="flex justify-between items-start p-4 bg-gray-50 rounded-lg border border-gray-100 hover:bg-gray-100 transition-colors duration-200"
+                  >
+                    <div className="flex flex-col gap-1">
+                      <span className="text-base font-semibold text-gray-900">Pallet {index + 1}</span>
+                      <div className="flex items-center gap-2 text-sm text-gray-600">
+                        <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-gradient-to-r from-blue-50 to-blue-100 text-blue-800 shadow-sm border border-blue-200">
+                          <div className="flex flex-col items-center">
+                            <span className="text-sm font-medium">
+                              {guide.length} × {guide.width} × {guide.height} cm 
+                            </span>
+                            <span className="text-xs text-blue-600 mt-0.5">
+                             (L × W × H)
+                            </span>
+                          </div>
+                        </span>
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full bg-green-100 text-green-800">
+                          {guide.weight} kg
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                ));
+              })()}
+            </div>
+          </div>
+        )}
 
           {/* Cost Breakdown */}
-          <div className={styles.costSection}>
-            <h2 className={styles.sectionTitle}>Cost Breakdown</h2>
-            <div className={styles.costList}>
-              {costs.map((item) => (
-                <div 
-                  key={item.label}
-                  className={`${styles.costItem} ${item.type === 'total' ? styles.totalItem : ''}`}
-                >
-                  <span className={item.type === 'total' ? styles.totalLabel : ''}>
-                    {item.label}
-                  </span>
-                  <span className={item.type === 'total' ? styles.totalAmount : ''}>
-                    {item.label === 'Total' ? "Will be communicated." : item.amount}
-                  </span>
-                </div>
-              ))}
+        <div className={styles.costSection}>
+          <h2 className={styles.sectionTitle}>Cost Breakdown</h2>
+          <div className={styles.costList}>
+            {shipment?.packageType !== "pallet" && costs.map((item) => (
+              <div 
+                key={item.label}
+                className={`${styles.costItem} ${item.type === 'total' ? styles.totalItem : ''}`}
+              >
+                <span className={item.type === 'total' ? styles.totalLabel : ''}>
+                  {item.label}
+                </span>
+                <span className={item.type === 'total' ? styles.totalAmount : ''}>
+                  {item.label === 'Total' ? "Will be communicated." : item.amount ? item?.amount : "0"}
+                </span>
+              </div>
+            ))}
 
-              {/* Part Payment */}
+            {/* Part Payment */}
+            {shipment?.serviceType !== "airfreight" && (
               <div className='w-full'>
-                  <h3 className='font-bold'>Part Payment</h3>
-                  <div className="mt-4 space-y-3">
-                    <div className="flex items-center space-x-2">
-                      <input
-                        type="checkbox"
-                        id="pay70"
-                        className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                        onChange={(e) => {
-                          if (e.target.checked) {
-                            const total = parseFloat(costs.find(c => c.type === 'total')?.amount.replace('£', '') || '0');
-                            const seventyPercent = (total * 0.7).toFixed(2);
-                            setSelectedPaymentAmount(seventyPercent);
-                          } else {
-                            setSelectedPaymentAmount('0');
-                          }
-                        }}
-                      />
-                      <label htmlFor="pay70" className="text-sm font-medium text-gray-700">
-                        Pay 70% (£{(parseFloat(costs.find(c => c.type === 'total')?.amount.replace('£', '') || '0') * 0.7).toFixed(2)})
-                      </label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <input
-                        type="checkbox"
-                        id="pay50"
-                        className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                        onChange={(e) => {
-                          if (e.target.checked) {
-                            const total = parseFloat(costs.find(c => c.type === 'total')?.amount.replace('£', '') || '0');
-                            const fiftyPercent = (total * 0.5).toFixed(2);
-                            setSelectedPaymentAmount(fiftyPercent);
-                          } else {
-                            setSelectedPaymentAmount('0');
-                          }
-                        }}
-                      />
-                      <label htmlFor="pay50" className="text-sm font-medium text-gray-700">
-                        Pay 50% (£{(parseFloat(costs.find(c => c.type === 'total')?.amount.replace('£', '') || '0') * 0.5).toFixed(2)})
-                      </label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                    <input
-                      type="checkbox"
-                      id="payFull"
-                      className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                      onChange={(e) => {
-                        if (e.target.checked) {
-                          const total = parseFloat(costs.find(c => c.type === 'total')?.amount.replace('£', '') || '0');
-                          setSelectedPaymentAmount(total.toFixed(2));
-                        } else {
-                          setSelectedPaymentAmount('0');
-                        }
-                      }}
-                    />
-                    <label htmlFor="payFull" className="text-sm font-medium text-gray-700">
-                      Pay in full upon delivery (£{parseFloat(costs.find(c => c.type === 'total')?.amount.replace('£', '') || '0').toFixed(2)})
-                    </label>
-                  </div>
-                  </div>
-
-                  <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-md">
-                    <p className="text-sm text-yellow-800">
-                      <span className="font-medium">Note:</span> Balance payment is to be made upon final delivery
-                    </p>
-                  </div>
+              <h3 className='font-bold'>Part Payment</h3>
+              <div className="mt-4 space-y-3">
+                <div className="flex items-center space-x-2">
+                  <input
+                    type="checkbox"
+                    id="pay70"
+                    className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                    onChange={(e) => {
+                      if (e.target.checked) {
+                        const total = parseFloat(costs.find(c => c.type === 'total')?.amount.replace('£', '') || '0');
+                        const seventyPercent = (total * 0.7).toFixed(2);
+                        setSelectedPaymentAmount(seventyPercent);
+                      } else {
+                        setSelectedPaymentAmount('0');
+                      }
+                    }}
+                  />
+                  <label htmlFor="pay70" className="text-sm font-medium text-gray-700">
+                    Pay 70%{/*  (£{(parseFloat(costs.find(c => c.type === 'total')?.amount.replace('£', '') || '0') * 0.7).toFixed(2)}) */}
+                  </label>
                 </div>
+                <div className="flex items-center space-x-2">
+                  <input
+                    type="checkbox"
+                    id="pay50"
+                    className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                    onChange={(e) => {
+                      if (e.target.checked) {
+                        const total = parseFloat(costs.find(c => c.type === 'total')?.amount.replace('£', '') || '0');
+                        const fiftyPercent = (total * 0.5).toFixed(2);
+                        setSelectedPaymentAmount(fiftyPercent);
+                      } else {
+                        setSelectedPaymentAmount('0');
+                      }
+                    }}
+                  />
+                  <label htmlFor="pay50" className="text-sm font-medium text-gray-700">
+                    Pay 50% {/* (£{(parseFloat(costs.find(c => c.type === 'total')?.amount.replace('£', '') || '0') * 0.5).toFixed(2)}) */}
+                  </label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <input
+                    type="checkbox"
+                    id="payFull"
+                    className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                    onChange={(e) => {
+                      if (e.target.checked) {
+                        const total = parseFloat(costs.find(c => c.type === 'total')?.amount.replace('£', '') || '0');
+                        setSelectedPaymentAmount(total.toFixed(2));
+                      } else {
+                        setSelectedPaymentAmount('0');
+                      }
+                    }}
+                  />
+                  <label htmlFor="payFull" className="text-sm font-medium text-gray-700">
+                    Pay in full upon delivery{/* (£{parseFloat(costs.find(c => c.type === 'total')?.amount.replace('£', '') || '0').toFixed(2)}) */}
+                  </label>
+                </div>
+              </div>
+
+              <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-md">
+                <p className="text-sm text-yellow-800">
+                  <span className="font-medium">Note:</span> Balance payment is to be made upon final delivery
+                </p>
+              </div>
             </div>
+            )}
           </div>
+        </div>
 
           {/* Payment Methods */}
           {/* <div className={styles.paymentSection}>

@@ -60,9 +60,12 @@ export default function PackageUserInfo({ onNext, initialData, onBack }: Package
           phone: data.phone
         }
       }
-      await updateBookingUser(dataBody, accessToken)
-      toast.success("Customer information updated successfully")
-      onNext()
+      const response = await updateBookingUser(dataBody, accessToken)
+      if(response){
+        localStorage.setItem('packageInfo', JSON.stringify(response))
+        toast.success("Customer information updated successfully")
+        onNext()
+      }
     } catch (error) {
       console.error("Error updating customer information:", error)
       toast.error("Failed to update customer information")
