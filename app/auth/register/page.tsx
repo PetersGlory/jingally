@@ -122,7 +122,7 @@ export default function RegisterPage() {
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
 
-    const validate = await validatePhoneNumber(phone);
+    const validate = await validatePhoneNumber(`${selectedCountry?.dialCode+phone}`);
 
     console.log(validate)
     if(!validate.isValid){
