@@ -30,6 +30,7 @@ import { useAuth } from "@/components/auth-provider"
 import { countries } from "@/lib/countries"
 import TermsAndConditions from "@/app/terms-and-condition/page"
 import PrivacyPolicy from "@/app/privacy-policy/page"
+import { validatePhoneNumber } from "@/lib/validatePhone"
 
 interface FormErrors {
   firstName?: string;
@@ -120,6 +121,15 @@ export default function RegisterPage() {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
+
+    const validate = await validatePhoneNumber(phone);
+
+    console.log(validate)
+    if(!validate.isValid){
+      alert("Invalid Phone Number")
+      setPhone("")
+      return;
+    }
     
     if (!validateForm()) return;
     if (!agreeToTerms) {

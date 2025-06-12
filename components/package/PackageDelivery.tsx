@@ -7,6 +7,7 @@ import { LoadScript, Autocomplete } from '@react-google-maps/api';
 import styles from './PackageDelivery.module.css';
 import { updateDeliveryAddress } from '@/lib/shipment';
 import { getAllAddresses } from '@/lib/api';
+import { validatePhoneNumber } from '@/lib/validatePhone';
 
 interface CountryCode {
   code: string;
@@ -303,6 +304,30 @@ export default function PackageDelivery({ handleNextStep, handlePreviousStep }: 
     deliveryMode: 'home'
   });
 
+  const handleValidation = async () =>{
+    const phoneNumber = form.receiver.countryCode + form.receiver.phone;
+    const validate = await validatePhoneNumber(phoneNumber);
+
+    console.log(validate)
+    if(!validate.isValid){
+      alert("Invalid Phone Number")
+      setForm({
+        ...form,
+        receiver:{
+          ...form.receiver,
+          phone: ""
+        }
+      })
+    }else{
+      setForm({
+        ...form,
+        receiver:{
+          ...form.receiver,
+          phone: validate.formattedNumber || ""
+        }
+      })
+    }
+  }
   // Default park address
   const defaultParkAddress: Address = {
     street: '1072 Tyburn Road',
@@ -411,6 +436,29 @@ export default function PackageDelivery({ handleNextStep, handlePreviousStep }: 
   };
 
   const handleSubmit = async () => {
+    const phoneNumber = form.receiver.countryCode + form.receiver.phone;
+    const validate = await validatePhoneNumber(phoneNumber);
+
+    console.log(validate)
+    if(!validate.isValid){
+      alert("Invalid Phone Number")
+      setForm({
+        ...form,
+        receiver:{
+          ...form.receiver,
+          phone: ""
+        }
+      })
+      return;
+    }else{
+      setForm({
+        ...form,
+        receiver:{
+          ...form.receiver,
+          phone: validate.formattedNumber || ""
+        }
+      })
+    }
     if (!isValidForm()) {
       setFormErrors({
         pickupAddress: {
@@ -882,6 +930,7 @@ export default function PackageDelivery({ handleNextStep, handlePreviousStep }: 
               </button>
               <input
                 type="tel"
+                onBlur={handleValidation}
                 className={`${styles.phoneNumberInput} ${formErrors.receiver?.phone ? styles.error : ''}`}
                 placeholder="Enter phone number"
                 value={form.receiver.phone}
