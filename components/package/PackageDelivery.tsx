@@ -994,6 +994,7 @@ export default function PackageDelivery({ handleNextStep, handlePreviousStep }: 
                       className={`${styles.countryItem} ${form.receiver.countryCode === country.dial_code ? styles.selected : ''}`}
                       onClick={() => {
                         setForm({ ...form, receiver: { ...form.receiver, countryCode: country.dial_code } });
+                        setSelectedCountryCode(country.code)
                         setShowCountryModal(false);
                       }}
                     >
