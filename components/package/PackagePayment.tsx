@@ -632,7 +632,7 @@ export default function PackagePayment({ handleNextStep, handlePreviousStep }: {
           </div>
         </div>
 
-        {shipment?.priceGuides && shipment?.packageType !=="pallet" && (
+        {shipment?.priceGuides && (
           <div className="flex flex-col p-4 border border-gray-200 rounded-lg bg-white">
             <div className="flex items-center gap-2 mb-2">
               <List className="h-4 w-4 text-gray-600" />
@@ -654,7 +654,7 @@ export default function PackagePayment({ handleNextStep, handlePreviousStep }: {
           </div>
         )}
 
-        {shipment?.priceGuides && shipment?.packageType ==="pallet" && (
+        {/* {shipment?.priceGuides && shipment?.packageType ==="pallet" && (
           <div className="flex flex-col p-6 border border-gray-200 rounded-xl bg-white shadow-sm hover:shadow-md transition-shadow duration-300">
             <div className="flex items-center gap-3 mb-4">
               <div className="p-2 bg-blue-50 rounded-lg">
@@ -695,7 +695,7 @@ export default function PackagePayment({ handleNextStep, handlePreviousStep }: {
               })()}
             </div>
           </div>
-        )}
+        )} */}
 
         {/* Cost Breakdown */}
         <div className={styles.costSection}>
