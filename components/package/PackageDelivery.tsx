@@ -321,7 +321,14 @@ export default function PackageDelivery({ handleNextStep, handlePreviousStep }: 
         }
       })
     }else{
-      console.log("validated...")
+      setForm({
+        ...form,
+        receiver:{
+          ...form.receiver,
+          phone: validate.formattedNumber || ""
+        }
+      })
+      console.log("formatted.")
     }
   }
   // Default park address
@@ -426,8 +433,8 @@ export default function PackageDelivery({ handleNextStep, handlePreviousStep }: 
       form.deliveryAddress.country.trim() !== '' &&
       form.deliveryAddress.postcode.trim() !== '' &&
       form.receiver.name.trim() !== '' &&
-      form.receiver.phone.trim() !== '' &&
-      phoneRegex.test(form.receiver.phone.trim())
+      form.receiver.phone.trim() !== ''
+      // phoneRegex.test(form.receiver.phone.trim())
     );
   };
 
@@ -446,7 +453,14 @@ export default function PackageDelivery({ handleNextStep, handlePreviousStep }: 
       })
       return;
     }else{
-      console.log("validated...")
+      setForm({
+        ...form,
+        receiver:{
+          ...form.receiver,
+          phone: validate.formattedNumber || ""
+        }
+      })
+      console.log("formatted.")
     }
     if (!isValidForm()) {
       setFormErrors({
@@ -482,6 +496,8 @@ export default function PackageDelivery({ handleNextStep, handlePreviousStep }: 
       return;
     }
 
+
+
     try {
       setIsLoading(true);
       const packageInfoStr = localStorage.getItem('packageInfo');
@@ -498,7 +514,7 @@ export default function PackageDelivery({ handleNextStep, handlePreviousStep }: 
         deliveryAddress: form.deliveryAddress,
         receiverName: form.receiver.name,
         receiverEmail: form.receiver.email,
-        receiverPhoneNumber: validate.formattedNumber || form.receiver.phone,
+        receiverPhoneNumber: form.receiver.phone,
         deliveryMode: form.deliveryMode,
         deliveryType: deliveryMode === 'park' ? 'park' : 'home'
       }, JSON.parse(token as string));
