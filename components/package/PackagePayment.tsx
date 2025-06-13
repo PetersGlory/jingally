@@ -645,7 +645,10 @@ export default function PackagePayment({ handleNextStep, handlePreviousStep }: {
                   : shipment.priceGuides;
                 return guides.map((guide: PriceGuide) => (
                   <div key={guide.id} className="flex justify-between items-center text-sm text-gray-700 py-1 px-2 bg-gray-50 rounded">
-                    <span>{guide.guideName}</span>
+                    <div className="flex flex-col">
+                      <span>{guide.guideName}</span>
+                      <span className="text-xs text-gray-500">{guide.guideNumber}</span>
+                    </div>
                     <span className="font-medium text-blue-600">£{guide.price}</span>
                   </div>
                 ));
