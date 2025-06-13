@@ -451,13 +451,7 @@ export default function PackageDelivery({ handleNextStep, handlePreviousStep }: 
       })
       return;
     }else{
-      setForm({
-        ...form,
-        receiver:{
-          ...form.receiver,
-          phone: validate.formattedNumber || ""
-        }
-      })
+      console.log("validated...")
     }
     if (!isValidForm()) {
       setFormErrors({
@@ -509,7 +503,7 @@ export default function PackageDelivery({ handleNextStep, handlePreviousStep }: 
         deliveryAddress: form.deliveryAddress,
         receiverName: form.receiver.name,
         receiverEmail: form.receiver.email,
-        receiverPhoneNumber: form.receiver.phone,
+        receiverPhoneNumber: validate.formattedNumber || form.receiver.phone,
         deliveryMode: form.deliveryMode,
         deliveryType: deliveryMode === 'park' ? 'park' : 'home'
       }, JSON.parse(token as string));

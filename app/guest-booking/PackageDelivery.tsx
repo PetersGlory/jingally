@@ -185,13 +185,7 @@ export default function PackageDelivery({ onNext, onBack, onUpdate, initialData 
       })
       return;
     }else{
-      setForm({
-        ...form,
-        receiver:{
-          ...form.receiver,
-          phone: validate.formattedNumber || ""
-        }
-      })
+      console.log("validated...")
     }
 
     if (!isValidForm()) {
@@ -244,7 +238,7 @@ export default function PackageDelivery({ onNext, onBack, onUpdate, initialData 
         deliveryAddress: form.deliveryAddress,
         receiverName: form.receiver.name,
         receiverEmail: form.receiver.email,
-        receiverPhoneNumber: form.receiver.phone,
+        receiverPhoneNumber: validate.formattedNumber || form.receiver.phone,
         deliveryMode: form.deliveryMode
       }, token);
 
