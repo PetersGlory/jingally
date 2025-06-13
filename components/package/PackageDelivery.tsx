@@ -8,8 +8,9 @@ import styles from './PackageDelivery.module.css';
 import { updateDeliveryAddress } from '@/lib/shipment';
 import { getAllAddresses } from '@/lib/api';
 import { validatePhoneNumber } from '@/lib/validatePhone';
+import { CountryCode } from 'libphonenumber-js';
 
-interface CountryCode {
+interface CountryCodes {
   code: string;
   name: string;
   flag: string;
@@ -99,7 +100,7 @@ interface AddressFormProps {
   handlePlaceSelect?: (type: 'pickup' | 'delivery') => void;
 }
 
-const countryCodes: CountryCode[] = [
+const countryCodes: CountryCodes[] = [
   { code: 'GB', name: 'United Kingdom', flag: '🇬🇧', dial_code: '+44' },
   { code: 'NG', name: 'Nigeria', flag: '🇳🇬', dial_code: '+234' },
   { code: 'GM', name: 'Gambia', flag: '🇬🇲', dial_code: '+220' },
@@ -252,6 +253,7 @@ export default function PackageDelivery({ handleNextStep, handlePreviousStep }: 
   const [allDresses, setAllAddresses] = useState([])
   const [shipInfo, setShipInfo] = useState<Shipment>();
   const [addressSelected, setAddressSelected] = useState("");
+  const [selectedCountryCode, setSelectedCountryCode] = useState("");
 
   useEffect(()=>{
     const getAddresses = async () =>{
@@ -306,7 +308,7 @@ export default function PackageDelivery({ handleNextStep, handlePreviousStep }: 
 
   const handleValidation = async () =>{
     const phoneNumber = form.receiver.countryCode + form.receiver.phone;
-    const validate = await validatePhoneNumber(phoneNumber);
+    const validate = await validatePhoneNumber(phoneNumber,selectedCountryCode as CountryCode);
 
     console.log(validate)
     if(!validate.isValid){
@@ -431,9 +433,8 @@ export default function PackageDelivery({ handleNextStep, handlePreviousStep }: 
 
   const handleSubmit = async () => {
     const phoneNumber = form.receiver.countryCode + form.receiver.phone;
-    const validate = await validatePhoneNumber(phoneNumber);
+    const validate = validatePhoneNumber(phoneNumber, selectedCountryCode as CountryCode);
 
-    console.log(validate)
     if(!validate.isValid){
       alert("Invalid Phone Number")
       setForm({
