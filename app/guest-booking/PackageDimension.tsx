@@ -506,6 +506,128 @@ export default function PackageDimension({
                   ))}
               </div>
             </div>
+          ): shipInfo?.serviceType === "seafreight" && shipInfo.packageType == "pallet" ?(
+            <>
+              <div className={styles.priceGuideSection}>
+                <h3 className={styles.sectionTitle}>Add Pallet Items</h3>
+                
+                <div className={styles.priceGuideList}>
+                  <div className={styles.addNewItem}>
+                    <button 
+                      className={styles.addButton}
+                      onClick={() => {
+                        const modal = document.createElement('div');
+                        modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
+                        modal.innerHTML = `
+                          <div class="bg-white rounded-lg w-full max-w-md p-6">
+                            <h3 class="text-xl font-semibold text-gray-900 mb-4">Add New Pallet</h3>
+                            <div class="mb-4">
+                              <label class="block text-sm font-medium text-gray-700 mb-1">Pallet Name</label>
+                              <input type="text" id="itemName" placeholder="Enter item name" 
+                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" />
+                            </div>
+                            <div class="mb-4">
+                              <label class="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                              <textarea id="itemDescription" placeholder="Enter pallet description"
+                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"></textarea>
+                            </div>
+                            <div class="flex justify-end gap-3">
+                              <button class="cancleButton px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500">Cancel</button>
+                              <button class="confirmButton px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">Add Item</button>
+                            </div>
+                          </div>
+                        `;
+                        document.body.appendChild(modal);
+
+                        const closeModal = () => {
+                          document.body.removeChild(modal);
+                        };
+
+                        const cancelButton = modal.querySelector(`.cancleButton`);
+                        const confirmButton = modal.querySelector(`.confirmButton`);
+                        const itemNameInput = modal.querySelector('#itemName') as HTMLInputElement;
+                        const itemDescriptionInput = modal.querySelector('#itemDescription') as HTMLTextAreaElement;
+
+                        cancelButton?.addEventListener('click', closeModal);
+                        confirmButton?.addEventListener('click', () => {
+                          const itemName = itemNameInput.value.trim();
+                          const description = itemDescriptionInput.value.trim();
+                          
+                          if (itemName) {
+                            const newGuide: PriceGuide = {
+                              id: 'custom-extraguide-'+Date.now().toString(),
+                              guideName: itemName,
+                              guideNumber: description || `CUSTOM-${Date.now()}`,
+                              price: 0
+                            };
+                            setExtraguides(prev => [...prev, newGuide]);
+                            toggleGuideSelection(newGuide.id)
+                            closeModal();
+                          }
+                        });
+                      }}
+                    >
+                      <Plus size={20} />
+                      Add New Item
+                    </button>
+                  </div>
+
+                  
+                  <div className={styles.extraItemsSection}>
+                    <h4 className={styles.extraItemsTitle}>Added Items</h4>
+                    {extraguides.map((guide) => (
+                      <div 
+                        key={guide.id} 
+                        className={`${styles.priceGuideItem} ${selectedGuides.includes(guide.id) ? styles.selected : ''} gap-3`}
+                        onClick={() => toggleGuideSelection(guide.id)}
+                      >
+                        <div className={styles.checkbox}>
+                          <input
+                            type="checkbox"
+                            checked={selectedGuides.includes(guide.id)}
+                            onChange={() => {}}
+                          />
+                        </div>
+                        <div className={styles.guideInfo}>
+                          <h4>{guide.guideName}</h4>
+                          <p>{guide.guideNumber}</p>
+                          <span className={styles.price}>£{guide.price}</span>
+                        </div>
+                        <div className={styles.quantityControls}>
+                          <button 
+                            className={styles.quantityButton}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              const currentCount = selectedGuides.filter(id => id === guide.id).length;
+                              if (currentCount > 0) {
+                                const index = selectedGuides.indexOf(guide.id);
+                                const newSelectedGuides = [...selectedGuides];
+                                newSelectedGuides.splice(index, 1);
+                                setSelectedGuides(newSelectedGuides);
+                              }
+                            }}
+                          >
+                            -
+                          </button>
+                          <span className={styles.quantity}>
+                            {selectedGuides.filter(id => id === guide.id).length}
+                          </span>
+                          <button 
+                            className={styles.quantityButton}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setSelectedGuides([...selectedGuides, guide.id]);
+                            }}
+                          >
+                            +
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </>
           ): shipInfo?.serviceType === "airfreight" ? (
             <>
               <div className={styles.priceGuideSection}>
@@ -829,8 +951,6 @@ export default function PackageDimension({
             </>
           )}
           {/* </main> */}
-
-          
 
           <button
             className={`${styles.submitButton} ${isLoading ? styles.loading : ''}`}
