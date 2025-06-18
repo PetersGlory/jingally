@@ -321,13 +321,13 @@ export default function PackageDelivery({ handleNextStep, handlePreviousStep }: 
         }
       })
     }else{
-      setForm({
-        ...form,
-        receiver:{
-          ...form.receiver,
-          phone: validate.formattedNumber || ""
-        }
-      })
+      // setForm({
+      //   ...form,
+      //   receiver:{
+      //     ...form.receiver,
+      //     phone: validate.formattedNumber || ""
+      //   }
+      // })
       console.log("formatted.")
     }
   }

@@ -185,6 +185,13 @@ export default function PackageDelivery({ onNext, onBack, onUpdate, initialData 
       })
       return;
     }else{
+      setForm({
+        ...form,
+        receiver:{
+          ...form.receiver,
+          phone: validate.formattedNumber || form.receiver.phone
+        }
+      })
       console.log("validated...")
     }
 
