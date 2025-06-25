@@ -624,8 +624,8 @@ export default function PackagePayment({ handleNextStep, handlePreviousStep }: {
               <span>
                 {shipment?.deliveryAddress && (
                   typeof shipment.deliveryAddress === 'string' 
-                    ? `${parseAddress(shipment.deliveryAddress).street}, ${parseAddress(shipment.deliveryAddress).city}`
-                    : `${shipment.deliveryAddress?.street}, ${shipment.deliveryAddress?.city}`
+                    ? `${parseAddress(shipment.deliveryAddress).country}`
+                    : `${shipment.deliveryAddress?.country}`
                 )}
               </span>
             </div>

@@ -287,14 +287,14 @@ export default function PackageDelivery({ handleNextStep, handlePreviousStep }: 
       type: 'residential'
     },
     deliveryAddress: {
-      street: '',
-      city: '',
-      state: '',
-      country: '',
-      postcode: '',
+      street: 'N/A',
+      city: 'N/A',
+      state: 'N/A',
+      country: 'N/A',
+      postcode: 'N/A',
       latitude: 0,
       longitude: 0,
-      placeId: '',
+      placeId: 'N/A',
       type: 'residential'
     },
     receiver: {
@@ -781,87 +781,28 @@ export default function PackageDelivery({ handleNextStep, handlePreviousStep }: 
                 </div>
 
                 <div className={styles.addressForm}>
-                  <div className={styles.inputGroup}>
-                    <label className={styles.label}>Street Address</label>
-                    <div className="relative items-center">
-                      <div className="relative w-6 inset-y-0 left-0 flex items-center pointer-events-none">
-                        <MapPin className="h-5 w-5 text-gray-400" />
-                      </div>
-                      <Autocomplete
-                        onLoad={(autocomplete: google.maps.places.Autocomplete) => {
-                          setDeliveryAutocomplete(autocomplete);
-                        }}
-                        onPlaceChanged={() => handlePlaceSelect("delivery")}
-                      >
-                        <input
-                          type="text"
-                          className={`${styles.input}`}
-                          placeholder="Enter street address"
-                          value={form.deliveryAddress.street}
-                          onChange={(e) => setForm({ ...form, deliveryAddress:{
-                            ...form.deliveryAddress,
-                            street: e.target.value
-                          } })}
-                        />
-                      </Autocomplete>
-                    </div>
-                  </div>
-
-                  <div className={styles.formRow}>
-                    <div className={styles.inputGroup}>
-                      <label className={styles.label}>City</label>
-                      <input
-                        type="text"
-                        className={`${styles.input}`}
-                        placeholder="City"
-                        value={form.deliveryAddress.city}
-                        onChange={(e) => setForm({ ...form, deliveryAddress:{
-                          ...form.deliveryAddress,
-                          city: e.target.value
-                        } })}
-                      />
-                    </div>
-                    <div className={styles.inputGroup}>
-                      <label className={styles.label}>State</label>
-                      <input
-                        type="text"
-                        className={`${styles.input}`}
-                        placeholder="State"
-                        value={form.deliveryAddress.state}
-                        onChange={(e) => setForm({ ...form, deliveryAddress:{
-                          ...form.deliveryAddress,
-                          state: e.target.value
-                        } })}
-                      />
-                    </div>
-                  </div>
 
                   <div className={styles.formRow}>
                     <div className={styles.inputGroup}>
                       <label className={styles.label}>Country</label>
-                      <input
-                        type="text"
-                        className={`${styles.input}`}
-                        placeholder="Country"
+                      <select
+                        className={styles.input}
                         value={form.deliveryAddress.country}
-                        onChange={(e) => setForm({ ...form, deliveryAddress:{
-                          ...form.deliveryAddress,
-                          country: e.target.value
-                        } })}
-                      />
-                    </div>
-                    <div className={styles.inputGroup}>
-                      <label className={styles.label}>Postcode</label>
-                      <input
-                        type="text"
-                        className={`${styles.input}`}
-                        placeholder="Postcode"
-                        value={form.deliveryAddress.postcode}
-                        onChange={(e) => setForm({ ...form, deliveryAddress:{
-                          ...form.deliveryAddress,
-                          postcode: e.target.value
-                        } })}
-                      />
+                        onChange={(e) =>
+                          setForm({
+                            ...form,
+                            deliveryAddress: {
+                              ...form.deliveryAddress,
+                              country: e.target.value,
+                            },
+                          })
+                        }
+                      >
+                        <option value="">Select Country</option>
+                        <option value="Gambia">Gambia</option>
+                        <option value="Nigeria">Nigeria</option>
+                        <option value="UK">United Kingdom</option>
+                      </select>
                     </div>
                   </div>
 
