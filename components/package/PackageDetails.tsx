@@ -60,7 +60,7 @@ export default function PackageDetails({ selectedType, serviceType, handleNextSt
   const router = useRouter();
   const [formData, setFormData] = useState<PackageDetails>({
     type: selectedType || '',
-    description: serviceType === 'airfreight' ? 'this is airfrieght and its N/A' :'',
+    description: serviceType !== '' ? 'this is airfrieght and its N/A' :'',
     isFragile: false,
   });
   const [errors, setErrors] = useState<FormErrors>({});
@@ -189,22 +189,21 @@ export default function PackageDetails({ selectedType, serviceType, handleNextSt
         {errors.type && <span className={styles.error}>{errors.type}</span>}
       </div>
 
-      {serviceType !== 'airfreight' && (
-
-      <div className={styles.section}>
-        <h2>Package Description</h2>
-        <div className={styles.inputGroup}>
-          <label>What are you sending?</label>
-          <textarea
-            value={formData.description}
-            onChange={handleDescriptionChange}
-            placeholder="Enter details about your package"
-            className={`${styles.textarea} ${errors.description ? styles.error : ''}`}
-            rows={3}
-          />
-          {errors.description && <span className={styles.error}>{errors.description}</span>}
+      {serviceType !== '' && (
+        <div className={styles.section}>
+          <h2>Package Description</h2>
+          <div className={styles.inputGroup}>
+            <label>What are you sending?</label>
+            <textarea
+              value={formData.description}
+              onChange={handleDescriptionChange}
+              placeholder="Enter details about your package"
+              className={`${styles.textarea} ${errors.description ? styles.error : ''}`}
+              rows={3}
+            />
+            {errors.description && <span className={styles.error}>{errors.description}</span>}
+          </div>
         </div>
-      </div>
       )}
 
       <div className={styles.section}>

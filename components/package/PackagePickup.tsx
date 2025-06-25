@@ -16,6 +16,7 @@ export default function PackagePickup({ handleNextStep, handlePreviousStep }: { 
     const accessToken = localStorage.getItem('accessToken');
     if (accessToken) {
       setToken(JSON.parse(accessToken));
+      handleNextStep();
     }
   }, []);
 
