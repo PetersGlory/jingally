@@ -189,7 +189,7 @@ export default function PackageDetails({ selectedType, serviceType, handleNextSt
         {errors.type && <span className={styles.error}>{errors.type}</span>}
       </div>
 
-      {serviceType !== '' && (
+      {serviceType == '' && (
         <div className={styles.section}>
           <h2>Package Description</h2>
           <div className={styles.inputGroup}>
