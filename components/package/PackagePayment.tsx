@@ -553,7 +553,11 @@ export default function PackagePayment({ handleNextStep, handlePreviousStep }: {
           </div>
         <button 
           className={styles.cancelButton}
-          onClick={handlePreviousStep}
+          onClick={()=>{
+            localStorage.setItem('currentStep', '1')
+            localStorage.removeItem('packageInfo');
+            router.replace("/dashboard")
+          }}
         >
           Cancel
         </button>
@@ -603,7 +607,7 @@ export default function PackagePayment({ handleNextStep, handlePreviousStep }: {
               </div>
               <span className="capitalize">{shipment?.serviceType}</span>
             </div>
-            <div className={styles.summaryItem}>
+            {/* <div className={styles.summaryItem}>
               <div className="flex items-center gap-2">
                 <Calendar className="h-4 w-4" />
                 <span>Pickup Date</span>
@@ -615,7 +619,7 @@ export default function PackagePayment({ handleNextStep, handlePreviousStep }: {
                   year: 'numeric'
                 })}
               </span>
-            </div>
+            </div> */}
             <div className={styles.summaryItem}>
               <div className="flex items-center gap-2">
                 <MapPin className="h-4 w-4" />

@@ -411,7 +411,9 @@ export default function PackageDimension({
                         <input
                           type="checkbox"
                           checked={selectedGuides.includes(guide.id)}
-                          onChange={() => {}}
+                          onChange={() => {                            
+                            setSelectedGuides([...selectedGuides, guide.id]);
+                          }}
                         />
                       </div>
                       <div className={styles.guideInfo}>
