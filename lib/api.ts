@@ -184,3 +184,9 @@ export const getAddresses = async (token: string) => {
   });
   return response.json();
 };
+
+
+export const getInvoice = async (invoiceId: string) => {
+  const response = await api.get(`/users/shipment-info/${invoiceId}`);
+  return response.data;
+};

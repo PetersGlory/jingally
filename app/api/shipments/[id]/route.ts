@@ -7,59 +7,82 @@ export async function GET(request: Request, { params }: { params: { id: string }
     // Simulate a delay to mimic a real API call
     await new Promise((resolve) => setTimeout(resolve, 500))
 
-    // Mock shipment data
+    // Mock shipment data in new format
     const shipment = {
       id: id,
-      date: "Apr 28, 2025",
-      origin: "New York, NY",
-      originAddress: "123 Broadway, New York, NY 10001",
-      originContact: "John Doe",
-      originPhone: "(555) 123-4567",
-      destination: "Los Angeles, CA",
-      destinationAddress: "456 Hollywood Blvd, Los Angeles, CA 90028",
-      destinationContact: "Jane Smith",
-      destinationPhone: "(555) 987-6543",
-      type: "Standard",
-      status: "In Transit",
-      statusColor: "bg-orange-500",
-      estimatedDelivery: "May 5, 2025",
-      weight: "5.2 kg",
-      dimensions: "30 × 20 × 15 cm",
-      service: "Standard (3-5 business days)",
-      additionalServices: ["Shipping Insurance"],
-      trackingUpdates: [
+      userId: "user-123",
+      status: "in_transit",
+      packageType: "items",
+      serviceType: "seafreight",
+      packageDescription: "this is airfrieght and its N/A",
+      fragile: false,
+      priceGuides: JSON.stringify([
         {
-          date: "Apr 30, 2025",
-          time: "10:24 AM",
-          location: "Chicago, IL",
-          status: "In transit to next facility",
-          description: "Package is in transit to the next facility",
+          "id": "02d5c61c-a0fc-4bbe-bf63-17f061a2d084",
+          "guideName": "Big Barrel",
+          "price": 90,
+          "guideNumber": "JLP1749458898328636"
         },
         {
-          date: "Apr 29, 2025",
-          time: "8:15 PM",
-          location: "Columbus, OH",
-          status: "Departed sorting facility",
-          description: "Package has left the sorting facility",
-        },
-        {
-          date: "Apr 29, 2025",
-          time: "2:30 PM",
-          location: "Columbus, OH",
-          status: "Arrived at sorting facility",
-          description: "Package has arrived at the sorting facility",
-        },
-        {
-          date: "Apr 28, 2025",
-          time: "9:45 AM",
-          location: "New York, NY",
-          status: "Shipment picked up",
-          description: "Package has been picked up by carrier",
-        },
-      ],
+          "id": "0a1d2819-23d4-4ca3-b311-86a27462b056",
+          "guideName": "Normal Doors (72cm) With Handle",
+          "price": 20,
+          "guideNumber": "JLP1749463682133409"
+        }
+      ]),
+      weight: null,
+      dimensions: null,
+      pickupAddress: JSON.stringify({
+        street: "Lawal street Oregun, Inner city Missions Homes",
+        city: "Lagos",
+        state: "Lagos",
+        country: "Nigeria",
+        postcode: "100261",
+        latitude: 0,
+        longitude: 0,
+        placeId: "",
+        type: "residential"
+      }),
+      deliveryAddress: JSON.stringify({
+        street: "N/A",
+        city: "N/A",
+        state: "N/A",
+        country: "UK",
+        postcode: "N/A",
+        latitude: 0,
+        longitude: 0,
+        placeId: "N/A",
+        type: "residential"
+      }),
+      deliveryType: "home",
+      scheduledPickupTime: null,
+      estimatedDeliveryTime: null,
+      trackingNumber: "TRK1755379513574543",
+      receiverName: "MShelia Promise",
+      receiverPhoneNumber: "09032259456",
+      receiverEmail: "msheliapromise@gmail.com",
+      price: "310.00",
+      paymentStatus: "paid",
+      notes: null,
+      driverId: "2d5149bb-78a4-41ce-9717-d9ce780b9af2",
+      images: ["[", "]", "https://res.cloudinary.com/dctmbqr8l/image/upload/v1755380193/shipments/gynwolt7uzdoktinbx66.png"],
+      createdAt: "2025-08-16T21:25:13.000Z",
+      updatedAt: "2025-08-17T21:54:08.000Z",
+      user: null,
+      driver: {
+        id: "2d5149bb-78a4-41ce-9717-d9ce780b9af2",
+        firstName: "Mshelia",
+        lastName: "Promise",
+        phone: "+2349032259456"
+      },
+      container: null,
+      paymentMethod: "bank_transfer"
     }
 
-    return NextResponse.json({ shipment })
+    return NextResponse.json({ 
+      success: true, 
+      data: shipment 
+    })
   } catch (error) {
     console.error("Error fetching shipment:", error)
     return NextResponse.json({ error: "Failed to fetch shipment" }, { status: 500 })
